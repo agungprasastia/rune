@@ -201,8 +201,8 @@ func TestThemePickerSystemCommitPreservesTerminalCanvas(t *testing.T) {
 	if m.themeMode != themeSystem {
 		t.Fatalf("committed mode = %q, want system", m.themeMode)
 	}
-	if _, ok := runeTheme.bgPanel.(lipgloss.NoColor); !ok {
-		t.Fatalf("system theme background = %T, want lipgloss.NoColor", runeTheme.bgPanel)
+	if _, ok := runeTheme.bgPanel.(lipgloss.NoColor); ok {
+		t.Fatalf("system theme panel remained transparent")
 	}
 }
 

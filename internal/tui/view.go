@@ -172,21 +172,21 @@ func (m model) composerDividerLine(width int) string {
 
 func (m model) composerDividerLineFor(width int, boxWidth int, leftPad int, reserved int) string {
 	model := displayValue(strings.TrimSpace(m.modelName), "no model")
-	// The composer rule is a quiet model reminder above the input. Permission mode
-	// and reasoning effort now live in the persistent status line (the conventional
-	// footer for run-state), so they're not duplicated on this rule.
 	meta := runeTheme.muted.Render(model)
 	metaWidth := lipgloss.Width(meta)
+	prefix := strings.Repeat(" ", leftPad)
+	suffix := strings.Repeat(" ", leftPad+reserved)
 	if boxWidth < 8 {
-		return strings.Repeat(" ", leftPad) + runeTheme.lineStrong.Render(strings.Repeat("─", maxInt(1, boxWidth))) + strings.Repeat(" ", leftPad+reserved)
+		middle := runeTheme.lineStrong.Render(strings.Repeat("─", maxInt(1, boxWidth)))
+		return prefix + withSurfaceBackground(middle, runeTheme.panel) + suffix
 	}
 	if boxWidth < metaWidth+4 {
-		line := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", maxInt(0, boxWidth-2)) + "╯")
-		return strings.Repeat(" ", leftPad) + line + strings.Repeat(" ", leftPad+reserved)
+		middle := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", maxInt(0, boxWidth-2)) + "╯")
+		return prefix + withSurfaceBackground(middle, runeTheme.panel) + suffix
 	}
 	rule := strings.Repeat("─", boxWidth-metaWidth-4)
-	line := runeTheme.lineStrong.Render("╰"+rule+" ") + meta + runeTheme.lineStrong.Render(" ╯")
-	return strings.Repeat(" ", leftPad) + line + strings.Repeat(" ", leftPad+reserved)
+	rawMiddle := runeTheme.lineStrong.Render("╰"+rule+" ") + meta + runeTheme.lineStrong.Render(" ╯")
+	return prefix + withSurfaceBackground(rawMiddle, runeTheme.panel) + suffix
 }
 
 // statusLine renders the bottom readout as ` │ `-separated groups: the run-state
@@ -690,7 +690,7 @@ func renderSuggestionSearchLine(query string, width int) string {
 }
 
 func transparentSurface(style lipgloss.Style) lipgloss.Style {
-	return style
+	return style.Background(runeTheme.bgPanel)
 }
 
 func fillPaletteLine(line string, width int, surface func(lipgloss.Style) lipgloss.Style) string {

@@ -212,7 +212,7 @@ func buildTheme(p palette) tuiTheme {
 		accentColor: col(p.accent),
 		inkColor:    col(p.ink),
 		bgPanel:     col(p.panel),
-		bgCanvas:    col(p.panel),
+		bgCanvas:    col(p.canvas),
 		bgPrompt:    col(p.promptBg),
 		bgSel:       col(p.selBg),
 		bgPerm:      col(p.permBg),
@@ -386,6 +386,8 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 	delBgWord := lipgloss.Color(surfaces.delWord)
 	noColor := lipgloss.NoColor{}
 	canvas := lipgloss.NewStyle().Background(lipgloss.Color(darkPalette.canvas))
+	panel := lipgloss.NewStyle().Background(lipgloss.Color(darkPalette.panel))
+	promptPanel := lipgloss.NewStyle().Background(lipgloss.Color(darkPalette.promptBg))
 	accent := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
 	green := lipgloss.NewStyle().Foreground(greenColor)
 	red := lipgloss.NewStyle().Foreground(redColor)
@@ -437,9 +439,9 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 		permBg:     base,
 		permBorder: amber,
 
-		panel:           base,
+		panel:           panel,
 		canvas:          canvas,
-		userPromptPanel: base,
+		userPromptPanel: promptPanel,
 
 		modeAuto:   green.Bold(true),
 		modeAsk:    amber,
@@ -448,9 +450,9 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 
 		accentColor: accentColor,
 		inkColor:    noColor,
-		bgPanel:     noColor,
+		bgPanel:     lipgloss.Color(darkPalette.panel),
 		bgCanvas:    lipgloss.Color(darkPalette.canvas),
-		bgPrompt:    noColor,
+		bgPrompt:    lipgloss.Color(darkPalette.promptBg),
 		bgSel:       selectionBg,
 		bgPerm:      noColor,
 	}

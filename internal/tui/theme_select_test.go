@@ -181,8 +181,8 @@ func TestApplyThemeResolution(t *testing.T) {
 			t.Errorf("applyTheme(%q, darkBg=%v) = %q, want %q", c.mode, c.darkBg, got, c.want)
 		}
 		if c.wantInk == "" {
-			if _, ok := runeTheme.bgPanel.(lipgloss.NoColor); !ok {
-				t.Errorf("applyTheme(%q,%v): system mode painted canvas with %T", c.mode, c.darkBg, runeTheme.bgPanel)
+			if _, ok := runeTheme.bgPanel.(lipgloss.NoColor); ok {
+				t.Errorf("applyTheme(%q,%v): system mode left panel transparent", c.mode, c.darkBg)
 			}
 			continue
 		}

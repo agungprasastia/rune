@@ -42,14 +42,14 @@ var lightSystemSurfaces = systemSurfacePalette{
 // painted — so no token references it.
 var darkPalette = palette{
 	canvas:    "#070708",
-	panel:     "#0e0e10",
-	promptBg:  "#262626",
-	line:      "#242429",
-	line2:     "#414147",
+	panel:     "#202126",
+	promptBg:  "#292a31",
+	line:      "#30323b",
+	line2:     "#4a4d58",
 	ink:       "#ececee",
 	muted:     "#9a9aa2", // secondary text — lifted so it clearly out-ranks faint
 	faint:     "#8a8a92", // hints/metadata — nudged up to separate from faintest
-	faintest:  "#7c7c82", // line numbers/separators — pinned at the WCAG-AA floor on the dark panel
+	faintest:  "#88888e", // line numbers/separators — readable on the elevated dark panel
 	accent:    "#caff3f", // original bright lime (the brand accent)
 	green:     "#5dd1a4",
 	red:       "#ff7a7a",

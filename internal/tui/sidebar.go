@@ -612,10 +612,10 @@ func (m model) renderContextSidebar(width, height int) []string {
 
 	// Normalize every row to exactly width cells.
 	for i := range lines {
-		lines[i] = padStyledLine(lines[i], width)
+		lines[i] = padStyledSurfaceLine(lines[i], width, runeTheme.panel)
 	}
 	for len(lines) < height {
-		lines = append(lines, strings.Repeat(" ", width))
+		lines = append(lines, withSurfaceBackground(strings.Repeat(" ", width), runeTheme.panel))
 	}
 	if len(lines) > height {
 		lines = lines[:height]

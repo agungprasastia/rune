@@ -3548,6 +3548,39 @@ func padStyledLine(line string, width int) string {
 	return line
 }
 
+func surfaceBackgroundSeqs(surface lipgloss.Style) (open, close string) {
+	sample := surface.Render("x")
+	idx := strings.Index(sample, "x")
+	if idx < 0 {
+		return "", ""
+	}
+	return sample[:idx], sample[idx+1:]
+}
+
+func withSurfaceBackground(s string, surface lipgloss.Style) string {
+	open, close := surfaceBackgroundSeqs(surface)
+	if open == "" {
+		return s
+	}
+	// Patch every ANSI reset so the surface background persists across
+	// styled segments. Lipgloss emits "\x1b[m", but raw ANSI may use "\x1b[0m".
+	// Use a single-pass replacer to avoid double-patching a replacement that
+	// itself contains "\x1b[m".
+	repl := strings.NewReplacer("\x1b[0m", close+open, "\x1b[m", close+open)
+	s = repl.Replace(s)
+	return open + s + close
+}
+
+func padStyledSurfaceLine(line string, width int, surface lipgloss.Style) string {
+	if width <= 0 {
+		return ""
+	}
+	line = fitStyledLine(line, width)
+	pad := maxInt(0, width-lipgloss.Width(line))
+	full := line + strings.Repeat(" ", pad)
+	return withSurfaceBackground(full, surface)
+}
+
 func viewLines(value string) []string {
 	if value == "" {
 		return nil
@@ -4287,32 +4320,37 @@ func (m model) composerBox(width int) string {
 	leftPadText := strings.Repeat(" ", leftPad)
 
 	rendered := make([]string, 0, len(lines)+3)
-	rendered = append(rendered, leftPadText+runeTheme.line.Render("╭"+strings.Repeat("─", boxWidth-2)+"╮")+strings.Repeat(" ", leftPad)+rightPad)
+	topMiddle := runeTheme.line.Render("╭" + strings.Repeat("─", boxWidth-2) + "╮")
+	rendered = append(rendered, leftPadText+withSurfaceBackground(topMiddle, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
 	// On graphics-capable terminals the first image receives a real thumbnail in
 	// this compact strip. Text-only terminals retain the numbered chip row below.
 	if m.attachmentThumbnailVisible(width) {
 		for _, line := range m.attachmentThumbnailLines(innerWidth) {
 			fitted := fitStyledLine(line, innerWidth)
-			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, leftPadText+runeTheme.panel.Render("│ ")+fitted+pad+runeTheme.panel.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
+			padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
+			rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
+			rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
 		}
 		// A thumbnail gallery makes the first few attachments visible. Keep a compact
 		// numbered row whenever there is more than one item (or a document), so the
 		// rest of a longer batch is never silently hidden.
 		if chips := m.attachmentThumbnailSupplementalChips(); chips != "" {
 			fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
-			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, leftPadText+runeTheme.panel.Render("│ ")+fitted+pad+runeTheme.panel.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
+			padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
+			rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
+			rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
 		}
 	} else if chips := renderAttachmentChips(m.pendingImageLabels, m.pendingDocuments); chips != "" {
 		fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
-		pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-		rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
+		padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
+		rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
+		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
 	}
 	for _, line := range lines {
 		fitted := fitStyledLine(line, innerWidth)
-		pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-		rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
+		padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
+		rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
+		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
 	}
 	rendered = append(rendered, m.composerDividerLineFor(width, boxWidth, leftPad, reserved))
 	return strings.Join(rendered, "\n")

@@ -2016,6 +2016,9 @@ func toolCard(head string, glyph string, body []string, footer string, _ lipglos
 		pad := strings.Repeat(" ", maxInt(0, width-lipgloss.Width(fittedFooter)))
 		lines = append(lines, runeTheme.panel.Render(fittedFooter+pad))
 	}
+	for index := range lines {
+		lines[index] = runeTheme.panel.Render(lines[index])
+	}
 	return strings.Join(lines, "\n")
 }
 
