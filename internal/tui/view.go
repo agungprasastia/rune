@@ -690,7 +690,11 @@ func renderSuggestionSearchLine(query string, width int) string {
 }
 
 func transparentSurface(style lipgloss.Style) lipgloss.Style {
-	return style.Background(runeTheme.bgPanel)
+	return style.Background(runeTheme.bgOverlay)
+}
+
+func overlaySurface(style lipgloss.Style) lipgloss.Style {
+	return style.Background(runeTheme.bgOverlay)
 }
 
 func fillPaletteLine(line string, width int, surface func(lipgloss.Style) lipgloss.Style) string {

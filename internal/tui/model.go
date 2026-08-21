@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -2969,9 +2970,73 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+const (
+	minTerminalWidth  = 50
+	minTerminalHeight = 12
+	// gate thresholds are lower than the recommended minimum so that the
+	// "too small" overlay only appears on extremely tiny terminals (e.g. 20×8)
+	// and does not interfere with tierTiny layouts or width-24 view tests.
+	gateMinWidth  = 20
+	gateMinHeight = 8
+)
+
+func (m model) terminalTooSmall() bool {
+	if m.width > 0 && m.width < gateMinWidth {
+		return true
+	}
+	if m.height > 0 && m.height < gateMinHeight {
+		return true
+	}
+	return false
+}
+
+func (m model) renderTooSmall(width, height int) string {
+	// Responsive detail: short format on narrow terminals so the gate itself
+	// never overflows the available width (the view-width test asserts this).
+	detailText := formatTerminalSize(width, height) + " — need " + formatTerminalSize(minTerminalWidth, minTerminalHeight)
+	if width > 0 && lipgloss.Width(detailText) > width {
+		detailText = strconv.Itoa(width) + "×" + strconv.Itoa(height) + "→" + strconv.Itoa(minTerminalWidth) + "×" + strconv.Itoa(minTerminalHeight)
+	}
+	msg := fitStyledLine(runeTheme.amber.Bold(true).Render("Terminal too small"), maxInt(1, width))
+	detail := fitStyledLine(runeTheme.muted.Render(detailText), maxInt(1, width))
+	hintText := "Resize to continue"
+	if width > 0 && lipgloss.Width(hintText) > width {
+		hintText = "Resize"
+	}
+	hint := fitStyledLine(runeTheme.faint.Render(hintText), maxInt(1, width))
+	block := msg + "\n" + detail + "\n" + hint
+	// Center in available area
+	if width < 10 {
+		width = 10
+	}
+	if height < 3 {
+		height = 3
+	}
+	lines := strings.Split(block, "\n")
+	// Pad to center vertically
+	top := maxInt(0, (height-len(lines))/2)
+	out := make([]string, 0, height)
+	for i := 0; i < top; i++ {
+		out = append(out, "")
+	}
+	for _, line := range lines {
+		out = append(out, centerRenderedBlock(line, width))
+	}
+	return strings.Join(out, "\n")
+}
+
+func formatTerminalSize(w, h int) string {
+	if w <= 0 || h <= 0 {
+		return "unknown size"
+	}
+	return strings.TrimSpace(strings.Join([]string{strings.TrimSpace(strconv.Itoa(w)), "×", strings.TrimSpace(strconv.Itoa(h))}, ""))
+}
+
 func (m model) View() tea.View {
 	var content string
-	if m.setup.visible {
+	if m.terminalTooSmall() {
+		content = m.renderTooSmall(m.width, m.height)
+	} else if m.setup.visible {
 		content = m.setupView(chatWidth(m.width))
 	} else if m.helpOverlay || m.leaderHelpOverlay || !m.transcriptDetailed {
 		// When helpOverlay / leaderHelpOverlay is active the panel is composited into
@@ -3242,19 +3307,22 @@ func (m model) composerIdleHint() string {
 	case tierTiny:
 		return "" // too cramped for a hint
 	case tierNarrow:
-		hint = "? shortcuts"
+		// L0: universal - help + send
+		hint = "[?]help [Enter]send"
 	case tierMedium:
-		parts := []string{"? shortcuts", "Ctrl+X cmds"}
+		// L0 + L1: add command palette + panel toggle
+		parts := []string{"[?]help", "[Enter]send", "[Ctrl+X]cmds"}
 		if m.runDetailsAvailable() {
-			parts = append(parts, sidebarKey+" details")
+			parts = append(parts, "["+sidebarKey+"]details")
 		}
 		hint = strings.Join(parts, " · ")
 	default:
-		parts := []string{"? shortcuts", "Ctrl+X cmds"}
+		// L0 + L1 + L2: add detail/mouse/mode
+		parts := []string{"[?]help", "[Enter]send", "[Ctrl+X]cmds"}
 		if m.runDetailsAvailable() {
-			parts = append(parts, sidebarKey+" details")
+			parts = append(parts, "["+sidebarKey+"]details")
 		}
-		parts = append(parts, detailKey+" detail", mouseKey+" copy", "Shift+Tab mode")
+		parts = append(parts, "["+detailKey+"]detail", "["+mouseKey+"]copy", "[Shift+Tab]mode")
 		hint = strings.Join(parts, " · ")
 	}
 	return runeTheme.faint.Render(hint)

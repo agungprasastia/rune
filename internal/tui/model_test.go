@@ -2643,7 +2643,7 @@ func TestComposerIdleHintAndJumpCue(t *testing.T) {
 
 			// Idle, empty composer, managed mode -> the discoverability hint shows.
 			hint := plainRender(t, idle.composerIdleHint())
-			if !strings.Contains(hint, "shortcuts") {
+			if !strings.Contains(hint, "shortcuts") && !strings.Contains(hint, "help") {
 				t.Fatalf("expected idle hint, got %q", hint)
 			}
 			if strings.Contains(hint, "sidebar") {
@@ -2652,7 +2652,7 @@ func TestComposerIdleHintAndJumpCue(t *testing.T) {
 
 			withDetails := idle
 			withDetails.plan.steps = []planStep{{content: "inspect footer", status: "in_progress"}}
-			if hint := plainRender(t, withDetails.composerIdleHint()); !strings.Contains(hint, "Ctrl+B details") {
+			if hint := plainRender(t, withDetails.composerIdleHint()); !strings.Contains(hint, "Ctrl+B") || !strings.Contains(hint, "details") {
 				t.Fatalf("available run details should be advertised, got %q", hint)
 			}
 		})

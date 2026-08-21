@@ -80,6 +80,7 @@ type tuiTheme struct {
 	panel           lipgloss.Style // bare panel background (card padding, body fill)
 	canvas          lipgloss.Style // full terminal canvas background
 	userPromptPanel lipgloss.Style // submitted user prompt background
+	overlay         lipgloss.Style // popup/overlay background (lighter than panel for depth)
 
 	// Permission modes.
 	modeAuto   lipgloss.Style
@@ -96,6 +97,7 @@ type tuiTheme struct {
 	bgPanel     color.Color
 	bgCanvas    color.Color
 	bgPrompt    color.Color
+	bgOverlay   color.Color
 	bgSel       color.Color
 	bgPerm      color.Color
 }
@@ -200,6 +202,7 @@ func buildTheme(p palette) tuiTheme {
 		panel:           lipgloss.NewStyle().Background(col(p.panel)),
 		canvas:          lipgloss.NewStyle().Background(col(p.canvas)),
 		userPromptPanel: lipgloss.NewStyle().Background(col(p.promptBg)),
+		overlay:         lipgloss.NewStyle().Background(col(p.promptBg)),
 
 		modeAuto: fg(p.green).Bold(true),
 		// The steady "ask" footer label is calm (un-bolded) so it doesn't compete
@@ -214,6 +217,7 @@ func buildTheme(p palette) tuiTheme {
 		bgPanel:     col(p.panel),
 		bgCanvas:    col(p.canvas),
 		bgPrompt:    col(p.promptBg),
+		bgOverlay:   col(p.promptBg),
 		bgSel:       col(p.selBg),
 		bgPerm:      col(p.permBg),
 	}
@@ -442,6 +446,7 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 		panel:           panel,
 		canvas:          canvas,
 		userPromptPanel: promptPanel,
+		overlay:         promptPanel,
 
 		modeAuto:   green.Bold(true),
 		modeAsk:    amber,
@@ -453,6 +458,7 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 		bgPanel:     lipgloss.Color(darkPalette.panel),
 		bgCanvas:    lipgloss.Color(darkPalette.canvas),
 		bgPrompt:    lipgloss.Color(darkPalette.promptBg),
+		bgOverlay:   lipgloss.Color(darkPalette.promptBg),
 		bgSel:       selectionBg,
 		bgPerm:      noColor,
 	}
@@ -470,6 +476,12 @@ var runeTheme = buildTheme(darkPalette)
 // their foreground styles through this instead of referencing hex.
 func (t tuiTheme) onPanel(style lipgloss.Style) lipgloss.Style {
 	return style.Background(t.bgPanel)
+}
+
+// onOverlay paints on the overlay surface (popups, pickers, help). One step
+// lighter than panel per background layering (base → surface → overlay, ~5-8%).
+func (t tuiTheme) onOverlay(style lipgloss.Style) lipgloss.Style {
+	return style.Background(t.bgOverlay)
 }
 
 // onSel paints on the selected-row tint.
