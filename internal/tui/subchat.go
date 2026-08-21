@@ -1,6 +1,10 @@
 package tui
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	"rune/internal/sessions"
 )
 
@@ -53,9 +57,49 @@ func (s *subchatState) exit() int {
 // renderSubchatNavBar renders the navigation bar shown at the top of the
 // subchat view, telling the user how to get back to the main chat.
 func renderSubchatNavBar(title string, width int) string {
-	nav := "← Back to main chat (ArrowUp/Esc)"
+	nav := "← Back to main chat"
 	if title != "" {
 		nav += "  ·  " + truncateRunes(title, width-40)
 	}
 	return runeTheme.accent.Render(nav)
+}
+
+func (m model) subchatHeader(width int) string {
+	info, ok := m.specialists.getBySessionID(m.subchat.childSessionID)
+	if !ok {
+		return renderSubchatNavBar(m.subchat.childSessionTitle, width)
+	}
+	name := strings.TrimSpace(info.name)
+	if name == "" {
+		name = "specialist"
+	}
+	task := strings.TrimSpace(info.description)
+	if task == "" {
+		task = "Task details unavailable"
+	}
+	status := "Failed"
+	if info.status == specialistRunning {
+		status = "Running"
+	} else if info.status == specialistCompleted {
+		status = "Completed"
+	}
+	var elapsed time.Duration
+	if info.status == specialistRunning {
+		elapsed = m.now().Sub(info.startedAt)
+	} else {
+		elapsed = info.completedAt.Sub(info.startedAt)
+	}
+	lines := []string{
+		renderSubchatNavBar("", width),
+		"",
+		runeTheme.ink.Bold(true).Render(name),
+		fitStyledLine(runeTheme.muted.Render(task), width),
+		"",
+		runeTheme.accent.Render(fmt.Sprintf("%s · %s", status, formatSpecialistElapsed(elapsed))),
+	}
+	return strings.Join(lines, "\n")
+}
+
+func (m model) subchatFooter(width int) string {
+	return fitStyledLine(runeTheme.faint.Render("Esc back   ↑ back   Ctrl+P commands"), width)
 }

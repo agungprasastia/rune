@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -28,6 +29,30 @@ func TestFooterDoesNotPinPlanDuringSubchat(t *testing.T) {
 	withSubchat := m.footerView(width)
 	if strings.Contains(withSubchat, "Step number 1 here") {
 		t.Fatalf("plan must not appear in a child-session footer, got:\n%s", withSubchat)
+	}
+}
+
+func TestSubchatIsReadOnlyAndOmitsComposer(t *testing.T) {
+	m := newModel(context.Background(), Options{})
+	m.altScreen = true
+	m.width, m.height = 100, 30
+	m.subchat.active = true
+	m.subchat.childSessionID = "child-1"
+	m.subchat.childRows = appendRow(nil, rowAssistant, "child result")
+
+	updated, _ := m.Update(testKey('x'))
+	m = updated.(model)
+	if got := m.composerValue(); got != "" {
+		t.Fatalf("typing in subchat mutated composer: %q", got)
+	}
+	updated, _ = m.Update(tea.PasteMsg{Content: "pasted"})
+	m = updated.(model)
+	if got := m.composerValue(); got != "" {
+		t.Fatalf("paste in subchat mutated composer: %q", got)
+	}
+	view := plainRender(t, m.View())
+	if strings.Contains(view, composerPlaceholder) {
+		t.Fatalf("subchat rendered main composer: %q", view)
 	}
 }
 

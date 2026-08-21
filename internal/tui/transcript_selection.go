@@ -1150,7 +1150,7 @@ func (m model) transcriptHitTestSource() (header string, items []transcriptBodyI
 	}
 	if m.subchat.active {
 		width = chatWidth(m.width)
-		return renderSubchatNavBar(m.subchat.childSessionTitle, width), m.transcriptBodyItemsFromRows(m.subchat.childRows, width), width
+		return m.subchatHeader(width), m.transcriptBodyItemsFromRows(m.subchat.childRows, width), width
 	}
 	width = m.chatColumnWidth()
 	return m.pinnedTitleBar(width), m.transcriptBodyItems(width, "", false), width
@@ -1169,6 +1169,9 @@ func (m model) transcriptHitTestBlocked() bool {
 func (m model) transcriptHitTestLayout() (frame ShellLayout, window transcriptViewportWindow, layout transcriptBodyLayout) {
 	header, items, width := m.transcriptHitTestSource()
 	footer := m.footerView(width)
+	if m.subchat.active {
+		footer = m.subchatFooter(width)
+	}
 	if m.transcriptDetailed {
 		footer = m.detailedTranscriptFooter(width)
 	}

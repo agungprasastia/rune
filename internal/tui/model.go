@@ -1459,6 +1459,9 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m.attachClipboardImage(msg.data, msg.mediaType), nil
 	case tea.PasteMsg:
+		if m.subchat.active {
+			return m, nil
+		}
 		// A paste into the cloud-STT key prompt fills the key (the common way to
 		// enter an API key), not the composer.
 		if m.sttKeyPrompt != nil {
@@ -1553,6 +1556,10 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.helpOverlay = false
 			}
 			m.burstCount = 0
+			return m, nil
+		}
+		// Specialist drill-in is read-only. Prevent hidden composer routing.
+		if m.subchat.active && !keyIs(msg, tea.KeyEsc) && !keyIs(msg, tea.KeyUp) && !keyCtrl(msg, 'c') {
 			return m, nil
 		}
 		// Ctrl+X ? leader-chord map: same dismiss keys as the general help overlay.
@@ -3036,9 +3043,9 @@ func (m model) transcriptView() string {
 	// Subchat drill-in: when active, show the child session's transcript with
 	// a nav bar instead of the main chat.
 	if m.subchat.active {
-		navBar := renderSubchatNavBar(m.subchat.childSessionTitle, width)
+		navBar := m.subchatHeader(width)
 		childBodyItems := m.transcriptBodyItemsFromRows(m.subchat.childRows, width)
-		footer := m.footerView(width)
+		footer := m.subchatFooter(width)
 		if m.altScreen && m.height > 0 {
 			return m.composeLayout(m.scrollableTranscriptItemsView(navBar, childBodyItems, footer, width, ""))
 		}
@@ -3302,7 +3309,9 @@ func (m model) scrollableTranscriptFrame(header string, footer string) ShellLayo
 	frame.Main = m.layout().Main
 	frame.Sidebar = m.layout().Sidebar
 	frame.Mode = m.layout().Mode
-	frame.composerRect = frame.footerSubrect(viewLines(m.composerBox(width)))
+	if !m.subchat.active {
+		frame.composerRect = frame.footerSubrect(viewLines(m.composerBox(width)))
+	}
 	if len(fullFooterLines) > 0 {
 		frame.statusRect = frame.footerLineRect(len(fullFooterLines) - 1)
 	}
