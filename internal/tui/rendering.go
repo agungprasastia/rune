@@ -410,7 +410,7 @@ func sayMeasure(width int) int {
 // terminals — long measures hurt readability past the ~90-100 col sweet spot.
 // Looser than sayMeasure's 74 (this is the main answer); tables and code blocks
 // still use the full chat width (the separate tableMeasure arg).
-const assistantMeasureCap = 96
+const assistantMeasureCap = 116
 
 // assistantMeasure is the main answer prose wrap width: the chat width, capped at
 // assistantMeasureCap, with a 16-col floor. Left-aligned (the cap just shortens
@@ -1482,7 +1482,7 @@ func renderAskUserWaitingState(title string, width int, fill func(lipgloss.Style
 
 // cardBodyMaxLines caps every card body; hidden lines collapse into a
 // "… N more lines" trailer.
-const cardBodyMaxLines = 16
+const cardBodyMaxLines = 12
 
 // cardBody is what a result-shape renderer hands back: body lines, an
 // optional footer embedded in the bottom border, optional extra head metadata

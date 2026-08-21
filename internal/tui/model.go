@@ -340,6 +340,7 @@ type model struct {
 	// shrinking the conversation surface.
 	runDetailsOpen bool
 	sidebarHidden  bool
+	sidebarMode    SidebarMode
 	// selectedFile is the touched file selected from a file summary: its edit
 	// cards tint in the chat (rowTouchesSelectedFile) and a second click opens
 	// the drill-in file view. "" when nothing is selected; Esc clears.
@@ -1084,7 +1085,7 @@ func (m model) doctorOptions(connectivity bool) doctor.Options {
 
 const (
 	composerPlaceholder     = "describe a task for rune…"
-	composerMaxVisibleLines = 4
+	composerMaxVisibleLines = 7
 )
 
 // composerCursorBlinkInterval is the on/off period of the composer text cursor.
@@ -3036,7 +3037,7 @@ func (m model) transcriptView() string {
 		childBodyItems := m.transcriptBodyItemsFromRows(m.subchat.childRows, width)
 		footer := m.footerView(width)
 		if m.altScreen && m.height > 0 {
-			return m.scrollableTranscriptItemsView(navBar, childBodyItems, footer, width, "")
+			return m.composeLayout(m.scrollableTranscriptItemsView(navBar, childBodyItems, footer, width, ""))
 		}
 		bodyLayout := layoutTranscriptBodyItems(childBodyItems)
 		body := navBar + "\n\n" + bodyLayout.String()
@@ -3098,7 +3099,7 @@ func (m model) transcriptView() string {
 	// chat message, the way todo/plan updates render inline.
 	if m.altScreen && m.height > 0 {
 		header := m.pinnedTitleBar(width)
-		return m.scrollableTranscriptItemsView(header, bodyItems, footer, width, overlayForViewport)
+		return m.composeLayout(m.scrollableTranscriptItemsView(header, bodyItems, footer, width, overlayForViewport))
 	}
 
 	bodyLayout := layoutTranscriptBodyItems(bodyItems)
@@ -4247,20 +4248,27 @@ func (m model) composerBox(width int) string {
 	}
 	reserved := m.petComposerReservedColumns(width)
 	boxWidth := width - reserved
+	leftPad := 0
+	if m.transcriptEmpty() && m.noBlockingModal() && m.composerValue() == "" && strings.TrimSpace(m.copyStatus) == "" {
+		boxWidth = clampInt(width*45/100, 44, 72)
+		boxWidth = minInt(boxWidth, width-reserved)
+		leftPad = maxInt(0, (width-reserved-boxWidth)/2)
+	}
 	innerWidth := maxInt(1, boxWidth-4)
 	content := m.composerLine(innerWidth)
 	lines := strings.Split(content, "\n")
 	rightPad := strings.Repeat(" ", reserved)
+	leftPadText := strings.Repeat(" ", leftPad)
 
 	rendered := make([]string, 0, len(lines)+3)
-	rendered = append(rendered, runeTheme.lineStrong.Render("╭"+strings.Repeat("─", boxWidth-2)+"╮")+rightPad)
+	rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("╭"+strings.Repeat("─", boxWidth-2)+"╮")+strings.Repeat(" ", leftPad)+rightPad)
 	// On graphics-capable terminals the first image receives a real thumbnail in
 	// this compact strip. Text-only terminals retain the numbered chip row below.
 	if m.attachmentThumbnailVisible(width) {
 		for _, line := range m.attachmentThumbnailLines(innerWidth) {
 			fitted := fitStyledLine(line, innerWidth)
 			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
+			rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
 		}
 		// A thumbnail gallery makes the first few attachments visible. Keep a compact
 		// numbered row whenever there is more than one item (or a document), so the
@@ -4268,19 +4276,19 @@ func (m model) composerBox(width int) string {
 		if chips := m.attachmentThumbnailSupplementalChips(); chips != "" {
 			fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
 			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
+			rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
 		}
 	} else if chips := renderAttachmentChips(m.pendingImageLabels, m.pendingDocuments); chips != "" {
 		fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
 		pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-		rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
+		rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
 	}
 	for _, line := range lines {
 		fitted := fitStyledLine(line, innerWidth)
 		pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-		rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
+		rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
 	}
-	rendered = append(rendered, m.composerDividerLine(width))
+	rendered = append(rendered, m.composerDividerLineFor(width, boxWidth, leftPad, reserved))
 	return strings.Join(rendered, "\n")
 }
 

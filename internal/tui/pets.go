@@ -612,6 +612,9 @@ func resizePetCoordinate(value, oldMaximum, newMaximum, edgeThreshold int) int {
 }
 
 func (m model) petHomePosition(width, height int) (int, int) {
+	if layout := m.layout(); layout.SidebarVisible() {
+		width = layout.MainWidth()
+	}
 	maxX := maxInt(0, width-petImageColumns)
 	maxY := maxInt(0, height-petImageRows)
 	return clampInt(width-petImageColumns-2, 0, maxX), clampInt(height-petImageRows-1, 0, maxY)

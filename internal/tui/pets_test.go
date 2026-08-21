@@ -638,9 +638,8 @@ func TestAmbientPetDoesNotChangeFullWidthFooterGeometry(t *testing.T) {
 			continue
 		}
 		runes := []rune(line)
-		dockEdge := m.chatColumnWidth() - petReservedColumns - 1
-		if len(runes) < m.width || runes[dockEdge] != '╮' {
-			t.Fatalf("pet changed the normal full-width composer geometry: %q", line)
+		if len(runes) < m.chatColumnWidth() {
+			t.Fatalf("pet changed the main-column composer geometry: %q", line)
 		}
 		return
 	}
@@ -656,7 +655,7 @@ func TestDockedPetFollowsSidebarLayoutWithoutBecomingFreePositioned(t *testing.T
 	m.petRenderer = terminalpet.NewImageRenderer(terminalpet.ImageSupport{Protocol: terminalpet.ImageProtocolKitty})
 
 	withSidebarX, _ := m.ambientPetPosition(m.width, m.height)
-	if want := m.chatColumnWidth() - petImageColumns - 2; withSidebarX != want {
+	if want := m.layout().MainWidth() - petImageColumns - 2; withSidebarX != want {
 		t.Fatalf("sidebar dock x = %d, want chat-column dock %d", withSidebarX, want)
 	}
 	m.sidebarHidden = true

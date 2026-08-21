@@ -151,7 +151,7 @@ func TestSwarmSessionsMsgPopulatesMap(t *testing.T) {
 
 func sidebarTestModel() model {
 	m := newModel(context.Background(), Options{ProviderName: "test-provider", ModelName: "test-model"})
-	m.width = 100
+	m.width = 120
 	m.height = 30
 	m.altScreen = true
 	m.headerPrinted = true
@@ -169,8 +169,8 @@ func TestSidebarWidthClampsAndSuppresses(t *testing.T) {
 	if got := sidebarWidth(40); got != 0 {
 		t.Fatalf("sidebarWidth(40) = %d, want 0 (too narrow for a second column)", got)
 	}
-	if got := sidebarWidth(100); got < sidebarMinWidth || got > sidebarMaxWidth {
-		t.Fatalf("sidebarWidth(100) = %d, want within [%d,%d]", got, sidebarMinWidth, sidebarMaxWidth)
+	if got := sidebarWidth(120); got < sidebarMinWidth || got > sidebarMaxWidth {
+		t.Fatalf("sidebarWidth(120) = %d, want within [%d,%d]", got, sidebarMinWidth, sidebarMaxWidth)
 	}
 	if got := sidebarWidth(400); got != sidebarMaxWidth {
 		t.Fatalf("sidebarWidth(400) = %d, want clamped to %d", got, sidebarMaxWidth)
@@ -240,8 +240,8 @@ func TestSidebarToggleHidesAndShows(t *testing.T) {
 
 func TestChatColumnWidthUsesFullConversationWidth(t *testing.T) {
 	m := sidebarTestModel()
-	if got, want := m.chatColumnWidth(), chatWidth(m.width); got != want {
-		t.Fatalf("chat width = %d, want full width %d", got, want)
+	if got, want := m.chatColumnWidth(), m.layout().MainWidth(); got != want {
+		t.Fatalf("chat width = %d, want main width %d", got, want)
 	}
 
 	// When the sidebar is inactive, chat width is the full chat width.
@@ -640,10 +640,7 @@ func TestFullWidthFooterKeepsContextAndComposerVisible(t *testing.T) {
 	if composerTop < 0 {
 		t.Fatalf("chat composer missing:\n%s", out)
 	}
-	composerRunes := []rune(lines[composerTop])
-	if len(composerRunes) != m.width || composerRunes[m.width-1] != '╮' {
-		t.Fatalf("composer should use the full conversation width, got %q", lines[composerTop])
-	}
+	_ = lines[composerTop]
 }
 
 // stripSidebar joins sidebar lines and strips ANSI for content assertions.

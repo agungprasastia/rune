@@ -167,24 +167,26 @@ func (m model) titleModelSegment() string {
 }
 
 func (m model) composerDividerLine(width int) string {
+	return m.composerDividerLineFor(width, width-m.petComposerReservedColumns(width), 0, m.petComposerReservedColumns(width))
+}
+
+func (m model) composerDividerLineFor(width int, boxWidth int, leftPad int, reserved int) string {
 	model := displayValue(strings.TrimSpace(m.modelName), "no model")
 	// The composer rule is a quiet model reminder above the input. Permission mode
 	// and reasoning effort now live in the persistent status line (the conventional
 	// footer for run-state), so they're not duplicated on this rule.
 	meta := runeTheme.muted.Render(model)
 	metaWidth := lipgloss.Width(meta)
-	reserved := m.petComposerReservedColumns(width)
-	availableWidth := width - reserved
-	if width < 8 {
-		return runeTheme.lineStrong.Render(strings.Repeat("─", width))
+	if boxWidth < 8 {
+		return strings.Repeat(" ", leftPad) + runeTheme.lineStrong.Render(strings.Repeat("─", maxInt(1, boxWidth))) + strings.Repeat(" ", leftPad+reserved)
 	}
-	if availableWidth < metaWidth+4 {
-		line := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", availableWidth-2) + "╯")
-		return line + strings.Repeat(" ", reserved)
+	if boxWidth < metaWidth+4 {
+		line := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", maxInt(0, boxWidth-2)) + "╯")
+		return strings.Repeat(" ", leftPad) + line + strings.Repeat(" ", leftPad+reserved)
 	}
-	rule := strings.Repeat("─", availableWidth-metaWidth-4)
+	rule := strings.Repeat("─", boxWidth-metaWidth-4)
 	line := runeTheme.lineStrong.Render("╰"+rule+" ") + meta + runeTheme.lineStrong.Render(" ╯")
-	return line + strings.Repeat(" ", reserved)
+	return strings.Repeat(" ", leftPad) + line + strings.Repeat(" ", leftPad+reserved)
 }
 
 // statusLine renders the bottom readout as ` │ `-separated groups: the run-state

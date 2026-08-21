@@ -43,6 +43,8 @@ type transcriptRow struct {
 	permission *agent.PermissionEvent
 	askUser    *agent.AskUserRequest
 	expanded   bool // collapsible transcript rows, e.g. provider thoughts
+	execution  ExecutionState
+	display    DisplayState
 
 	// changedFiles lists the workspace-relative paths a mutating tool result
 	// wrote (from tools.Result.ChangedFiles; restored from the session payload on

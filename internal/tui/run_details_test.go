@@ -20,7 +20,7 @@ func TestRunDetailsOverlaySurfacesCurrentState(t *testing.T) {
 
 func TestRunDetailsTogglePreservesFullWidthTranscript(t *testing.T) {
 	m := sidebarTestModel()
-	if got, want := m.chatColumnWidth(), chatWidth(m.width); got != want {
+	if got, want := m.chatColumnWidth(), m.layout().MainWidth(); got != want {
 		t.Fatalf("chat width before details = %d, want %d", got, want)
 	}
 	updated, _ := m.Update(testKeyCtrl('b'))
@@ -28,7 +28,7 @@ func TestRunDetailsTogglePreservesFullWidthTranscript(t *testing.T) {
 	if !opened.runDetailsOpen {
 		t.Fatal("Ctrl+B should open run details when the composer is empty")
 	}
-	if got, want := opened.chatColumnWidth(), chatWidth(opened.width); got != want {
+	if got, want := opened.chatColumnWidth(), opened.layout().MainWidth(); got != want {
 		t.Fatalf("chat width with details = %d, want %d", got, want)
 	}
 	updated, _ = opened.Update(testKeyCtrl('b'))

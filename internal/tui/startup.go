@@ -65,11 +65,12 @@ func (m model) emptyStateLines(width int) []string {
 		lines = append(lines, "")
 		lines = append(lines, centerLine(orient, width))
 	}
-	// A couple of example prompts to seed the first message.
+	// Keep empty-state guidance compact: orientation belongs below the wordmark,
+	// while interaction hints stay close to the composer.
 	lines = append(lines, "")
-	lines = append(lines, centerLine(runeTheme.faint.Render(emptyStateExamples), width))
+	lines = append(lines, centerLine(runeTheme.faint.Render("Tab agents   Ctrl+P commands"), width))
 	lines = append(lines, "")
-	lines = append(lines, centerLine(runeTheme.faint.Render("Press ? for keyboard shortcuts · / for commands"), width))
+	lines = append(lines, centerLine(runeTheme.faint.Render("● Tip  Use / for commands"), width))
 	// centerLine pads but never truncates; below ~62 cols the lines would exceed
 	// the frame without this fit.
 	for index := range lines {

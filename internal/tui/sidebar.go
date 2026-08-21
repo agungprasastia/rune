@@ -21,7 +21,7 @@ import (
 const (
 	sidebarMinWidth  = 26
 	sidebarMaxWidth  = 40
-	sidebarMinColumn = 60 // below this total width the sidebar is suppressed
+	sidebarMinColumn = 60 // compact sidebar is available when the main column survives
 )
 
 // sidebarWidth returns the sidebar column width for a given total width, or 0
@@ -38,7 +38,7 @@ func sidebarWidth(total int) int {
 // interactions. The persistent two-column layout is intentionally no longer
 // rendered by transcriptView.
 func (m model) sidebarActive() bool {
-	return !m.sidebarHidden && m.sidebarAvailable()
+	return m.layout().SidebarVisible()
 }
 
 // sidebarAvailable reports whether the two-column layout CAN render: only in
@@ -78,7 +78,7 @@ func (m model) sidebarAvailable() bool {
 	// Mouse hit-testing is unaffected: sidebarLineAtMouse carries its own
 	// suggestionsActive() guard, so clicks still go to the palette and not to the
 	// sidebar rows underneath it.
-	if m.setup.visible || m.helpOverlay || m.leaderHelpOverlay || m.providerWizard != nil || m.mcpAddWizard != nil ||
+	if m.fileView.active || m.setup.visible || m.helpOverlay || m.leaderHelpOverlay || m.providerWizard != nil || m.mcpAddWizard != nil ||
 		m.mcpManager != nil || m.picker != nil || m.renamePrompt != nil {
 		return false
 	}
@@ -117,7 +117,7 @@ func (m model) sidebarHasContent() bool {
 // callers route through this so transcript, composer, and mouse hit-testing
 // share one layout.
 func (m model) chatColumnWidth() int {
-	return chatWidth(m.width)
+	return m.layout().MainWidth()
 }
 
 // transcriptGutter is the left indent applied to transcript body rows. Keep this
