@@ -3158,11 +3158,11 @@ func (m model) footerView(width int) string {
 	// cue on the right when scrolled up. Always one line (blank when nothing shows),
 	// so the footer height is unchanged.
 	if copyStatus := strings.TrimSpace(m.copyStatus); copyStatus != "" {
-		footer.WriteString(rightAlignedLine(zeroTheme.ink.Render(copyStatus), width))
+		footer.WriteString(rightAlignedLine(runeTheme.ink.Render(copyStatus), width))
 	} else if notice := m.transientNoticeLine(width); notice != "" {
 		footer.WriteString(notice)
 	} else if recap := strings.TrimSpace(m.idleRecap); recap != "" {
-		footer.WriteString(fitStyledLine("  "+zeroTheme.faint.Render("※ "+recap), width))
+		footer.WriteString(fitStyledLine("  "+runeTheme.faint.Render("※ "+recap), width))
 	} else if left, right := m.composerIdleHint(), m.jumpToBottomHint(); left != "" || right != "" {
 		footer.WriteString(fitStyledLine(joinHeaderLine("  "+left, right, width), width))
 	}
@@ -3189,7 +3189,7 @@ func (m model) composerIdleHint() string {
 	// Leader-pending is always shown (even mid-type) so the user knows the next
 	// key is a chord, not composer input.
 	if m.leaderPending {
-		return zeroTheme.faint.Render("Ctrl+X — await shortcut (m model · p provider · ? list · Esc cancel)")
+		return runeTheme.faint.Render("Ctrl+X — await shortcut (m model · p provider · ? list · Esc cancel)")
 	}
 	// Managed (alt-screen) mode only: inline mode prints to native scrollback where
 	// this footer row isn't a stable surface. Hidden while typing, during a run, in
@@ -3222,7 +3222,7 @@ func (m model) composerIdleHint() string {
 		parts = append(parts, detailKey+" detail", mouseKey+" copy", "Shift+Tab mode")
 		hint = strings.Join(parts, " · ")
 	}
-	return zeroTheme.faint.Render(hint)
+	return runeTheme.faint.Render(hint)
 }
 
 // jumpToBottomHint returns a faint "↓ N more · PgDn" cue when the transcript is
@@ -3232,7 +3232,7 @@ func (m model) jumpToBottomHint() string {
 	if m.chatScrollOffset <= 0 {
 		return ""
 	}
-	return zeroTheme.faint.Render(fmt.Sprintf("↓ %d more · PgDn", m.chatScrollOffset))
+	return runeTheme.faint.Render(fmt.Sprintf("↓ %d more · PgDn", m.chatScrollOffset))
 }
 
 type tuiRect struct {
@@ -3412,7 +3412,7 @@ func scrimViewportLine(line string, width int) string {
 		return line
 	}
 	if !hasExternalANSIStyle(line) {
-		return zeroTheme.faint.Render(line)
+		return runeTheme.faint.Render(line)
 	}
 
 	const faintSGR = "\x1b[2m"
@@ -3559,7 +3559,7 @@ func (m model) chatTranscriptViewport() (transcriptViewport, bool) {
 	if m.transcriptDetailed {
 		items := m.transcriptBodyItems(width, "", true)
 		body := measureTranscriptBodyItems(items, m.transcriptBodyHeights)
-		header := detailedTranscriptHeader(width) + "\n" + zeroTheme.line.Render(strings.Repeat("-", width))
+		header := detailedTranscriptHeader(width) + "\n" + runeTheme.line.Render(strings.Repeat("-", width))
 		footer := m.detailedTranscriptFooter(width)
 		frame := m.scrollableTranscriptFrame(header, footer)
 		return transcriptViewportForLayout(body, frame, m.chatScrollOffset), true
@@ -3759,21 +3759,21 @@ func (m model) workingStatusLine() string {
 	// Phase label so a long, output-less step reads as live progress rather than a
 	// frozen screen: "writing" while the answer streams, "thinking" otherwise
 	// (reasoning, waiting on the model, or running a tool).
-	line += zeroTheme.faint.Render("  ·  " + m.workingActivity())
+	line += runeTheme.faint.Render("  ·  " + m.workingActivity())
 	if !m.turnStartedAt.IsZero() {
-		line += zeroTheme.faint.Render("  ·  " + formatWorkingElapsed(m.activeTurnElapsed(m.turnStartedAt)))
+		line += runeTheme.faint.Render("  ·  " + formatWorkingElapsed(m.activeTurnElapsed(m.turnStartedAt)))
 	}
 	// Live token estimate so the working line visibly climbs as the model reasons
 	// and writes, instead of a static figure. Shown from the start of the turn (at
 	// 0) so the counter is never missing — the authoritative totals stay in the
 	// status line and sidebar; this is the at-a-glance "it's generating" pulse.
-	line += zeroTheme.faint.Render("  ·  " + m.workingTokenIndicator())
+	line += runeTheme.faint.Render("  ·  " + m.workingTokenIndicator())
 	// If the model has gone quiet (no streamed text, reasoning, OR tool-call output
 	// for a while — common when a provider buffers a large tool call instead of
 	// streaming it), say so plainly with an advancing timer, so a long silent
 	// generation never reads as a frozen screen.
 	if hint := m.quietGenerationHint(); hint != "" {
-		line += zeroTheme.amber.Render("  ·  " + hint)
+		line += runeTheme.amber.Render("  ·  " + hint)
 	}
 	return line
 }
@@ -3870,7 +3870,7 @@ func reasoningPreviewLines(reasoning string, width int) []string {
 	}
 	out := make([]string, 0, len(lines))
 	for _, line := range lines {
-		out = append(out, "  "+zeroTheme.faint.Render(previewTail(line, avail)))
+		out = append(out, "  "+runeTheme.faint.Render(previewTail(line, avail)))
 	}
 	return out
 }
@@ -3893,9 +3893,9 @@ func (m model) appendStreamingCursor(lines []string, width int) []string {
 	// Pulse the caret on the shared spinner clock so the typing edge reads as alive
 	// even during fade-tick gaps or upstream stalls. Width-stable (bright ↔ dim,
 	// never on/off, so the line never jitters). Steady bright under reduced motion.
-	cursor := zeroTheme.accent.Render("▌")
+	cursor := runeTheme.accent.Render("▌")
 	if !m.reducedMotion && (m.spinnerPhase/6)%2 == 1 {
-		cursor = zeroTheme.faint.Render("▌")
+		cursor = runeTheme.faint.Render("▌")
 	}
 	if len(lines) == 0 {
 		return []string{cursor}
@@ -3967,7 +3967,7 @@ func renderComposerInput(input textinput.Model, state composerState, width int, 
 		if cursorVisible {
 			cursor = composerCursor(" ")
 		}
-		return fitStyledLine(composerVisualLinePrefix(input, true)+cursor+zeroTheme.faint.Render(input.Placeholder), width)
+		return fitStyledLine(composerVisualLinePrefix(input, true)+cursor+runeTheme.faint.Render(input.Placeholder), width)
 	}
 
 	segments, cursorLine := composerVisibleVisualLines(input, state, width)
@@ -4058,7 +4058,7 @@ func composerCursorVisualLine(segments []composerVisualLine, cursor int) int {
 func renderComposerVisualLine(input textinput.Model, state composerState, segment composerVisualLine, hasCursor bool, cursorVisible bool, selection composerSelectionState) string {
 	runes := []rune(state.text)
 	prefix := composerVisualLinePrefix(input, segment.first)
-	textStyle := zeroTheme.ink.Inline(true)
+	textStyle := runeTheme.ink.Inline(true)
 	selectionStart, selectionEnd, hasSelection := selection.rangeFor(state)
 	cursorIndex := -1
 	if hasCursor && !hasSelection {
@@ -4073,7 +4073,7 @@ func renderComposerVisualLine(input textinput.Model, state composerState, segmen
 		case index == cursorIndex && cursorVisible:
 			line.WriteString(composerCursor(cell))
 		case hasSelection && index >= selectionStart && index < selectionEnd:
-			line.WriteString(zeroTheme.selection.Render(cell))
+			line.WriteString(runeTheme.selection.Render(cell))
 		default:
 			line.WriteString(textStyle.Render(cell))
 		}
@@ -4086,7 +4086,7 @@ func renderComposerVisualLine(input textinput.Model, state composerState, segmen
 
 func composerVisualLinePrefix(input textinput.Model, first bool) string {
 	if first {
-		return zeroTheme.userPrompt.Render(input.Prompt)
+		return runeTheme.userPrompt.Render(input.Prompt)
 	}
 	return "  "
 }
@@ -4218,19 +4218,19 @@ func commandArgumentHintComposerLine(input textinput.Model, argumentHint string,
 	// This alternate composer path must follow the same caret contract as
 	// renderComposerInput: hidden while the terminal is unfocused and blinking
 	// per composerCursorVisible, not a permanently painted cursor cell.
-	cursor := zeroTheme.faint.Render(string(hintRunes[0]))
+	cursor := runeTheme.faint.Render(string(hintRunes[0]))
 	if cursorVisible {
 		cursor = composerCursor(cursor)
 	}
-	return zeroTheme.userPrompt.Render(input.Prompt) +
-		zeroTheme.ink.Inline(true).Render(displayValue) +
-		zeroTheme.faint.Render(" ") +
+	return runeTheme.userPrompt.Render(input.Prompt) +
+		runeTheme.ink.Inline(true).Render(displayValue) +
+		runeTheme.faint.Render(" ") +
 		cursor +
-		zeroTheme.faint.Render(string(hintRunes[1:]))
+		runeTheme.faint.Render(string(hintRunes[1:]))
 }
 
 func composerCursor(char string) string {
-	return zeroTheme.selection.Render(char)
+	return runeTheme.selection.Render(char)
 }
 
 func commandArgumentHintForInput(value string) string {
@@ -4253,32 +4253,32 @@ func (m model) composerBox(width int) string {
 	rightPad := strings.Repeat(" ", reserved)
 
 	rendered := make([]string, 0, len(lines)+3)
-	rendered = append(rendered, zeroTheme.lineStrong.Render("╭"+strings.Repeat("─", boxWidth-2)+"╮")+rightPad)
+	rendered = append(rendered, runeTheme.lineStrong.Render("╭"+strings.Repeat("─", boxWidth-2)+"╮")+rightPad)
 	// On graphics-capable terminals the first image receives a real thumbnail in
 	// this compact strip. Text-only terminals retain the numbered chip row below.
 	if m.attachmentThumbnailVisible(width) {
 		for _, line := range m.attachmentThumbnailLines(innerWidth) {
 			fitted := fitStyledLine(line, innerWidth)
 			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, zeroTheme.lineStrong.Render("│ ")+fitted+pad+zeroTheme.lineStrong.Render(" │")+rightPad)
+			rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
 		}
 		// A thumbnail gallery makes the first few attachments visible. Keep a compact
 		// numbered row whenever there is more than one item (or a document), so the
 		// rest of a longer batch is never silently hidden.
 		if chips := m.attachmentThumbnailSupplementalChips(); chips != "" {
-			fitted := fitStyledLine(zeroTheme.muted.Render(chips), innerWidth)
+			fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
 			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, zeroTheme.lineStrong.Render("│ ")+fitted+pad+zeroTheme.lineStrong.Render(" │")+rightPad)
+			rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
 		}
 	} else if chips := renderAttachmentChips(m.pendingImageLabels, m.pendingDocuments); chips != "" {
-		fitted := fitStyledLine(zeroTheme.muted.Render(chips), innerWidth)
+		fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
 		pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-		rendered = append(rendered, zeroTheme.lineStrong.Render("│ ")+fitted+pad+zeroTheme.lineStrong.Render(" │")+rightPad)
+		rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
 	}
 	for _, line := range lines {
 		fitted := fitStyledLine(line, innerWidth)
 		pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-		rendered = append(rendered, zeroTheme.lineStrong.Render("│ ")+fitted+pad+zeroTheme.lineStrong.Render(" │")+rightPad)
+		rendered = append(rendered, runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+rightPad)
 	}
 	rendered = append(rendered, m.composerDividerLine(width))
 	return strings.Join(rendered, "\n")

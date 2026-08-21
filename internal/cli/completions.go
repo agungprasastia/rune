@@ -240,7 +240,7 @@ func shellWords(values []string) string {
 }
 
 func writeBashCompletions(w io.Writer, contexts []completionContext) error {
-	if _, err := fmt.Fprintln(w, "# bash completion for rune\n_zero() {\n  local cur context token i candidates\n  cur=\"${COMP_WORDS[COMP_CWORD]}\"\n  context=\"\""); err != nil {
+	if _, err := fmt.Fprintln(w, "# bash completion for rune\n_rune() {\n  local cur context token i candidates\n  cur=\"${COMP_WORDS[COMP_CWORD]}\"\n  context=\"\""); err != nil {
 		return err
 	}
 	if err := writePOSIXContextLoop(w, contexts, "  for ((i = 1; i < COMP_CWORD; i++)); do", "    token=\"${COMP_WORDS[i]}\"", "  done"); err != nil {
@@ -249,12 +249,12 @@ func writeBashCompletions(w io.Writer, contexts []completionContext) error {
 	if err := writePOSIXCandidateCase(w, contexts, "  "); err != nil {
 		return err
 	}
-	_, err := fmt.Fprintln(w, "  COMPREPLY=( $(compgen -W \"$candidates\" -- \"$cur\") )\n}\ncomplete -F _zero rune")
+	_, err := fmt.Fprintln(w, "  COMPREPLY=( $(compgen -W \"$candidates\" -- \"$cur\") )\n}\ncomplete -F _rune rune")
 	return err
 }
 
 func writeZshCompletions(w io.Writer, contexts []completionContext) error {
-	if _, err := fmt.Fprintln(w, "#compdef rune\n_zero() {\n  local context token i\n  local -a candidates\n  context=\"\""); err != nil {
+	if _, err := fmt.Fprintln(w, "#compdef rune\n_rune() {\n  local context token i\n  local -a candidates\n  context=\"\""); err != nil {
 		return err
 	}
 	if err := writePOSIXContextLoop(w, contexts, "  for ((i = 2; i < CURRENT; i++)); do", "    token=\"${words[i]}\"", "  done"); err != nil {
@@ -268,7 +268,7 @@ func writeZshCompletions(w io.Writer, contexts []completionContext) error {
 			return err
 		}
 	}
-	_, err := fmt.Fprintln(w, "  esac\n  compadd -- \"${candidates[@]}\"\n}\ncompdef _zero rune")
+	_, err := fmt.Fprintln(w, "  esac\n  compadd -- \"${candidates[@]}\"\n}\ncompdef _rune rune")
 	return err
 }
 
@@ -317,7 +317,7 @@ func quotedWords(values []string) string {
 }
 
 func writeFishCompletions(w io.Writer, contexts []completionContext) error {
-	if _, err := fmt.Fprintln(w, "# fish completion for rune\nfunction __zero_completion_context\n    set -l context ''\n    set -l tokens (commandline -opc)"); err != nil {
+	if _, err := fmt.Fprintln(w, "# fish completion for rune\nfunction __rune_completion_context\n    set -l context ''\n    set -l tokens (commandline -opc)"); err != nil {
 		return err
 	}
 	if _, err := fmt.Fprintln(w, "    for token in $tokens[2..-1]\n        switch \"$context|$token\""); err != nil {
@@ -337,7 +337,7 @@ func writeFishCompletions(w io.Writer, contexts []completionContext) error {
 		if path == "" {
 			path = "__root__"
 		}
-		if _, err := fmt.Fprintf(w, "complete -c rune -f -n 'test (__zero_completion_context) = %q' -a %q\n", path, shellWords(context.candidates)); err != nil {
+		if _, err := fmt.Fprintf(w, "complete -c rune -f -n 'test (__rune_completion_context) = %q' -a %q\n", path, shellWords(context.candidates)); err != nil {
 			return err
 		}
 	}

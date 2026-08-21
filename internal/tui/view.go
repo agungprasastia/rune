@@ -61,7 +61,7 @@ func (m model) titleBar(width int) string {
 	workspace := m.titleWorkspaceSegment()
 	workspaceShort := m.titleWorkspaceSegmentShort()
 	branchOnly := m.titleBranchSegment()
-	cwdOnly := zeroTheme.faint.Render(shortenPath(m.cwd))
+	cwdOnly := runeTheme.faint.Render(shortenPath(m.cwd))
 	compactLeft := cwdOnly
 	if branchOnly != "" {
 		compactLeft = branchOnly
@@ -69,7 +69,7 @@ func (m model) titleBar(width int) string {
 	model := m.titleModelSegment()
 	ctx := ""
 	if window := m.modelContextWindow(m.modelName); window > 0 {
-		ctx = zeroTheme.faint.Render(" · " + formatContextWindow(window))
+		ctx = runeTheme.faint.Render(" · " + formatContextWindow(window))
 	}
 
 	var candidates []headerCandidate
@@ -103,12 +103,12 @@ func (m model) titleBar(width int) string {
 	}
 
 	line := startupHeaderLine(width, candidates)
-	rule := zeroTheme.line.Render(strings.Repeat("─", width))
+	rule := runeTheme.line.Render(strings.Repeat("─", width))
 	return line + "\n" + rule
 }
 
 func (m model) titleWorkspaceSegment() string {
-	cwd := zeroTheme.faint.Render(shortenPath(m.cwd))
+	cwd := runeTheme.faint.Render(shortenPath(m.cwd))
 	parts := []string{}
 	if branch := m.titleBranchSegment(); branch != "" {
 		parts = append(parts, branch)
@@ -123,12 +123,12 @@ func (m model) titleWorkspaceSegment() string {
 }
 
 func (m model) titleWorkspaceSegmentShort() string {
-	cwd := zeroTheme.faint.Render(shortenPath(m.cwd))
+	cwd := runeTheme.faint.Render(shortenPath(m.cwd))
 	parts := []string{}
 	branch := strings.TrimSpace(m.gitBranch)
 	if branch != "" {
-		icon := zeroTheme.muted.Render("")
-		parts = append(parts, icon+" "+zeroTheme.muted.Render(middleTruncate(branch, 22)))
+		icon := runeTheme.muted.Render("")
+		parts = append(parts, icon+" "+runeTheme.muted.Render(middleTruncate(branch, 22)))
 	}
 	if pr := m.titlePRSegment(); pr != "" {
 		parts = append(parts, pr)
@@ -144,7 +144,7 @@ func (m model) titleBranchSegment() string {
 	if branch == "" {
 		return ""
 	}
-	return zeroTheme.muted.Render("") + " " + zeroTheme.muted.Render(branch)
+	return runeTheme.muted.Render("") + " " + runeTheme.muted.Render(branch)
 }
 
 func (m model) titlePRSegment() string {
@@ -156,13 +156,13 @@ func (m model) titleModelSegment() string {
 	model := strings.TrimSpace(m.modelName)
 	switch {
 	case provider == "" && model == "":
-		return zeroTheme.muted.Render("no provider")
+		return runeTheme.muted.Render("no provider")
 	case model == "":
-		return zeroTheme.ink.Render(provider)
+		return runeTheme.ink.Render(provider)
 	case provider == "":
-		return zeroTheme.ink.Render(model)
+		return runeTheme.ink.Render(model)
 	default:
-		return zeroTheme.ink.Render(provider + "/" + model)
+		return runeTheme.ink.Render(provider + "/" + model)
 	}
 }
 
@@ -171,19 +171,19 @@ func (m model) composerDividerLine(width int) string {
 	// The composer rule is a quiet model reminder above the input. Permission mode
 	// and reasoning effort now live in the persistent status line (the conventional
 	// footer for run-state), so they're not duplicated on this rule.
-	meta := zeroTheme.muted.Render(model)
+	meta := runeTheme.muted.Render(model)
 	metaWidth := lipgloss.Width(meta)
 	reserved := m.petComposerReservedColumns(width)
 	availableWidth := width - reserved
 	if width < 8 {
-		return zeroTheme.lineStrong.Render(strings.Repeat("─", width))
+		return runeTheme.lineStrong.Render(strings.Repeat("─", width))
 	}
 	if availableWidth < metaWidth+4 {
-		line := zeroTheme.lineStrong.Render("╰" + strings.Repeat("─", availableWidth-2) + "╯")
+		line := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", availableWidth-2) + "╯")
 		return line + strings.Repeat(" ", reserved)
 	}
 	rule := strings.Repeat("─", availableWidth-metaWidth-4)
-	line := zeroTheme.lineStrong.Render("╰"+rule+" ") + meta + zeroTheme.lineStrong.Render(" ╯")
+	line := runeTheme.lineStrong.Render("╰"+rule+" ") + meta + runeTheme.lineStrong.Render(" ╯")
 	return line + strings.Repeat(" ", reserved)
 }
 
@@ -193,7 +193,7 @@ func (m model) composerDividerLine(width int) string {
 // title bar and is NOT duplicated here. Groups drop with the width tier.
 func (m model) statusLine(width int) string {
 	tier := widthTier(width)
-	separator := zeroTheme.line.Render(" │ ")
+	separator := runeTheme.line.Render(" │ ")
 	prefix := "  "
 
 	// Left chip: the safety-relevant run-state — permission mode (auto/ask/unsafe)
@@ -202,60 +202,60 @@ func (m model) statusLine(width int) string {
 	modeText, modeStyle := m.modeLabel()
 	btwChip := ""
 	if m.btw.active {
-		btwChip = zeroTheme.amber.Render("BTW") + zeroTheme.muted.Render(" · ")
+		btwChip = runeTheme.amber.Render("BTW") + runeTheme.muted.Render(" · ")
 	}
-	left := prefix + btwChip + zeroTheme.accent.Render("●") + " " + modeStyle.Render(modeText)
+	left := prefix + btwChip + runeTheme.accent.Render("●") + " " + modeStyle.Render(modeText)
 
 	if tier == tierTiny {
 		if m.exitConfirmActive {
-			return fitStyledLine(prefix+btwChip+zeroTheme.amber.Render("●")+" "+zeroTheme.amber.Render(ctrlCExitConfirmText), width)
+			return fitStyledLine(prefix+btwChip+runeTheme.amber.Render("●")+" "+runeTheme.amber.Render(ctrlCExitConfirmText), width)
 		}
 		if m.cancelConfirmActive {
-			return fitStyledLine(prefix+btwChip+zeroTheme.amber.Render("●")+" "+zeroTheme.amber.Render(escCancelConfirmText), width)
+			return fitStyledLine(prefix+btwChip+runeTheme.amber.Render("●")+" "+runeTheme.amber.Render(escCancelConfirmText), width)
 		}
 		if dictation := m.dictationStatusChip(); dictation != "" {
 			return fitStyledLine(prefix+btwChip+dictation, width)
 		}
 		if goalSummary := m.goalFooterSummary(); goalSummary != "" {
-			left += zeroTheme.muted.Render(" · ") + zeroTheme.accent.Render("◎ ") + zeroTheme.muted.Render(goalSummary)
+			left += runeTheme.muted.Render(" · ") + runeTheme.accent.Render("◎ ") + runeTheme.muted.Render(goalSummary)
 		}
 		return fitStyledLine(left, width)
 	}
 
 	// Non-tiny: append the active reasoning effort (brand lime, omitted on auto).
 	if m.reasoningEffort != "" {
-		left += zeroTheme.muted.Render(" · ") + zeroTheme.accent.Render(string(m.reasoningEffort))
+		left += runeTheme.muted.Render(" · ") + runeTheme.accent.Render(string(m.reasoningEffort))
 	}
 	if m.activeServiceTier() == "priority" {
-		left += zeroTheme.muted.Render(" · ") + zeroTheme.accent.Render("fast")
+		left += runeTheme.muted.Render(" · ") + runeTheme.accent.Render("fast")
 	}
 	if m.exitConfirmActive {
-		left = prefix + btwChip + zeroTheme.amber.Render("●") + " " + zeroTheme.amber.Render(ctrlCExitConfirmText)
+		left = prefix + btwChip + runeTheme.amber.Render("●") + " " + runeTheme.amber.Render(ctrlCExitConfirmText)
 	} else if m.cancelConfirmActive {
-		left = prefix + btwChip + zeroTheme.amber.Render("●") + " " + zeroTheme.amber.Render(escCancelConfirmText)
+		left = prefix + btwChip + runeTheme.amber.Render("●") + " " + runeTheme.amber.Render(escCancelConfirmText)
 	} else if m.dictation.downloading && m.dictation.downloadStatus != "" {
 		// A model download in progress takes over the left chip with a live percentage.
-		left = prefix + btwChip + zeroTheme.accent.Render("⬇ ") + zeroTheme.muted.Render(m.dictation.downloadStatus)
+		left = prefix + btwChip + runeTheme.accent.Render("⬇ ") + runeTheme.muted.Render(m.dictation.downloadStatus)
 	} else if dictation := m.dictationStatusChip(); dictation != "" && m.dictation.active() {
 		// An active recording/transcription takes over the left chip — it is the
 		// most time-sensitive thing on screen (the mic is live).
 		left = prefix + btwChip + dictation
 	} else {
 		if voice := m.voiceModeIndicator(); voice != "" {
-			left += zeroTheme.muted.Render(" · ") + voice
+			left += runeTheme.muted.Render(" · ") + voice
 		}
 		if summary := m.backgroundTerminalSummary(); summary != "" {
-			left += separator + zeroTheme.muted.Render(summary)
+			left += separator + runeTheme.muted.Render(summary)
 		}
 	}
 	// Active loops surface a persistent "↻ N loops · next 3:05pm" segment so a
 	// running loop is always visible (hidden during an exit/cancel confirm above).
 	if !m.exitConfirmActive && !m.cancelConfirmActive {
 		if goalSummary := m.goalFooterSummary(); goalSummary != "" {
-			left += separator + zeroTheme.accent.Render("◎ ") + zeroTheme.muted.Render(goalSummary)
+			left += separator + runeTheme.accent.Render("◎ ") + runeTheme.muted.Render(goalSummary)
 		}
 		if loopSummary := m.loopFooterSummary(); loopSummary != "" {
-			left += separator + zeroTheme.accent.Render("↻ ") + zeroTheme.muted.Render(loopSummary)
+			left += separator + runeTheme.accent.Render("↻ ") + runeTheme.muted.Render(loopSummary)
 		}
 	}
 
@@ -276,7 +276,7 @@ func (m model) statusLine(width int) string {
 		usage = m.usageCostSegment()
 	}
 	if usage != "" {
-		rightGroups = append(rightGroups, zeroTheme.muted.Render(usage))
+		rightGroups = append(rightGroups, runeTheme.muted.Render(usage))
 	}
 	right := strings.Join(rightGroups, separator)
 
@@ -339,19 +339,19 @@ func nextPermissionMode(mode agent.PermissionMode) agent.PermissionMode {
 func (m model) modeLabel() (string, lipgloss.Style) {
 	switch m.permissionMode {
 	case agent.PermissionModeAuto:
-		return "auto-approve", zeroTheme.modeAuto
+		return "auto-approve", runeTheme.modeAuto
 	case agent.PermissionModeAsk:
-		return "ask", zeroTheme.modeAsk
+		return "ask", runeTheme.modeAsk
 	case agent.PermissionModeUnsafe:
-		return "unsafe", zeroTheme.modeUnsafe
+		return "unsafe", runeTheme.modeUnsafe
 	case agent.PermissionModePlan:
-		return "plan", zeroTheme.modePlan
+		return "plan", runeTheme.modePlan
 	default:
 		mode := strings.TrimSpace(string(m.permissionMode))
 		if mode == "" {
-			return "auto-approve", zeroTheme.modeAuto
+			return "auto-approve", runeTheme.modeAuto
 		}
-		return mode, zeroTheme.muted
+		return mode, runeTheme.muted
 	}
 }
 
@@ -410,12 +410,12 @@ func (m model) contextFillPercent() (pct, used, window int, style lipgloss.Style
 	if ratio > 1 {
 		ratio = 1
 	}
-	style = zeroTheme.green
+	style = runeTheme.green
 	switch {
 	case ratio >= 0.90:
-		style = zeroTheme.red
+		style = runeTheme.red
 	case ratio >= 0.75:
-		style = zeroTheme.amber
+		style = runeTheme.amber
 	}
 	return int(ratio*100 + 0.5), used, window, style, true
 }
@@ -600,27 +600,27 @@ func renderSuggestionPalette(items []selectableListItem, selected, width int, ti
 
 	lines := make([]string, 0, len(visible)+5)
 	searchInset := lipgloss.Width("❯ ")
-	searchPrefix := transparentSurface(zeroTheme.ink).Render(strings.Repeat(" ", searchInset))
+	searchPrefix := transparentSurface(runeTheme.ink).Render(strings.Repeat(" ", searchInset))
 	lines = append(lines, fillPaletteLine(searchPrefix+renderSuggestionSearchLine(query, maxInt(1, innerWidth-searchInset)), innerWidth, transparentSurface))
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
 
 	for index, item := range visible {
 		absoluteIndex := start + index
 		surface := transparentSurface
-		marker := surface(zeroTheme.faintest).Render("  ")
+		marker := surface(runeTheme.faintest).Render("  ")
 		if absoluteIndex == selected {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
 
 		labelText := truncateRunes(item.Label, labelWidth)
-		label := surface(zeroTheme.ink).Render(labelText)
-		pad := surface(zeroTheme.ink).Render(strings.Repeat(" ", maxInt(0, labelWidth-lipgloss.Width(labelText))))
+		label := surface(runeTheme.ink).Render(labelText)
+		pad := surface(runeTheme.ink).Render(strings.Repeat(" ", maxInt(0, labelWidth-lipgloss.Width(labelText))))
 		line := marker + label + pad
 		if desc := strings.TrimSpace(item.Description); desc != "" {
 			descWidth := innerWidth - lipgloss.Width(marker) - labelWidth - 2
 			if truncated := truncateRunes(desc, maxInt(0, descWidth)); truncated != "" {
-				line += surface(zeroTheme.faint).Render("  " + truncated)
+				line += surface(runeTheme.faint).Render("  " + truncated)
 			}
 		}
 		lines = append(lines, fillPaletteLine(line, innerWidth, surface))
@@ -630,19 +630,19 @@ func renderSuggestionPalette(items []selectableListItem, selected, width int, ti
 		if strings.EqualFold(strings.TrimSpace(title), "Files") {
 			message = "no matching files"
 		}
-		lines = append(lines, fillPaletteLine(searchPrefix+zeroTheme.faint.Render(message), innerWidth, transparentSurface))
+		lines = append(lines, fillPaletteLine(searchPrefix+runeTheme.faint.Render(message), innerWidth, transparentSurface))
 	}
 
 	if footer = strings.TrimSpace(footer); footer != "" {
-		lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
-		line := zeroTheme.faint.Render(footer)
+		lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
+		line := runeTheme.faint.Render(footer)
 		lines = append(lines, fillPaletteLine(line, innerWidth, transparentSurface))
 	}
-	return styledBlockFillTitle(paletteWidth, strings.TrimSpace(title), lines, zeroTheme.lineStrong, lipgloss.NewStyle())
+	return styledBlockFillTitle(paletteWidth, strings.TrimSpace(title), lines, runeTheme.lineStrong, lipgloss.NewStyle())
 }
 
 func styledBlockFillTitle(width int, title string, lines []string, borderStyle lipgloss.Style, fill lipgloss.Style) string {
-	return styledBlockFillTitleStyled(width, title, lines, borderStyle, fill, zeroTheme.ink.Bold(true))
+	return styledBlockFillTitleStyled(width, title, lines, borderStyle, fill, runeTheme.ink.Bold(true))
 }
 
 // styledBlockFillTitleStyled is styledBlockFillTitle with a caller-supplied style
@@ -681,9 +681,9 @@ func styledBlockFillTitleStyled(width int, title string, lines []string, borderS
 
 func renderSuggestionSearchLine(query string, width int) string {
 	query = strings.TrimSpace(query)
-	label := zeroTheme.userPrompt.Render("search > ")
+	label := runeTheme.userPrompt.Render("search > ")
 	valueWidth := maxInt(1, width-lipgloss.Width(label))
-	value := zeroTheme.ink.Render(truncateRunes(query, valueWidth))
+	value := runeTheme.ink.Render(truncateRunes(query, valueWidth))
 	return fitStyledLine(label+value, width)
 }
 
@@ -695,7 +695,7 @@ func fillPaletteLine(line string, width int, surface func(lipgloss.Style) lipglo
 	line = fitStyledLine(line, width)
 	pad := maxInt(0, width-lipgloss.Width(line))
 	if pad > 0 {
-		line += surface(zeroTheme.ink).Render(strings.Repeat(" ", pad))
+		line += surface(runeTheme.ink).Render(strings.Repeat(" ", pad))
 	}
 	return line
 }
@@ -787,62 +787,62 @@ func (m model) pickerOverlay(width int) string {
 	// A visible "search > …" line so typing to filter shows what you've typed,
 	// matching the /model picker. Followed by a separator, then the rows.
 	lines = append(lines, renderPickerSearchLine(m.picker.query, "type to filter…", innerWidth))
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
 	lastGroup := ""
 	for index, item := range visible {
 		absoluteIndex := start + index
 		if item.Group != "" && item.Group != lastGroup {
-			lines = append(lines, zeroTheme.accent.Render(item.Group))
+			lines = append(lines, runeTheme.accent.Render(item.Group))
 			lastGroup = item.Group
 		}
 		surface := transparentSurface
-		marker := surface(zeroTheme.faintest).Render("  ")
+		marker := surface(runeTheme.faintest).Render("  ")
 		if absoluteIndex == m.picker.selected {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
 		left := marker
 		switch {
 		case item.Local:
-			left += surface(zeroTheme.blue).Render("● ")
+			left += surface(runeTheme.blue).Render("● ")
 		case item.Remote:
-			left += surface(zeroTheme.accent).Render("● ")
+			left += surface(runeTheme.accent).Render("● ")
 		}
 		if item.Favorite {
-			left += surface(zeroTheme.accent).Render("* ")
+			left += surface(runeTheme.accent).Render("* ")
 		}
-		left += surface(zeroTheme.ink).Render(item.Label)
+		left += surface(runeTheme.ink).Render(item.Label)
 		right := ""
 		if item.Meta != "" {
-			right = surface(zeroTheme.faintest).Render(item.Meta)
+			right = surface(runeTheme.faintest).Render(item.Meta)
 		}
 		// Paint the gap on the row surface so selected rows read as one solid
 		// band; joinHeaderLine would pad with bare (untinted) spaces.
 		gap := innerWidth - lipgloss.Width(left) - lipgloss.Width(right)
-		line := left + surface(zeroTheme.ink).Render(strings.Repeat(" ", maxInt(1, gap))) + right
+		line := left + surface(runeTheme.ink).Render(strings.Repeat(" ", maxInt(1, gap))) + right
 		lines = append(lines, fitStyledLine(line, innerWidth))
 	}
 	if len(visible) == 0 {
 		if m.picker.loading {
-			lines = append(lines, zeroTheme.faint.Render("Fetching available models…"))
+			lines = append(lines, runeTheme.faint.Render("Fetching available models…"))
 		} else {
-			lines = append(lines, zeroTheme.faint.Render("  no matching items"))
+			lines = append(lines, runeTheme.faint.Render("  no matching items"))
 		}
 	}
 	// Hints live in the footer (a separator + faint keys), matching the /model
 	// picker and the other bordered boxes.
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
-	footer := zeroTheme.faint.Render("↑/↓ move   Enter select   Esc close")
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
+	footer := runeTheme.faint.Render("↑/↓ move   Enter select   Esc close")
 	if m.picker.kind == pickerSession {
 		position := 0
 		if len(m.picker.items) > 0 {
 			position = clampInt(m.picker.selected, 0, len(m.picker.items)-1) + 1
 		}
-		count := zeroTheme.faint.Render(fmt.Sprintf("%d / %d", position, len(m.picker.items)))
+		count := runeTheme.faint.Render(fmt.Sprintf("%d / %d", position, len(m.picker.items)))
 		footer = joinHeaderLine(footer, count, innerWidth)
 	}
 	lines = append(lines, footer)
-	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, zeroTheme.lineStrong, lipgloss.NewStyle()), width)
+	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, runeTheme.lineStrong, lipgloss.NewStyle()), width)
 }
 
 // themePickerOverlay keeps candidate rendering inside the picker. Moving through
@@ -858,7 +858,7 @@ func (m model) themePickerOverlay(width int) string {
 
 	lines := []string{
 		renderPickerSearchLine(m.picker.query, "find a theme…", innerWidth),
-		zeroTheme.line.Render(strings.Repeat("─", innerWidth)),
+		runeTheme.line.Render(strings.Repeat("─", innerWidth)),
 	}
 	listLines := m.themePickerListLines(listWidth)
 	previewLines := m.themePickerPreviewLines(previewWidth)
@@ -867,16 +867,16 @@ func (m model) themePickerOverlay(width int) string {
 	} else {
 		lines = append(lines, listLines...)
 		if item, ok := m.picker.current(); ok {
-			lines = append(lines, zeroTheme.faint.Render("Preview: "+item.Label+" — Enter applies"))
+			lines = append(lines, runeTheme.faint.Render("Preview: "+item.Label+" — Enter applies"))
 		}
 	}
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
-	lines = append(lines, zeroTheme.faint.Render("↑/↓ preview   Enter apply   Esc close"))
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
+	lines = append(lines, runeTheme.faint.Render("↑/↓ preview   Enter apply   Esc close"))
 	title := strings.TrimSpace(m.picker.title)
 	if title == "" {
 		title = "Choose a theme"
 	}
-	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, zeroTheme.lineStrong, lipgloss.NewStyle()), width)
+	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, runeTheme.lineStrong, lipgloss.NewStyle()), width)
 }
 
 // themePickerColumnWidths keeps the candidate list usable while reserving a
@@ -908,26 +908,26 @@ func (m model) themePickerListLines(width int) []string {
 	for index, item := range visible {
 		absoluteIndex := start + index
 		if item.Group != "" && item.Group != lastGroup {
-			lines = append(lines, fitStyledLine(zeroTheme.accent.Render(item.Group), width))
+			lines = append(lines, fitStyledLine(runeTheme.accent.Render(item.Group), width))
 			lastGroup = item.Group
 		}
 		surface := transparentSurface
-		marker := surface(zeroTheme.faintest).Render("  ")
+		marker := surface(runeTheme.faintest).Render("  ")
 		if absoluteIndex == m.picker.selected {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
-		left := marker + surface(zeroTheme.ink).Render(item.Label)
+		left := marker + surface(runeTheme.ink).Render(item.Label)
 		right := ""
 		if item.Meta != "" {
-			right = surface(zeroTheme.faintest).Render(item.Meta)
+			right = surface(runeTheme.faintest).Render(item.Meta)
 		}
 		gap := width - lipgloss.Width(left) - lipgloss.Width(right)
-		line := left + surface(zeroTheme.ink).Render(strings.Repeat(" ", maxInt(1, gap))) + right
+		line := left + surface(runeTheme.ink).Render(strings.Repeat(" ", maxInt(1, gap))) + right
 		lines = append(lines, fitStyledLine(line, width))
 	}
 	if len(visible) == 0 {
-		lines = append(lines, zeroTheme.faint.Render("  no matching themes"))
+		lines = append(lines, runeTheme.faint.Render("  no matching themes"))
 	}
 	return lines
 }
@@ -938,7 +938,7 @@ func (m model) themePickerPreviewLines(width int) []string {
 	}
 	item, ok := m.picker.current()
 	if !ok {
-		return []string{zeroTheme.faint.Render("Preview"), zeroTheme.faint.Render("No matching theme")}
+		return []string{runeTheme.faint.Render("Preview"), runeTheme.faint.Render("No matching theme")}
 	}
 	_, preview := themeForMode(themeMode(item.Value), m.hasDarkBg)
 	fill := func(line string) string {
@@ -976,7 +976,7 @@ func joinThemePickerColumns(left, right []string, leftWidth, rightWidth int) []s
 		}
 		leftLine = fillPaletteLine(leftLine, leftWidth, transparentSurface)
 		rightLine = fillPaletteLine(rightLine, rightWidth, transparentSurface)
-		lines = append(lines, leftLine+zeroTheme.line.Render(" │ ")+rightLine)
+		lines = append(lines, leftLine+runeTheme.line.Render(" │ ")+rightLine)
 	}
 	return lines
 }
@@ -1001,53 +1001,53 @@ func (m model) modelPickerOverlay(width int) string {
 
 	lines := make([]string, 0, len(visible)+6)
 	searchInset := lipgloss.Width("❯ ")
-	searchPrefix := transparentSurface(zeroTheme.ink).Render(strings.Repeat(" ", searchInset))
+	searchPrefix := transparentSurface(runeTheme.ink).Render(strings.Repeat(" ", searchInset))
 	lines = append(lines, fillPaletteLine(searchPrefix+renderModelPickerSearchLine(m.picker.query, maxInt(1, innerWidth-searchInset)), innerWidth, transparentSurface))
 	if status := strings.TrimSpace(m.modelPickerLoadError); status != "" {
-		lines = append(lines, fillPaletteLine(searchPrefix+zeroTheme.faint.Render(status), innerWidth, transparentSurface))
+		lines = append(lines, fillPaletteLine(searchPrefix+runeTheme.faint.Render(status), innerWidth, transparentSurface))
 	}
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
 	lastGroup := ""
 	for index, item := range visible {
 		if item.Group != "" && item.Group != lastGroup {
-			lines = append(lines, fillPaletteLine(zeroTheme.accent.Bold(true).Render(item.Group), innerWidth, transparentSurface))
+			lines = append(lines, fillPaletteLine(runeTheme.accent.Bold(true).Render(item.Group), innerWidth, transparentSurface))
 			lastGroup = item.Group
 		}
 		lines = append(lines, renderModelPickerRow(innerWidth, start+index == m.picker.selected, item))
 	}
 	if len(visible) == 0 {
-		lines = append(lines, fillPaletteLine(searchPrefix+zeroTheme.faint.Render("no matching models"), innerWidth, transparentSurface))
+		lines = append(lines, fillPaletteLine(searchPrefix+runeTheme.faint.Render("no matching models"), innerWidth, transparentSurface))
 	}
 	if item, ok := m.picker.current(); ok {
 		if detail := modelPickerItemDetail(item); detail != "" {
-			lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
-			lines = append(lines, fillPaletteLine(searchPrefix+zeroTheme.faint.Render(detail), innerWidth, transparentSurface))
+			lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
+			lines = append(lines, fillPaletteLine(searchPrefix+runeTheme.faint.Render(detail), innerWidth, transparentSurface))
 		}
 	}
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
 	footer := "↑/↓ move   Enter select   Ctrl+F favorite   Esc close"
-	lines = append(lines, fillPaletteLine(zeroTheme.faint.Render(footer), innerWidth, transparentSurface))
+	lines = append(lines, fillPaletteLine(runeTheme.faint.Render(footer), innerWidth, transparentSurface))
 	title := strings.TrimSpace(m.picker.title)
 	if title == "" {
 		title = "Choose a model"
 	}
-	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, zeroTheme.lineStrong, lipgloss.NewStyle()), width)
+	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, runeTheme.lineStrong, lipgloss.NewStyle()), width)
 }
 
 func (m model) modelPickerLoadingOverlay(width int) string {
 	overlayWidth := modelPickerLoadingOverlayWidth(width)
 	innerWidth := maxInt(1, overlayWidth-4)
 	lines := []string{
-		fillPaletteLine(zeroTheme.faint.Render("Checking available models..."), innerWidth, transparentSurface),
-		fillPaletteLine(zeroTheme.faint.Render("Built-in models will be used if discovery fails."), innerWidth, transparentSurface),
-		zeroTheme.line.Render(strings.Repeat("─", innerWidth)),
-		fillPaletteLine(zeroTheme.faint.Render("Esc close"), innerWidth, transparentSurface),
+		fillPaletteLine(runeTheme.faint.Render("Checking available models..."), innerWidth, transparentSurface),
+		fillPaletteLine(runeTheme.faint.Render("Built-in models will be used if discovery fails."), innerWidth, transparentSurface),
+		runeTheme.line.Render(strings.Repeat("─", innerWidth)),
+		fillPaletteLine(runeTheme.faint.Render("Esc close"), innerWidth, transparentSurface),
 	}
 	title := strings.TrimSpace(m.picker.title)
 	if title == "" {
 		title = "Choose a model"
 	}
-	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, zeroTheme.lineStrong, lipgloss.NewStyle()), width)
+	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, title, lines, runeTheme.lineStrong, lipgloss.NewStyle()), width)
 }
 
 func modelPickerLoadingOverlayWidth(terminalWidth int) int {
@@ -1102,20 +1102,20 @@ func renderModelPickerSearchLine(query string, width int) string {
 // is the faint hint shown when the query is empty.
 func renderPickerSearchLine(query, placeholder string, width int) string {
 	query = strings.TrimSpace(query)
-	prompt := zeroTheme.userPrompt.Render("search > ")
-	cursor := zeroTheme.accent.Render("▌")
+	prompt := runeTheme.userPrompt.Render("search > ")
+	cursor := runeTheme.accent.Render("▌")
 	if query == "" {
-		return fitStyledLine(prompt+cursor+zeroTheme.faint.Render(placeholder), width)
+		return fitStyledLine(prompt+cursor+runeTheme.faint.Render(placeholder), width)
 	}
-	return fitStyledLine(prompt+zeroTheme.ink.Render(query)+cursor, width)
+	return fitStyledLine(prompt+runeTheme.ink.Render(query)+cursor, width)
 }
 
 func renderModelPickerRow(width int, selected bool, item pickerItem) string {
 	surface := transparentSurface
-	marker := surface(zeroTheme.faintest).Render("  ")
+	marker := surface(runeTheme.faintest).Render("  ")
 	if selected {
-		surface = zeroTheme.onSel
-		marker = surface(zeroTheme.accent).Render("❯ ")
+		surface = runeTheme.onSel
+		marker = surface(runeTheme.accent).Render("❯ ")
 	}
 	label := strings.TrimSpace(item.Label)
 	if label == "" {
@@ -1125,7 +1125,7 @@ func renderModelPickerRow(width int, selected bool, item pickerItem) string {
 	if item.Favorite {
 		prefix = "* "
 	}
-	left := marker + surface(zeroTheme.ink).Render(prefix+label)
+	left := marker + surface(runeTheme.ink).Render(prefix+label)
 	// The provider is shown as a section header above each group, so rows no longer
 	// repeat it as a right-aligned tag (matches a grouped provider+model list).
 	return fillPaletteLine(left, width, surface)

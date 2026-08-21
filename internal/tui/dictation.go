@@ -484,10 +484,10 @@ func (m model) dictationStatusChip() string {
 		if !m.dictation.eventTypesSupported {
 			stop = "press Space to stop" // press-to-toggle fallback
 		}
-		wave := zeroTheme.amber.Render("● " + renderWaveBars(m.dictation.waveBars) + " REC")
-		return wave + zeroTheme.muted.Render(" · "+stop+", Esc to cancel")
+		wave := runeTheme.amber.Render("● " + renderWaveBars(m.dictation.waveBars) + " REC")
+		return wave + runeTheme.muted.Render(" · "+stop+", Esc to cancel")
 	case dictTranscribing:
-		return zeroTheme.accent.Render("●") + " " + zeroTheme.muted.Render("transcribing…")
+		return runeTheme.accent.Render("●") + " " + runeTheme.muted.Render("transcribing…")
 	}
 	return ""
 }
@@ -607,7 +607,7 @@ func (m model) voiceModeIndicator() string {
 	if !m.dictation.voiceModeEnabled {
 		return ""
 	}
-	return zeroTheme.accent.Render("🎙 voice") + zeroTheme.muted.Render(" · "+m.dictation.currentModelLabel())
+	return runeTheme.accent.Render("🎙 voice") + runeTheme.muted.Render(" · "+m.dictation.currentModelLabel())
 }
 
 // dictationErrorText renders a dictation error for the transcript: a missing-

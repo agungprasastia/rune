@@ -99,7 +99,7 @@ func TestRunExecUseSpecCreatesDraftSession(t *testing.T) {
 }
 
 func TestParseExecUseSpecRejectsResume(t *testing.T) {
-	_, _, err := parseExecArgs([]string{"--use-spec", "--resume", "zero_1", "plan"})
+	_, _, err := parseExecArgs([]string{"--use-spec", "--resume", "rune_1", "plan"})
 	if err == nil || !strings.Contains(err.Error(), "cannot be combined") {
 		t.Fatalf("expected --use-spec/--resume validation, got %v", err)
 	}

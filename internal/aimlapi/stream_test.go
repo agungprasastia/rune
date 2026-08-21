@@ -359,7 +359,7 @@ func TestResumeHelpersClearOnlyRejectedSessions(t *testing.T) {
 					resolve: func(onSession func(string)) error {
 						_, _, err := resolveTopupSession(context.Background(), client, StreamTopUpOptions{
 							ResumeSessionToken: "pc_rejected", OnSession: onSession,
-						}, DefaultPartnerID, DefaultPartnerName, Endpoints{})
+						}, "", "", Endpoints{})
 						return err
 					},
 				},
@@ -368,7 +368,7 @@ func TestResumeHelpersClearOnlyRejectedSessions(t *testing.T) {
 					resolve: func(onSession func(string)) error {
 						_, _, err := resolveByKeySession(context.Background(), client, StreamTopUpByKeyOptions{
 							ResumeSessionToken: "pc_rejected", OnSession: onSession,
-						}, DefaultPartnerID, DefaultPartnerName, Endpoints{})
+						}, "", "", Endpoints{})
 						return err
 					},
 				},

@@ -23,7 +23,7 @@ const (
 
 	// Vendor-prefixed RUNE extensions (clients that don't support them ignore the
 	// method and degrade cleanly, per the spec's _-prefixed convention).
-	MethodZeroSetModel = "_zero/set_model"
+	MethodRuneSetModel = "_rune/set_model"
 )
 
 // SessionUpdate discriminator values (the "sessionUpdate" field).
@@ -357,14 +357,14 @@ type SetSessionConfigOptionResult struct {
 	ConfigOptions []SessionConfigOption `json:"configOptions"`
 }
 
-// ---- vendor: _zero/set_model ----
+// ---- vendor: _rune/set_model ----
 
-type ZeroSetModelParams struct {
+type RuneSetModelParams struct {
 	SessionID string `json:"sessionId"`
 	Model     string `json:"model"`
 }
 
-type ZeroSetModelResult struct {
+type RuneSetModelResult struct {
 	Model string `json:"model"`
 }
 

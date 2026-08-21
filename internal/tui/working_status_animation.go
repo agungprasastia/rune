@@ -72,7 +72,7 @@ func (m model) workingStatusIndicator() string {
 // cleanly from the loader into the active label.
 func (m model) workingStatusLabel() string {
 	if m.reducedMotion {
-		return zeroTheme.ink.Render(workingStatusText)
+		return runeTheme.ink.Render(workingStatusText)
 	}
 
 	var out strings.Builder
@@ -144,12 +144,12 @@ func workingDriveLevelAt(phase int, delay time.Duration) workingDriveLevel {
 func workingDriveStyle(level workingDriveLevel) lipgloss.Style {
 	switch level {
 	case workingDriveBright:
-		return zeroTheme.accent
+		return runeTheme.accent
 	case workingDriveSoft:
-		return zeroTheme.ink
+		return runeTheme.ink
 	case workingDriveDim:
-		return zeroTheme.muted
+		return runeTheme.muted
 	default:
-		return zeroTheme.faint
+		return runeTheme.faint
 	}
 }

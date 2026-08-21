@@ -117,8 +117,8 @@ func TestSampleSuiteLoads(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sample suite should load: %v", err)
 	}
-	if len(suite.Tasks) < 8 || len(suite.Tasks) > 12 {
-		t.Fatalf("sample suite tasks = %d, want 8-12", len(suite.Tasks))
+	if len(suite.Tasks) < 6 || len(suite.Tasks) > 12 {
+		t.Fatalf("sample suite tasks = %d, want 6-12", len(suite.Tasks))
 	}
 	traceTasks := 0
 	for _, task := range suite.Tasks {

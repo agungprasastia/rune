@@ -78,7 +78,7 @@ func TestDoctorResultBorderStyleUsesSummaryStatusLine(t *testing.T) {
 	}, "\n")
 
 	got := fmt.Sprint(doctorResultBorderStyle(text).GetForeground())
-	want := fmt.Sprint(zeroTheme.red.GetForeground())
+	want := fmt.Sprint(runeTheme.red.GetForeground())
 	if got != want {
 		t.Fatalf("border foreground = %s, want blocked red %s", got, want)
 	}

@@ -496,15 +496,15 @@ func TestAimlapiAutoTopUpRendersOnOff(t *testing.T) {
 	view := plainRender(t, idle)
 	assertContains(t, view, "on/off")
 	assertNotContains(t, view, "yes/no")
-	if !strings.Contains(idle, zeroTheme.ink.Render("on")) ||
-		!strings.Contains(idle, zeroTheme.faint.Render("off")) {
+	if !strings.Contains(idle, runeTheme.ink.Render("on")) ||
+		!strings.Contains(idle, runeTheme.faint.Render("off")) {
 		t.Fatalf("idle toggle should render selected on white and unselected off faint: %q", idle)
 	}
 
 	focused := aimlapiToggleLine("auto top up > ", false, true)
-	if !strings.Contains(focused, zeroTheme.accent.Render("auto top up > ")) ||
-		!strings.Contains(focused, zeroTheme.faint.Render("on")) ||
-		!strings.Contains(focused, zeroTheme.ink.Render("off")) {
+	if !strings.Contains(focused, runeTheme.accent.Render("auto top up > ")) ||
+		!strings.Contains(focused, runeTheme.faint.Render("on")) ||
+		!strings.Contains(focused, runeTheme.ink.Render("off")) {
 		t.Fatalf("focused toggle should highlight its prompt, selected off, and dim unselected on: %q", focused)
 	}
 }
@@ -574,12 +574,12 @@ func TestAimlapiWizardDoesNotFilterDiscoveredModelsByDefault(t *testing.T) {
 
 func TestAimlapiAmountDollarUsesInkStyle(t *testing.T) {
 	line := aimlapiAmountInputLine("", "25", 40, true)
-	if !strings.Contains(line, zeroTheme.ink.Render("$")) {
+	if !strings.Contains(line, runeTheme.ink.Render("$")) {
 		t.Fatalf("amount dollar is not rendered with ink style: %q", line)
 	}
 	idle := aimlapiAmountInputLine("25", "25", 40, false)
-	if !strings.Contains(idle, zeroTheme.ink.Render("amount > ")) ||
-		strings.Contains(idle, zeroTheme.accent.Render("amount > ")) {
+	if !strings.Contains(idle, runeTheme.ink.Render("amount > ")) ||
+		strings.Contains(idle, runeTheme.accent.Render("amount > ")) {
 		t.Fatalf("unfocused amount prompt should be white: %q", idle)
 	}
 }

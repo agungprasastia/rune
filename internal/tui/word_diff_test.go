@@ -70,9 +70,9 @@ func TestDiffBodyWordHighlightRenders(t *testing.T) {
 }
 
 func TestMixedDiffSyntaxHighlightsCodeOnBothSides(t *testing.T) {
-	previous := zeroTheme
-	defer func() { zeroTheme = previous }()
-	_, zeroTheme = themeForMode("nord", true)
+	previous := runeTheme
+	defer func() { runeTheme = previous }()
+	_, runeTheme = themeForMode("nord", true)
 
 	diff := strings.Join([]string{
 		"--- a/main.go",
@@ -93,7 +93,7 @@ func TestMixedDiffSyntaxHighlightsCodeOnBothSides(t *testing.T) {
 	body := diffCardBody(diff, 100, cardRenderOptions{bodyCap: 20})
 	joined := strings.Join(body.lines, "\n")
 
-	addedKeyword := tokenStyle(chroma.Keyword).Background(zeroTheme.addLine.GetBackground()).Render("if")
+	addedKeyword := tokenStyle(chroma.Keyword).Background(runeTheme.addLine.GetBackground()).Render("if")
 	if !strings.Contains(joined, addedKeyword) {
 		t.Fatalf("mixed diff added code must retain syntax colors, got:\n%s", joined)
 	}
@@ -104,9 +104,9 @@ func TestMixedDiffSyntaxHighlightsCodeOnBothSides(t *testing.T) {
 }
 
 func TestSystemThemeKeepsSyntaxOnAnAddedLineBand(t *testing.T) {
-	previous := zeroTheme
-	defer func() { zeroTheme = previous }()
-	zeroTheme = buildSystemTheme()
+	previous := runeTheme
+	defer func() { runeTheme = previous }()
+	runeTheme = buildSystemTheme()
 
 	diff := strings.Join([]string{
 		"--- /dev/null",
@@ -117,13 +117,13 @@ func TestSystemThemeKeepsSyntaxOnAnAddedLineBand(t *testing.T) {
 	}, "\n")
 	body := diffCardBody(diff, 80, cardRenderOptions{bodyCap: 20})
 	joined := strings.Join(body.lines, "\n")
-	if !styleHasLocalBackground(zeroTheme.addLine) {
+	if !styleHasLocalBackground(runeTheme.addLine) {
 		t.Fatal("system-theme added code must use a local line background")
 	}
-	if want := tokenStyle(chroma.Keyword).Background(zeroTheme.addLine.GetBackground()).Render("package"); !strings.Contains(joined, want) {
+	if want := tokenStyle(chroma.Keyword).Background(runeTheme.addLine.GetBackground()).Render("package"); !strings.Contains(joined, want) {
 		t.Fatalf("system-theme added code must retain syntax highlighting, got:\n%s", joined)
 	}
-	if !styleHasLocalBackground(zeroTheme.onSel(zeroTheme.ink)) {
+	if !styleHasLocalBackground(runeTheme.onSel(runeTheme.ink)) {
 		t.Fatal("system-theme selected rows must use a local selection background")
 	}
 }

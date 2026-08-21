@@ -8,9 +8,9 @@ import (
 // The status glyph must LEAD the tool-card head row (dot/spinner first), not be
 // right-aligned to the far edge — so state reads at a glance.
 func TestToolCardGlyphLeadsHeadRow(t *testing.T) {
-	head := zeroTheme.toolName.Render("bash")
-	glyph := zeroTheme.green.Render("•")
-	out := toolCard(head, glyph, nil, "", zeroTheme.line, 60)
+	head := runeTheme.toolName.Render("bash")
+	glyph := runeTheme.green.Render("•")
+	out := toolCard(head, glyph, nil, "", runeTheme.line, 60)
 	first := strings.SplitN(out, "\n", 2)[0]
 
 	glyphIdx := strings.Index(first, "•")

@@ -1159,12 +1159,12 @@ func TestResumeHonorsPriorCompaction(t *testing.T) {
 
 func TestResumeCommandWithUnknownIDReportsMissingSession(t *testing.T) {
 	m := newModel(context.Background(), Options{SessionStore: testSessionStore(t)})
-	m.input.SetValue("/resume zero_123")
+	m.input.SetValue("/resume rune_123")
 
 	updated, _ := m.Update(testKey(tea.KeyEnter))
 	next := updated.(model)
 
-	if !transcriptContains(next.transcript, "rune session not found: zero_123") {
+	if !transcriptContains(next.transcript, "rune session not found: rune_123") {
 		t.Fatalf("expected missing session message, got %#v", next.transcript)
 	}
 }
@@ -2341,7 +2341,7 @@ func TestSelectionHighlightUsesGutterShiftedCoordinate(t *testing.T) {
 	if !strings.Contains(plainRender(t, styled), "    Hello world") {
 		t.Fatalf("expected a 4-cell gutter-padded line, got %q", styled)
 	}
-	if !strings.Contains(styled, zeroTheme.selection.Render("world")) {
+	if !strings.Contains(styled, runeTheme.selection.Render("world")) {
 		t.Fatalf("expected 'world' highlighted at the gutter-shifted position, got %q", styled)
 	}
 }
@@ -2396,7 +2396,7 @@ func TestTranscriptSelectionPaintsHighlightOnceNotTwice(t *testing.T) {
 	}
 	out := strings.Join(row2.render(0).lines, "\n")
 
-	sentinel := zeroTheme.selection.Render("\x00")
+	sentinel := runeTheme.selection.Render("\x00")
 	open := sentinel[:strings.IndexByte(sentinel, 0)]
 	if open == "" {
 		t.Fatal("selection style emitted no opening sequence to count")
@@ -3018,10 +3018,10 @@ func TestCommandArgumentHintFollowsCursorVisibility(t *testing.T) {
 	if visible == hidden {
 		t.Fatal("expected the rendered hint line to differ between visible and hidden caret states")
 	}
-	if want := composerCursor(zeroTheme.faint.Render("h")); !strings.Contains(visible, want) {
+	if want := composerCursor(runeTheme.faint.Render("h")); !strings.Contains(visible, want) {
 		t.Fatalf("expected visible-caret render to contain the styled cursor cell, got %q", visible)
 	}
-	if got := hidden; strings.Contains(got, composerCursor(zeroTheme.faint.Render("h"))) {
+	if got := hidden; strings.Contains(got, composerCursor(runeTheme.faint.Render("h"))) {
 		t.Fatalf("expected hidden-caret render to drop the styled cursor cell, got %q", got)
 	}
 }

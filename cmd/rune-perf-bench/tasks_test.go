@@ -40,7 +40,7 @@ func TestParseTaskArgsReadsFlagsAndEnv(t *testing.T) {
 		"--model", "test-model",
 		"--mode", "build",
 		"--self-correct",
-		"--binary", "/usr/local/bin/zero",
+		"--binary", "/usr/local/bin/rune",
 		"--output", "dist/bench.json",
 		"--json",
 	}, env)
@@ -53,7 +53,7 @@ func TestParseTaskArgsReadsFlagsAndEnv(t *testing.T) {
 	if !options.SelfCorrect || !options.JSON {
 		t.Fatalf("flags not parsed: %#v", options)
 	}
-	if options.Binary != "/usr/local/bin/zero" || options.Output != "dist/bench.json" {
+	if options.Binary != "/usr/local/bin/rune" || options.Output != "dist/bench.json" {
 		t.Fatalf("binary/output = %q/%q", options.Binary, options.Output)
 	}
 	if options.Commit != "deadbeef" || options.Version != "9.9.9" {

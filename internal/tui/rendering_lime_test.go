@@ -994,7 +994,7 @@ func TestDiffCardBodyRendersCountsNumbersAndCap(t *testing.T) {
 	}, "\n")
 	row := transcriptRow{kind: rowToolResult, id: "call_1", tool: "write_file", status: tools.StatusOK, detail: diff}
 	styled := m.renderRow(row, 80, buildRowContext(nil))
-	for _, want := range []string{zeroTheme.diffAdd.Render("+3"), zeroTheme.diffDel.Render("-0")} {
+	for _, want := range []string{runeTheme.diffAdd.Render("+3"), runeTheme.diffDel.Render("-0")} {
 		if !strings.Contains(styled, want) {
 			t.Fatalf("diff card count tag should color additions/deletions, missing styled %q in:\n%s", want, styled)
 		}
@@ -1153,11 +1153,11 @@ func TestToolCardHeadCollapsesMultilineCommand(t *testing.T) {
 }
 
 func TestToolCardHeadStylesShellCommandButNotCommandOutput(t *testing.T) {
-	previous := zeroTheme
-	defer func() { zeroTheme = previous }()
-	_, zeroTheme = themeForMode("nord", true)
+	previous := runeTheme
+	defer func() { runeTheme = previous }()
+	_, runeTheme = themeForMode("nord", true)
 
-	head := toolCardHead("bash", "gofmt -w calculator.go && go run . divide 9 2", "", "", "", "", false, zeroTheme.green, false, 120, cardRenderOptions{})
+	head := toolCardHead("bash", "gofmt -w calculator.go && go run . divide 9 2", "", "", "", "", false, runeTheme.green, false, 120, cardRenderOptions{})
 	if !strings.Contains(head, "\x1b[") {
 		t.Fatalf("shell command head should be styled, got %q", head)
 	}
@@ -1571,14 +1571,14 @@ func TestTitleBarHighlightsBranchOverWorkspace(t *testing.T) {
 	m.gitBranch = "main"
 	got := m.titleWorkspaceSegment()
 
-	highlightedBranch := zeroTheme.muted.Render("") + " " + zeroTheme.muted.Render("main")
-	recessedWorkspace := zeroTheme.faint.Render("/workspace/rune")
+	highlightedBranch := runeTheme.muted.Render("") + " " + runeTheme.muted.Render("main")
+	recessedWorkspace := runeTheme.faint.Render("/workspace/rune")
 	for _, want := range []string{highlightedBranch, recessedWorkspace} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("title workspace segment = %q, missing styled segment %q", got, want)
 		}
 	}
-	if faintBranch := zeroTheme.faint.Render("") + " " + zeroTheme.faint.Render("main"); strings.Contains(got, faintBranch) {
+	if faintBranch := runeTheme.faint.Render("") + " " + runeTheme.faint.Render("main"); strings.Contains(got, faintBranch) {
 		t.Fatalf("title workspace segment = %q, branch should use highlighted title colour", got)
 	}
 }

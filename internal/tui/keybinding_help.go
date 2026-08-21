@@ -99,13 +99,13 @@ func (m model) renderKeybindingHelpLines(innerWidth int) []string {
 		if index > 0 {
 			lines = append(lines, "")
 		}
-		lines = append(lines, zeroTheme.accent.Render(group.title))
+		lines = append(lines, runeTheme.accent.Render(group.title))
 		for _, binding := range group.bindings {
 			lines = append(lines, formatKeybindingLine(binding, keyColumn, innerWidth))
 		}
 	}
 	lines = append(lines, "")
-	lines = append(lines, zeroTheme.faint.Render(keybindingHelpFooter))
+	lines = append(lines, runeTheme.faint.Render(keybindingHelpFooter))
 	return lines
 }
 
@@ -132,13 +132,13 @@ func formatKeybindingLine(binding keybinding, keyColumn int, innerWidth int) str
 	if pad < 0 {
 		pad = 0
 	}
-	keyCell := zeroTheme.ink.Render(keys) + strings.Repeat(" ", pad)
+	keyCell := runeTheme.ink.Render(keys) + strings.Repeat(" ", pad)
 	// Indent(2) + keyCell + gap(2) consumed before the description.
 	descBudget := innerWidth - 2 - keyColumn - 2
 	if descBudget < 4 {
 		descBudget = 4
 	}
-	desc := zeroTheme.muted.Render(truncateRunes(binding.desc, descBudget))
+	desc := runeTheme.muted.Render(truncateRunes(binding.desc, descBudget))
 	return "  " + keyCell + "  " + desc
 }
 
@@ -147,7 +147,7 @@ func formatKeybindingLine(binding keybinding, keyColumn int, innerWidth int) str
 func (m model) renderKeybindingHelpOverlay(width int) string {
 	overlayWidth := keybindingHelpOverlayWidth(width)
 	lines := m.renderKeybindingHelpLines(overlayWidth - 4)
-	block := styledBlockFillTitle(overlayWidth, "Keyboard Shortcuts", lines, zeroTheme.line, lipgloss.NewStyle())
+	block := styledBlockFillTitle(overlayWidth, "Keyboard Shortcuts", lines, runeTheme.line, lipgloss.NewStyle())
 	return centerRenderedBlock(block, width)
 }
 

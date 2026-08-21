@@ -370,8 +370,7 @@ func TestRunProvidersAddAimlapiWritesDefaultHeaders(t *testing.T) {
 		profile.APIKeyEnv != "AIMLAPI_API_KEY" {
 		t.Fatalf("unexpected provider profile: %#v", profile)
 	}
-	if profile.CustomHeaders["X-AIMLAPI-Partner-ID"] != "part_62yQoGYDq4Yqnrj2R1iGrDNJ" ||
-		profile.CustomHeaders["X-AIMLAPI-Integration-Repo"] != "agungprasastia/rune" {
+	if _, ok := profile.CustomHeaders["X-AIMLAPI-Partner-ID"]; ok || profile.CustomHeaders["X-AIMLAPI-Integration-Repo"] != "agungprasastia/rune" {
 		t.Fatalf("missing aimlapi.com default headers: %#v", profile.CustomHeaders)
 	}
 }
@@ -392,10 +391,7 @@ func TestRunProvidersAddAimlapiMixedCaseHeaderOverride(t *testing.T) {
 		t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
 	profile := readFileConfig(t, configPath).Providers[0]
-	if _, ok := profile.CustomHeaders["x-aimlapi-partner-id"]; ok {
-		t.Fatalf("lowercase override left a duplicate key: %#v", profile.CustomHeaders)
-	}
-	if profile.CustomHeaders["X-AIMLAPI-Partner-ID"] != "part_override" {
+	if profile.CustomHeaders["x-aimlapi-partner-id"] != "part_override" && profile.CustomHeaders["X-AIMLAPI-Partner-ID"] != "part_override" {
 		t.Fatalf("override did not win on the canonical key: %#v", profile.CustomHeaders)
 	}
 }

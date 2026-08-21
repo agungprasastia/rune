@@ -164,7 +164,7 @@ func (m *model) resetFlushFrontier(divider string) {
 	// coincidentally matching an unrelated row in the rebuilt transcript.
 	m.hover = hoverTarget{}
 	if divider != "" && m.flushedAny {
-		m.flushQueue = append(m.flushQueue, zeroTheme.faint.Render(divider))
+		m.flushQueue = append(m.flushQueue, runeTheme.faint.Render(divider))
 	}
 }
 

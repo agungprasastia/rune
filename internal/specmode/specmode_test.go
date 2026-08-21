@@ -152,14 +152,14 @@ func TestLoadSpecFileRejectsNonRegularFiles(t *testing.T) {
 }
 
 func TestImplementationPromptIncludesReviewContext(t *testing.T) {
-	prompt := ImplementationPrompt("# Goal\n\nShip it.", "/repo/.rune/specs/plan.md", "zero_1", "Keep tests focused.")
+	prompt := ImplementationPrompt("# Goal\n\nShip it.", "/repo/.rune/specs/plan.md", "rune_1", "Keep tests focused.")
 
 	for _, want := range []string{
 		"Implement the following approved spec:",
 		"User note: Keep tests focused.",
 		"# Goal\n\nShip it.",
 		"Spec file: /repo/.rune/specs/plan.md",
-		"Planning session: zero_1",
+		"Planning session: rune_1",
 	} {
 		if !strings.Contains(prompt, want) {
 			t.Fatalf("prompt missing %q: %s", want, prompt)

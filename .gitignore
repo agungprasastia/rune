@@ -57,3 +57,5 @@ rune-seccomp
 
 # Generated benchmark reports are evidence for one configuration, never tree state
 internal/perfbench/reports/*.json
+
+.codegraph/

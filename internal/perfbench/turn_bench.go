@@ -705,7 +705,7 @@ func NewTurnExecRunner(binary string, extraArgs ...string) TurnRunner {
 		// copy (task.WorkspaceFixture, set to copyDir above) so runVerification —
 		// which uses that same dir as cmd.Dir — sees them. Stamping happens only
 		// after the agent run so the oracle test can't interfere with the agent's
-		// own go build/test during the task (e.g. refactor-03's package-zeroapp
+		// own go build/test during the task (e.g. refactor-03's package-sampleapp
 		// test would break a pre-rename build) and can't be pre-seen or tampered
 		// with.
 		if err := stampOracleAndAnswer(task, outBuf.Bytes()); err != nil {

@@ -57,5 +57,5 @@ func renderSubchatNavBar(title string, width int) string {
 	if title != "" {
 		nav += "  ·  " + truncateRunes(title, width-40)
 	}
-	return zeroTheme.accent.Render(nav)
+	return runeTheme.accent.Render(nav)
 }

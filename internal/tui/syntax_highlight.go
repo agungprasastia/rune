@@ -133,7 +133,7 @@ func (theme codeSyntaxTheme) styleFor(tt chroma.TokenType) (codeSyntaxStyle, boo
 // style when one is available. Palette-local fallbacks keep System, inverted, and
 // unmatched themes readable without forcing an unrelated code scheme on them.
 func tokenStyle(tt chroma.TokenType) lipgloss.Style {
-	return tokenStyleForTheme(zeroTheme, tt)
+	return tokenStyleForTheme(runeTheme, tt)
 }
 
 func tokenStyleForTheme(theme tuiTheme, tt chroma.TokenType) lipgloss.Style {
@@ -159,10 +159,10 @@ func codeSyntaxLipglossStyle(entry codeSyntaxStyle) lipgloss.Style {
 // inlineCodeStyle gives short code spans the same palette-aware treatment as
 // code blocks without turning ordinary assistant prose into a code block.
 func inlineCodeStyle() lipgloss.Style {
-	if syntax := zeroTheme.codeTheme; syntax != nil && syntax.function.foreground != "" {
+	if syntax := runeTheme.codeTheme; syntax != nil && syntax.function.foreground != "" {
 		return codeSyntaxLipglossStyle(syntax.function)
 	}
-	return zeroTheme.blue
+	return runeTheme.blue
 }
 
 // fallbackTokenStyle is the contrast-audited semantic mapping used by System,

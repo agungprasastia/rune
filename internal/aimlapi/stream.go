@@ -67,7 +67,7 @@ func StreamTopUp(ctx context.Context, options StreamTopUpOptions) (ProvisionedKe
 	}
 	client := NewClient(endpoints, options.HTTPClient)
 	partnerID := ResolvePartnerID(options.PartnerID)
-	partnerName := firstNonEmpty(options.PartnerName, DefaultPartnerName)
+	partnerName := strings.TrimSpace(options.PartnerName)
 	method := options.Method
 	if method != PaymentMethodCrypto {
 		method = PaymentMethodCard
@@ -252,7 +252,7 @@ func StreamTopUpByKey(ctx context.Context, options StreamTopUpByKeyOptions) (Pro
 	}
 	client := NewClient(endpoints, options.HTTPClient)
 	partnerID := ResolvePartnerID(options.PartnerID)
-	partnerName := firstNonEmpty(options.PartnerName, DefaultPartnerName)
+	partnerName := strings.TrimSpace(options.PartnerName)
 	amount, err := ParseAmountUSD(options.AmountUSD)
 	if err != nil {
 		return ProvisionedKey{}, err

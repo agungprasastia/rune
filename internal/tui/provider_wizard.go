@@ -1371,19 +1371,19 @@ func (wizard *providerWizardState) render(width int, spinner string) string {
 	innerWidth := maxInt(20, overlayWidth-4)
 
 	lines := []string{
-		zeroTheme.faint.Render(providerWizardStepLine(wizard)),
-		zeroTheme.line.Render(strings.Repeat("─", innerWidth)),
+		runeTheme.faint.Render(providerWizardStepLine(wizard)),
+		runeTheme.line.Render(strings.Repeat("─", innerWidth)),
 	}
 	if wizard.err != "" {
-		lines = append(lines, zeroTheme.red.Render("error: "+wizard.err), "")
+		lines = append(lines, runeTheme.red.Render("error: "+wizard.err), "")
 	}
 	if wizard.oauthPending {
 		lines = append(lines, wizard.renderOAuthWaiting(innerWidth)...)
 		lines = append(lines,
-			zeroTheme.line.Render(strings.Repeat("─", innerWidth)),
-			zeroTheme.faint.Render("Esc cancel"),
+			runeTheme.line.Render(strings.Repeat("─", innerWidth)),
+			runeTheme.faint.Render("Esc cancel"),
 		)
-		block := styledBlockFillTitle(overlayWidth, "Provider setup", lines, zeroTheme.lineStrong, lipgloss.NewStyle())
+		block := styledBlockFillTitle(overlayWidth, "Provider setup", lines, runeTheme.lineStrong, lipgloss.NewStyle())
 		if width > overlayWidth {
 			return indentBlock(block, (width-overlayWidth)/2)
 		}
@@ -1420,15 +1420,15 @@ func (wizard *providerWizardState) render(width int, spinner string) string {
 		lines = append(lines, wizard.renderEditValueStep(innerWidth)...)
 	}
 	lines = append(lines,
-		zeroTheme.line.Render(strings.Repeat("─", innerWidth)),
-		zeroTheme.faint.Render(wizard.footer()),
+		runeTheme.line.Render(strings.Repeat("─", innerWidth)),
+		runeTheme.faint.Render(wizard.footer()),
 	)
 
 	title := "Provider setup"
 	if wizard.managerStep() {
 		title = "Providers"
 	}
-	block := styledBlockFillTitle(overlayWidth, title, lines, zeroTheme.lineStrong, lipgloss.NewStyle())
+	block := styledBlockFillTitle(overlayWidth, title, lines, runeTheme.lineStrong, lipgloss.NewStyle())
 	if width > overlayWidth {
 		return indentBlock(block, (width-overlayWidth)/2)
 	}
@@ -1584,28 +1584,28 @@ func providerWizardStepLine(wizard *providerWizardState) string {
 func (wizard *providerWizardState) renderMethodStep(width int) []string {
 	options := providerWizardMethodOptions()
 	wizard.selectedMethod = clampInt(wizard.selectedMethod, 0, maxInt(0, len(options)-1))
-	lines := []string{zeroTheme.accent.Render("How do you want to connect?")}
+	lines := []string{runeTheme.accent.Render("How do you want to connect?")}
 	for index, option := range options {
 		surface := transparentSurface
-		marker := surface(zeroTheme.faintest).Render("  ")
+		marker := surface(runeTheme.faintest).Render("  ")
 		if index == wizard.selectedMethod {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
-		lines = append(lines, fitStyledLine(marker+surface(zeroTheme.ink).Render(option.label), width))
-		lines = append(lines, fitStyledLine("    "+zeroTheme.faint.Render(option.subtitle), width))
+		lines = append(lines, fitStyledLine(marker+surface(runeTheme.ink).Render(option.label), width))
+		lines = append(lines, fitStyledLine("    "+runeTheme.faint.Render(option.subtitle), width))
 	}
 	return lines
 }
 
 func (wizard *providerWizardState) renderAimlapiConfiguredStep(width int, spinner string) []string {
-	lines := []string{zeroTheme.accent.Render("aimlapi.com is already configured")}
+	lines := []string{runeTheme.accent.Render("aimlapi.com is already configured")}
 	if wizard.aimlapiExistingBusy {
 		glyph := strings.TrimSpace(spinner)
 		if glyph == "" {
 			glyph = "•"
 		}
-		return append(lines, "", zeroTheme.faint.Render(glyph+" checking balance"))
+		return append(lines, "", runeTheme.faint.Render(glyph+" checking balance"))
 	}
 	options := []struct{ label, hint string }{
 		{"Use existing configuration", "Continue with your saved API key"},
@@ -1613,13 +1613,13 @@ func (wizard *providerWizardState) renderAimlapiConfiguredStep(width int, spinne
 	}
 	for index, option := range options {
 		marker := "  "
-		style := zeroTheme.ink
+		style := runeTheme.ink
 		if index == wizard.aimlapiConfiguredCursor {
 			marker = "❯ "
-			style = zeroTheme.accent.Bold(true)
+			style = runeTheme.accent.Bold(true)
 		}
 		lines = append(lines, marker+style.Render(option.label))
-		lines = append(lines, "    "+zeroTheme.faint.Render(option.hint))
+		lines = append(lines, "    "+runeTheme.faint.Render(option.hint))
 	}
 	return lines
 }
@@ -1637,16 +1637,16 @@ func (wizard *providerWizardState) renderManageKeyStep(width int) []string {
 		{"Remove key", "Delete the stored key for " + name + "."},
 	}
 	wizard.manageKeyCursor = clampInt(wizard.manageKeyCursor, 0, len(options)-1)
-	lines := []string{zeroTheme.accent.Render(name + " already has a saved key")}
+	lines := []string{runeTheme.accent.Render(name + " already has a saved key")}
 	for index, option := range options {
 		surface := transparentSurface
-		marker := surface(zeroTheme.faintest).Render("  ")
+		marker := surface(runeTheme.faintest).Render("  ")
 		if index == wizard.manageKeyCursor {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
-		lines = append(lines, fitStyledLine(marker+surface(zeroTheme.ink).Render(option.label), width))
-		lines = append(lines, fitStyledLine("    "+zeroTheme.faint.Render(option.subtitle), width))
+		lines = append(lines, fitStyledLine(marker+surface(runeTheme.ink).Render(option.label), width))
+		lines = append(lines, fitStyledLine("    "+runeTheme.faint.Render(option.subtitle), width))
 	}
 	return lines
 }
@@ -1660,26 +1660,26 @@ func (wizard *providerWizardState) renderOAuthWaiting(width int) []string {
 	}
 	if wizard.oauthDevice {
 		lines := []string{
-			zeroTheme.accent.Render("Device-code sign-in for " + name),
+			runeTheme.accent.Render("Device-code sign-in for " + name),
 			"",
 		}
 		if wizard.deviceUserCode == "" {
-			return append(lines, fitStyledLine(zeroTheme.faint.Render("Requesting a device code..."), width))
+			return append(lines, fitStyledLine(runeTheme.faint.Render("Requesting a device code..."), width))
 		}
 		return append(lines,
-			fitStyledLine(zeroTheme.ink.Render("1. On any device, visit:  ")+zeroTheme.accent.Render(wizard.deviceVerificationURI), width),
-			fitStyledLine(zeroTheme.ink.Render("2. Enter the code:  ")+zeroTheme.accent.Bold(true).Render(wizard.deviceUserCode), width),
+			fitStyledLine(runeTheme.ink.Render("1. On any device, visit:  ")+runeTheme.accent.Render(wizard.deviceVerificationURI), width),
+			fitStyledLine(runeTheme.ink.Render("2. Enter the code:  ")+runeTheme.accent.Bold(true).Render(wizard.deviceUserCode), width),
 			"",
-			fitStyledLine(zeroTheme.faint.Render("Waiting for authorization..."), width),
+			fitStyledLine(runeTheme.faint.Render("Waiting for authorization..."), width),
 		)
 	}
 	return []string{
-		zeroTheme.accent.Render("Signing in with " + name),
+		runeTheme.accent.Render("Signing in with " + name),
 		"",
-		fitStyledLine(zeroTheme.ink.Render("Opening your browser — approve there, then return here."), width),
-		fitStyledLine(zeroTheme.faint.Render("Waiting for authorization..."), width),
+		fitStyledLine(runeTheme.ink.Render("Opening your browser — approve there, then return here."), width),
+		fitStyledLine(runeTheme.faint.Render("Waiting for authorization..."), width),
 		"",
-		fitStyledLine(zeroTheme.faint.Render("If your browser didn't open, run:  "+providerWizardOAuthCLIHint(provider)), width),
+		fitStyledLine(runeTheme.faint.Render("If your browser didn't open, run:  "+providerWizardOAuthCLIHint(provider)), width),
 	}
 }
 
@@ -1697,11 +1697,11 @@ func (wizard *providerWizardState) renderProviderStep(width int) []string {
 	if wizard.oauthMode {
 		header = "Choose an OAuth provider"
 	}
-	lines := []string{zeroTheme.accent.Render(header)}
+	lines := []string{runeTheme.accent.Render(header)}
 	lines = append(lines, wizard.renderProviderSearch(width))
 	providers := wizard.filteredProviders()
 	if len(providers) == 0 {
-		lines = append(lines, zeroTheme.faint.Render("  no matching providers"))
+		lines = append(lines, runeTheme.faint.Render("  no matching providers"))
 		return lines
 	}
 	maxVisible := minInt(maxProviderWizardProvidersVisible, len(providers))
@@ -1713,9 +1713,9 @@ func (wizard *providerWizardState) renderProviderStep(width int) []string {
 	// so the error must render here or the click looks like a silent no-op. The
 	// credential step renders its own copy for the ctrl+o path.
 	if wizard.oauthMode && wizard.oauthErr != "" {
-		lines = append(lines, "", zeroTheme.red.Render("OAuth login failed: "+wizard.oauthErr))
+		lines = append(lines, "", runeTheme.red.Render("OAuth login failed: "+wizard.oauthErr))
 		if hint := providerWizardOAuthErrHint(wizard.currentProvider()); hint != "" {
-			lines = append(lines, zeroTheme.faint.Render(hint))
+			lines = append(lines, runeTheme.faint.Render(hint))
 		}
 	}
 	return lines
@@ -1740,18 +1740,18 @@ func providerWizardOAuthErrHint(provider providercatalog.Descriptor) string {
 func (wizard *providerWizardState) renderSelectableProvider(width int, index int, provider providercatalog.Descriptor) string {
 	selected := index == wizard.selectedProvider
 	surface := transparentSurface
-	marker := surface(zeroTheme.faintest).Render("  ")
+	marker := surface(runeTheme.faintest).Render("  ")
 	if selected {
-		surface = zeroTheme.onSel
-		marker = surface(zeroTheme.accent).Render("❯ ")
+		surface = runeTheme.onSel
+		marker = surface(runeTheme.accent).Render("❯ ")
 	}
 	name := provider.Name
 	if provider.Recommended {
 		name = "★ " + name
 	}
-	left := marker + surface(zeroTheme.ink).Render(name)
+	left := marker + surface(runeTheme.ink).Render(name)
 	if badge := providerWizardBadge(provider); badge != "" {
-		left += surface(zeroTheme.faint).Render("   " + badge)
+		left += surface(runeTheme.faint).Render("   " + badge)
 	}
 	return fitStyledLine(left, width)
 }
@@ -1783,9 +1783,9 @@ func (wizard *providerWizardState) renderEndpointStep(width int) []string {
 	provider := wizard.currentProvider()
 	input := providerWizardInputLine("url > ", wizard.baseURL, providerWizardEndpointPlaceholder(provider), width)
 	return []string{
-		zeroTheme.accent.Render("Endpoint URL"),
-		zeroTheme.ink.Render("Enter the API base URL for " + provider.Name + "."),
-		zeroTheme.faint.Render(providerWizardEndpointHint(provider)),
+		runeTheme.accent.Render("Endpoint URL"),
+		runeTheme.ink.Render("Enter the API base URL for " + provider.Name + "."),
+		runeTheme.faint.Render(providerWizardEndpointHint(provider)),
 		input,
 	}
 }
@@ -1807,9 +1807,9 @@ func providerWizardEndpointHint(provider providercatalog.Descriptor) string {
 func (wizard *providerWizardState) renderNameStep(width int) []string {
 	name := providerWizardDisplayName(wizard.currentProvider(), wizard.baseURL, wizard.profileName)
 	return []string{
-		zeroTheme.accent.Render("Provider name"),
-		zeroTheme.ink.Render("Choose the short label shown in the status bar."),
-		zeroTheme.faint.Render("Leave blank to use " + name + "."),
+		runeTheme.accent.Render("Provider name"),
+		runeTheme.ink.Render("Choose the short label shown in the status bar."),
+		runeTheme.faint.Render("Leave blank to use " + name + "."),
 		providerWizardInputLine("name > ", strings.TrimSpace(wizard.profileName), name, width),
 	}
 }
@@ -1819,22 +1819,22 @@ func (wizard *providerWizardState) renderCredentialStep(width int) []string {
 	oauth := providerWizardSupportsOAuth(provider)
 
 	env := firstProviderDisplayValue(provider.AuthEnvVars...)
-	value := zeroTheme.accent.Render("▌") + zeroTheme.faint.Render("paste key here")
+	value := runeTheme.accent.Render("▌") + runeTheme.faint.Render("paste key here")
 	if wizard.apiKey != "" {
-		value = zeroTheme.ink.Render(maskedProviderWizardKey(wizard.apiKey)) + zeroTheme.accent.Render("▌")
+		value = runeTheme.ink.Render(maskedProviderWizardKey(wizard.apiKey)) + runeTheme.accent.Render("▌")
 	}
-	input := zeroTheme.userPrompt.Render("api key > ") + value
+	input := runeTheme.userPrompt.Render("api key > ") + value
 	lines := []string{
-		zeroTheme.accent.Render("Paste API key"),
-		zeroTheme.ink.Render(providerWizardCredentialInstruction(env)),
+		runeTheme.accent.Render("Paste API key"),
+		runeTheme.ink.Render(providerWizardCredentialInstruction(env)),
 		input,
-		zeroTheme.faint.Render("Pasted keys are hidden and saved in your user config."),
+		runeTheme.faint.Render("Pasted keys are hidden and saved in your user config."),
 	}
 	if oauth {
-		lines = append(lines, zeroTheme.accent.Render("or  ctrl+o  to log in with OAuth in the browser (no key needed)"))
+		lines = append(lines, runeTheme.accent.Render("or  ctrl+o  to log in with OAuth in the browser (no key needed)"))
 	}
 	if wizard.oauthErr != "" {
-		lines = append(lines, zeroTheme.red.Render("OAuth login failed: "+wizard.oauthErr))
+		lines = append(lines, runeTheme.red.Render("OAuth login failed: "+wizard.oauthErr))
 	}
 	return lines
 }
@@ -1853,15 +1853,15 @@ func (wizard *providerWizardState) renderModelStep(width int) []string {
 	if wizard.modelLoading {
 		return wizard.renderModelLoadingStep(width)
 	}
-	lines := []string{zeroTheme.accent.Render("Choose a model")}
+	lines := []string{runeTheme.accent.Render("Choose a model")}
 	if status := wizard.modelStatusText(); status != "" {
-		lines = append(lines, zeroTheme.faint.Render(status))
+		lines = append(lines, runeTheme.faint.Render(status))
 	}
 	lines = append(lines, wizard.renderModelSearch(width))
 	wizard.refreshModels()
 	models := wizard.filteredModels()
 	if len(models) == 0 {
-		lines = append(lines, zeroTheme.faint.Render("  no matching models"))
+		lines = append(lines, runeTheme.faint.Render("  no matching models"))
 		return lines
 	}
 	maxVisible := minInt(maxProviderWizardModelsVisible, len(models))
@@ -1871,17 +1871,17 @@ func (wizard *providerWizardState) renderModelStep(width int) []string {
 		lines = append(lines, wizard.renderSelectableModel(width, start+offset, model))
 	}
 	if detail := providerWizardModelDetail(wizard.currentModel()); detail != "" {
-		lines = append(lines, fitStyledLine(zeroTheme.faint.Render("  "+detail), width))
+		lines = append(lines, fitStyledLine(runeTheme.faint.Render("  "+detail), width))
 	}
 	return lines
 }
 
 func (wizard *providerWizardState) renderModelLoadingStep(width int) []string {
 	return []string{
-		zeroTheme.accent.Render("Choose a model"),
+		runeTheme.accent.Render("Choose a model"),
 		"",
-		fitStyledLine(zeroTheme.faint.Render("Checking available models..."), width),
-		fitStyledLine(zeroTheme.faint.Render("Built-in models will be used if discovery fails."), width),
+		fitStyledLine(runeTheme.faint.Render("Checking available models..."), width),
+		fitStyledLine(runeTheme.faint.Render("Built-in models will be used if discovery fails."), width),
 	}
 }
 
@@ -1891,23 +1891,23 @@ func (wizard *providerWizardState) renderModelSearch(width int) string {
 }
 
 func providerWizardInputLine(promptText string, value string, placeholder string, width int) string {
-	prompt := zeroTheme.userPrompt.Render("search > ")
-	cursor := zeroTheme.accent.Render("▌")
+	prompt := runeTheme.userPrompt.Render("search > ")
+	cursor := runeTheme.accent.Render("▌")
 	if promptText != "" {
-		prompt = zeroTheme.userPrompt.Render(promptText)
+		prompt = runeTheme.userPrompt.Render(promptText)
 	}
 	if value == "" {
-		return fitStyledLine(prompt+cursor+zeroTheme.faint.Render(placeholder), width)
+		return fitStyledLine(prompt+cursor+runeTheme.faint.Render(placeholder), width)
 	}
-	return fitStyledLine(prompt+zeroTheme.ink.Render(value)+cursor, width)
+	return fitStyledLine(prompt+runeTheme.ink.Render(value)+cursor, width)
 }
 
 func (wizard *providerWizardState) renderTypedModelStep(width int) []string {
 	provider := wizard.currentProvider()
 	return []string{
-		zeroTheme.accent.Render("Model name"),
-		zeroTheme.ink.Render("Enter the model ID this endpoint expects."),
-		zeroTheme.faint.Render("Examples: gpt-4.1, claude-sonnet-4-5, llama-3.3-70b"),
+		runeTheme.accent.Render("Model name"),
+		runeTheme.ink.Render("Enter the model ID this endpoint expects."),
+		runeTheme.faint.Render("Examples: gpt-4.1, claude-sonnet-4-5, llama-3.3-70b"),
 		providerWizardInputLine("model > ", strings.TrimSpace(wizard.modelSearch), provider.DefaultModel, width),
 	}
 }
@@ -1922,12 +1922,12 @@ func (wizard *providerWizardState) modelStatusText() string {
 func (wizard *providerWizardState) renderSelectableModel(width int, index int, model providerWizardModel) string {
 	selected := index == wizard.selectedModel
 	surface := transparentSurface
-	marker := surface(zeroTheme.faintest).Render("  ")
+	marker := surface(runeTheme.faintest).Render("  ")
 	if selected {
-		surface = zeroTheme.onSel
-		marker = surface(zeroTheme.accent).Render("❯ ")
+		surface = runeTheme.onSel
+		marker = surface(runeTheme.accent).Render("❯ ")
 	}
-	left := marker + surface(zeroTheme.ink).Render(model.displayLabel())
+	left := marker + surface(runeTheme.ink).Render(model.displayLabel())
 	return fitStyledLine(left, width)
 }
 
@@ -2032,19 +2032,19 @@ func (wizard *providerWizardState) renderDoneStep(width int) []string {
 	provider := wizard.currentProvider()
 	model := wizard.currentModel()
 	lines := []string{
-		zeroTheme.accent.Render("Ready to connect"),
+		runeTheme.accent.Render("Ready to connect"),
 		"",
-		zeroTheme.ink.Render("Provider    " + provider.Name),
+		runeTheme.ink.Render("Provider    " + provider.Name),
 	}
 	if providerWizardNeedsEndpoint(provider) {
-		lines = append(lines, zeroTheme.ink.Render("Endpoint    "+strings.TrimSpace(wizard.baseURL)))
+		lines = append(lines, runeTheme.ink.Render("Endpoint    "+strings.TrimSpace(wizard.baseURL)))
 	}
 	lines = append(lines,
-		zeroTheme.ink.Render("Name        "+providerWizardDisplayName(provider, wizard.baseURL, wizard.profileName)),
-		zeroTheme.ink.Render("Model       "+model.ID),
-		zeroTheme.ink.Render("Credential  "+providerWizardCredentialLabel(provider, wizard.apiKey)),
+		runeTheme.ink.Render("Name        "+providerWizardDisplayName(provider, wizard.baseURL, wizard.profileName)),
+		runeTheme.ink.Render("Model       "+model.ID),
+		runeTheme.ink.Render("Credential  "+providerWizardCredentialLabel(provider, wizard.apiKey)),
 		"",
-		zeroTheme.faint.Render("Press Enter to save and start using this provider."),
+		runeTheme.faint.Render("Press Enter to save and start using this provider."),
 	)
 	return lines
 }

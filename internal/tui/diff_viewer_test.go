@@ -338,8 +338,8 @@ func TestDiffViewerSyntaxHighlighterKeepsSpans(t *testing.T) {
 		[]string{"func greet(name string) string { return \"new\" }"},
 		"example.go",
 		200,
-		zeroTheme.addLine.GetBackground(),
-		[]highlightSpan{{line: 0, start: 39, end: 44, background: zeroTheme.addLineWord.GetBackground()}},
+		runeTheme.addLine.GetBackground(),
+		[]highlightSpan{{line: 0, start: 39, end: 44, background: runeTheme.addLineWord.GetBackground()}},
 	)
 	if !ok || len(styled) != 1 {
 		t.Fatalf("highlightCodeForPathWithSpans = %#v, %v", styled, ok)

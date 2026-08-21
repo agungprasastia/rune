@@ -305,7 +305,7 @@ func TestReceiverAdmissionAndLoopGuardsFailClosed(t *testing.T) {
 }
 
 func TestUntitledPeerAddressResolvesByNeutralNameAndRef(t *testing.T) {
-	peer := Peer{Identity: Identity{SessionID: "zero_opaque"}, Ref: "22222222"}
+	peer := Peer{Identity: Identity{SessionID: "rune_opaque"}, Ref: "22222222"}
 	resolved, err := resolvePeer([]Peer{peer}, "Rune session [22222222]")
 	if err != nil {
 		t.Fatal(err)

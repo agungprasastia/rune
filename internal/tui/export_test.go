@@ -170,28 +170,28 @@ func renderSelectableList(options selectableListOptions) string {
 	lines := make([]string, 0, maxVisible+1)
 	for index, item := range visible {
 		absoluteIndex := start + index
-		surface := zeroTheme.onPanel
-		marker := surface(zeroTheme.faintest).Render("  ")
+		surface := runeTheme.onPanel
+		marker := surface(runeTheme.faintest).Render("  ")
 		if absoluteIndex == selected {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
 
-		label := surface(zeroTheme.ink).Render(item.Label)
-		pad := surface(zeroTheme.ink).Render(strings.Repeat(" ", maxInt(0, labelWidth-lipgloss.Width(item.Label))))
+		label := surface(runeTheme.ink).Render(item.Label)
+		pad := surface(runeTheme.ink).Render(strings.Repeat(" ", maxInt(0, labelWidth-lipgloss.Width(item.Label))))
 		line := marker + label + pad
 		if strings.TrimSpace(item.Description) != "" {
 			descWidth := width - lipgloss.Width(marker) - labelWidth - 2
 			desc := truncateRunes(item.Description, maxInt(0, descWidth))
 			if desc != "" {
-				line += surface(zeroTheme.faint).Render("  " + desc)
+				line += surface(runeTheme.faint).Render("  " + desc)
 			}
 		}
 		lines = append(lines, fitStyledLine(line, width))
 	}
 
 	if hidden := len(options.Items) - len(visible); hidden > 0 {
-		lines = append(lines, fitStyledLine(zeroTheme.faint.Render(fmt.Sprintf("  %d more", hidden)), width))
+		lines = append(lines, fitStyledLine(runeTheme.faint.Render(fmt.Sprintf("  %d more", hidden)), width))
 	}
 	return strings.Join(lines, "\n")
 }
@@ -218,7 +218,7 @@ func (t *specialistTracker) hasRunning() bool {
 }
 
 func borderedBlock(width int, lines []string) string {
-	return styledBlock(width, lines, zeroTheme.line)
+	return styledBlock(width, lines, runeTheme.line)
 }
 
 // tailLines returns the last tailCap content lines, including the in-progress one.

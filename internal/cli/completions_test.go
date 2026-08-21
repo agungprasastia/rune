@@ -68,7 +68,7 @@ func TestCompletionsGeneratesEverySupportedShell(t *testing.T) {
 		marker      string
 		syntaxShell string
 	}{
-		{shell: "bash", marker: "complete -F _zero rune", syntaxShell: "bash"},
+		{shell: "bash", marker: "complete -F _rune rune", syntaxShell: "bash"},
 		{shell: "zsh", marker: "#compdef rune", syntaxShell: "zsh"},
 		{shell: "fish", marker: "complete -c rune"},
 		{shell: "powershell", marker: "Register-ArgumentCompleter -Native -CommandName rune"},

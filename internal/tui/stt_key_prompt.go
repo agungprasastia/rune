@@ -140,11 +140,11 @@ func (m model) sttKeyPromptOverlay(width int) string {
 	// Input line mirrors the provider wizard's credential step (renderCredentialStep):
 	// an "api key > " prompt, cursor-before-placeholder when empty, masked key with a
 	// trailing cursor once typing starts — so both key prompts read the same.
-	value := zeroTheme.accent.Render("▌") + zeroTheme.faint.Render("paste key here")
+	value := runeTheme.accent.Render("▌") + runeTheme.faint.Render("paste key here")
 	if p.input != "" {
-		value = zeroTheme.ink.Render(maskedProviderWizardKey(p.input)) + zeroTheme.accent.Render("▌")
+		value = runeTheme.ink.Render(maskedProviderWizardKey(p.input)) + runeTheme.accent.Render("▌")
 	}
-	input := zeroTheme.userPrompt.Render("api key > ") + value
+	input := runeTheme.userPrompt.Render("api key > ") + value
 	intro := p.label + " isn't set up yet. Paste or type your " + p.label + " API key:"
 	footer := "⏎ save · Esc cancel · stored in Rune's credential store"
 	if p.optional {
@@ -153,11 +153,11 @@ func (m model) sttKeyPromptOverlay(width int) string {
 		footer = "⏎ replace · Esc keep saved key · stored in Rune's credential store"
 	}
 	lines := []string{
-		zeroTheme.ink.Render(intro),
+		runeTheme.ink.Render(intro),
 		"",
 		input,
 		"",
-		zeroTheme.faint.Render(footer),
+		runeTheme.faint.Render(footer),
 	}
-	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, p.label+" API key", lines, zeroTheme.lineStrong, lipgloss.NewStyle()), width)
+	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, p.label+" API key", lines, runeTheme.lineStrong, lipgloss.NewStyle()), width)
 }

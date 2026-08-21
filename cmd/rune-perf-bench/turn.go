@@ -267,7 +267,7 @@ func turnHelpText() string {
 		"                      Execution profile for every task (fast|balanced|thorough);",
 		"                      forwarded to rune exec and stamped into the result",
 		"  --self-correct      Enable the post-edit verify-and-correct loop",
-		"  --binary <path>     Path to the `zero` binary (default: zero on PATH / repo root)",
+		"  --binary <path>     Path to the `rune` binary (default: rune on PATH / repo root)",
 		"  --iterations <n>    Times to run each task (default: 1)",
 		"  --version <v>       Record the RUNE version (default: $RUNE_BENCH_VERSION)",
 		"  --commit <sha>      Record the RUNE commit (default: $RUNE_BENCH_COMMIT)",

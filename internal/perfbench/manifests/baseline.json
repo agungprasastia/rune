@@ -1,6 +1,6 @@
 {
-  "id": "zero-baseline-turn",
-  "name": "Zero per-turn baseline (Phase 0)",
+  "id": "rune-baseline-turn",
+  "name": "Rune per-turn baseline (Phase 0)",
   "description": "Latency-first baseline: measures where a turn spends wall time, with pass/fail reported per oracle tier so it cannot be misread as a blanket correctness verdict. Correctness classes (edit, fix, nav, refactor) carry a positive oracle: edit/refactor stamp an oracle_test.go compiled by `go test ./...` (the Go compiler is the structural verifier \u2014 a no-op refactor or a missing field fails to compile), fix runs a scoped `go test -run`, and nav greps the agent's captured final answer (.rune-answer.txt) for determinable facts. tasksVerified/tasksPassed/correctnessPassRate cover exactly these. Latency-only classes (longproc, longctx, parallel) carry no verification oracle \u2014 a zero-exit only proves the turn ran, so they count as latency-only and never in any pass rate. The build tier is empty: refactor graduated to correctness once its oracle became structural-positive. See MANIFEST.md for the per-task oracle specs and known limitations.",
   "buildOnlyClasses": [],
   "tasks": [
@@ -395,14 +395,14 @@
       "id": "refactor-03",
       "name": "rename package",
       "class": "refactor",
-      "prompt": "Rename the package from refactor to zeroapp everywhere and keep it building.",
+      "prompt": "Rename the package from refactor to sampleapp everywhere and keep it building.",
       "workspaceFixture": "../testdata/refactor",
       "verificationCommand": [
         "bash",
         "-c",
-        "go test ./... && ! grep --exclude=.rune-answer.txt -R 'package refactor' . && grep --exclude=.rune-answer.txt -R 'package zeroapp' ."
+        "go test ./... && ! grep --exclude=.rune-answer.txt -R 'package refactor' . && grep --exclude=.rune-answer.txt -R 'package sampleapp' ."
       ],
-      "oracleTest": "package zeroapp\n\nvar _ = Config{}\n"
+      "oracleTest": "package sampleapp\n\nvar _ = Config{}\n"
     },
     {
       "id": "refactor-04",

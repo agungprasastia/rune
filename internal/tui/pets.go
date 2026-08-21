@@ -293,7 +293,7 @@ func (m model) petPickerOverlay(width int) string {
 	if sidePreview {
 		listWidth -= petImageColumns + petPreviewPaneGap
 	}
-	previewDivider := zeroTheme.line.Render("│") + " "
+	previewDivider := runeTheme.line.Render("│") + " "
 	listLine := func(line string) string {
 		line = fitStyledLine(line, listWidth)
 		if !sidePreview {
@@ -307,31 +307,31 @@ func (m model) petPickerOverlay(width int) string {
 		m.picker.selected = clampInt(m.picker.selected, 0, len(m.picker.items)-1)
 		start = selectableListStart(len(m.picker.items), listHeight, m.picker.selected)
 	}
-	lines := []string{renderPickerSearchLine(m.picker.query, "search companions…", innerWidth), zeroTheme.line.Render(strings.Repeat("─", innerWidth))}
+	lines := []string{renderPickerSearchLine(m.picker.query, "search companions…", innerWidth), runeTheme.line.Render(strings.Repeat("─", innerWidth))}
 	listStartRow := len(lines)
 	if len(m.picker.items) == 0 {
-		lines = append(lines, listLine(zeroTheme.faint.Render("  no matching companions")))
+		lines = append(lines, listLine(runeTheme.faint.Render("  no matching companions")))
 	} else {
 		lastGroup := ""
 		for index, item := range m.picker.items[start : start+listHeight] {
 			if item.Group != "" && item.Group != lastGroup {
-				lines = append(lines, listLine(zeroTheme.accent.Render(item.Group)))
+				lines = append(lines, listLine(runeTheme.accent.Render(item.Group)))
 				lastGroup = item.Group
 			}
 			selected := start+index == m.picker.selected
 			surface := transparentSurface
 			marker := "  "
 			if selected {
-				surface = zeroTheme.onSel
+				surface = runeTheme.onSel
 				marker = "❯ "
 			}
 			name := truncatePetPickerColumn(item.Label, maxInt(1, listWidth-lipgloss.Width(marker)))
-			lines = append(lines, listLine(surface(zeroTheme.accent).Render(marker)+surface(zeroTheme.ink).Render(name)))
+			lines = append(lines, listLine(surface(runeTheme.accent).Render(marker)+surface(runeTheme.ink).Render(name)))
 		}
 	}
 	if m.picker.loading {
-		lines = append(lines, listLine(zeroTheme.accent.Render("Discover")))
-		lines = append(lines, listLine(zeroTheme.faint.Render("  Fetching companions…")))
+		lines = append(lines, listLine(runeTheme.accent.Render("Discover")))
+		lines = append(lines, listLine(runeTheme.faint.Render("  Fetching companions…")))
 	}
 	if sidePreview && m.petPreview != nil {
 		for len(lines)-listStartRow < petImageRows {
@@ -339,16 +339,16 @@ func (m model) petPickerOverlay(width int) string {
 		}
 	}
 	if sidePreview && len(lines) > listStartRow {
-		previewTitle := centerRenderedBlock(zeroTheme.accent.Render("Preview"), petImageColumns)
+		previewTitle := centerRenderedBlock(runeTheme.accent.Render("Preview"), petImageColumns)
 		lines[listStartRow] = padStyledLine(ansi.Cut(lines[listStartRow], 0, listWidth), listWidth) +
 			previewDivider + previewTitle
 	}
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
 	switch {
 	case m.petPreviewLoading:
-		lines = append(lines, zeroTheme.faint.Render("Loading preview…"))
+		lines = append(lines, runeTheme.faint.Render("Loading preview…"))
 	case m.petPreviewError != "":
-		lines = append(lines, zeroTheme.faint.Render(m.petPreviewError))
+		lines = append(lines, runeTheme.faint.Render(m.petPreviewError))
 	case m.petPreview != nil && !sidePreview:
 		for range petImageRows {
 			lines = append(lines, "")
@@ -363,12 +363,12 @@ func (m model) petPickerOverlay(width int) string {
 			if entry.SubmittedBy != "" {
 				details = append(details, "by "+entry.SubmittedBy)
 			}
-			lines = append(lines, centerRenderedBlock(zeroTheme.faint.Render(strings.Join(details, " · ")), innerWidth))
+			lines = append(lines, centerRenderedBlock(runeTheme.faint.Render(strings.Join(details, " · ")), innerWidth))
 		}
 	}
-	lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", innerWidth)))
-	lines = append(lines, zeroTheme.faint.Render("↑/↓ preview   Enter select   Esc close"))
-	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, "Choose a companion", lines, zeroTheme.lineStrong, lipgloss.NewStyle()), width)
+	lines = append(lines, runeTheme.line.Render(strings.Repeat("─", innerWidth)))
+	lines = append(lines, runeTheme.faint.Render("↑/↓ preview   Enter select   Esc close"))
+	return centerRenderedBlock(styledBlockFillTitle(overlayWidth, "Choose a companion", lines, runeTheme.lineStrong, lipgloss.NewStyle()), width)
 }
 
 func truncatePetPickerColumn(value string, width int) string {

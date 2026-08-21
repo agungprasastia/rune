@@ -1320,9 +1320,9 @@ func (m model) setupView(width int) string {
 	height := normalizedStartupHeight(m.height)
 	content := m.setupStageLines(width, height)
 	if m.setup.err != "" {
-		content = append(content, "", zeroTheme.red.Render("error: "+m.setup.err))
+		content = append(content, "", runeTheme.red.Render("error: "+m.setup.err))
 		if hint := m.setupErrorAffordance(); hint != "" {
-			content = append(content, zeroTheme.faint.Render(hint))
+			content = append(content, runeTheme.faint.Render(hint))
 		}
 	}
 	progress := m.setupProgressText()
@@ -1367,21 +1367,21 @@ func (m model) setupStageLines(width int, height int) []string {
 		return m.setupModelLines(width, height)
 	case setupStageSafety:
 		return []string{
-			zeroTheme.ink.Bold(true).Render("Safety"),
+			runeTheme.ink.Bold(true).Render("Safety"),
 			"",
 			"Rune asks before running shell commands or changing files.",
 			"Unsafe mode stays off unless you explicitly enable it.",
 			"",
-			zeroTheme.faint.Render("Default: ask before risky work."),
+			runeTheme.faint.Render("Default: ask before risky work."),
 		}
 	case setupStageReady:
 		return m.setupReadyLines(width)
 	default:
 		return []string{
-			zeroTheme.accent.Render("Welcome to Rune"),
+			runeTheme.accent.Render("Welcome to Rune"),
 			"",
-			zeroTheme.ink.Render("A terminal agent for changing real code."),
-			zeroTheme.faint.Render("Plan changes, edit with approval, run checks, and resume sessions."),
+			runeTheme.ink.Render("A terminal agent for changing real code."),
+			runeTheme.faint.Render("Plan changes, edit with approval, run checks, and resume sessions."),
 		}
 	}
 }
@@ -1410,7 +1410,7 @@ func (m model) setupReadyLines(width int) []string {
 	)
 
 	lines := []string{
-		zeroTheme.ink.Bold(true).Render("Ready"),
+		runeTheme.ink.Bold(true).Render("Ready"),
 		"",
 		"Rune will save this setup and open chat.",
 		"",
@@ -1423,13 +1423,13 @@ func (m model) setupReadyLines(width int) []string {
 	rowWidth := setupReadyRowsWidth(width, labelWidth, rows)
 	for _, row := range rows {
 		label := fmt.Sprintf("%*s", labelWidth, row.label+":")
-		line := "  " + zeroTheme.faint.Render(label) + "  " + zeroTheme.ink.Render(row.value)
+		line := "  " + runeTheme.faint.Render(label) + "  " + runeTheme.ink.Render(row.value)
 		lines = append(lines, padSetupLine(line, rowWidth))
 	}
 
 	lines = append(lines,
 		"",
-		zeroTheme.faint.Render("Later, use /provider, /doctor, or /help anytime."),
+		runeTheme.faint.Render("Later, use /provider, /doctor, or /help anytime."),
 	)
 	return lines
 }
@@ -1456,16 +1456,16 @@ func (m model) setupModelLines(width int, height int) []string {
 	maxVisible := setupModelMaxVisible(height, len(models))
 	start := selectableListStart(len(models), maxVisible, m.setup.modelIndex)
 	lines := []string{
-		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("Choose a model"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Bold(true).Render("Choose a model"), rowWidth),
 		blankSetupBlockLine(rowWidth),
 		padSetupLine("  "+m.setupModelSearchLine(rowWidth-2), rowWidth),
 	}
 	if status := m.setupModelStatus(); status != "" {
-		lines = append(lines, padSetupLine("  "+zeroTheme.faint.Render(status), rowWidth))
+		lines = append(lines, padSetupLine("  "+runeTheme.faint.Render(status), rowWidth))
 	}
 	lines = append(lines, blankSetupBlockLine(rowWidth))
 	if len(models) == 0 {
-		lines = append(lines, padSetupLine("  "+zeroTheme.faint.Render("No matching models"), rowWidth))
+		lines = append(lines, padSetupLine("  "+runeTheme.faint.Render("No matching models"), rowWidth))
 		return lines
 	}
 	visibleModels := models[start : start+maxVisible]
@@ -1475,7 +1475,7 @@ func (m model) setupModelLines(width int, height int) []string {
 	detail := setupModelSelectedDetail(m.setupCurrentModel())
 	lines = append(lines,
 		blankSetupBlockLine(rowWidth),
-		padSetupLine("  "+zeroTheme.faint.Render(detail), rowWidth),
+		padSetupLine("  "+runeTheme.faint.Render(detail), rowWidth),
 	)
 	return lines
 }
@@ -1484,10 +1484,10 @@ func (m model) setupTypedModelLines(width int) []string {
 	option := m.setupProvider()
 	rowWidth := setupTextInputBlockWidth(width, option.DefaultModel)
 	return []string{
-		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("Choose a model"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Bold(true).Render("Choose a model"), rowWidth),
 		blankSetupBlockLine(rowWidth),
-		padSetupLine("  "+zeroTheme.ink.Render("Enter the model ID this endpoint expects."), rowWidth),
-		padSetupLine("  "+zeroTheme.faint.Render("Examples: gpt-4.1, claude-sonnet-4-5, llama-3.3-70b"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Render("Enter the model ID this endpoint expects."), rowWidth),
+		padSetupLine("  "+runeTheme.faint.Render("Examples: gpt-4.1, claude-sonnet-4-5, llama-3.3-70b"), rowWidth),
 		blankSetupBlockLine(rowWidth),
 		padSetupLine("  "+providerWizardInputLine("model > ", strings.TrimSpace(m.setup.modelQuery), option.DefaultModel, rowWidth-2), rowWidth),
 	}
@@ -1496,10 +1496,10 @@ func (m model) setupTypedModelLines(width int) []string {
 func (m model) setupModelLoadingLines(width int) []string {
 	rowWidth := setupModelLoadingBlockWidth(width)
 	return []string{
-		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("Choose a model"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Bold(true).Render("Choose a model"), rowWidth),
 		blankSetupBlockLine(rowWidth),
-		padSetupLine("  "+zeroTheme.faint.Render("Checking available models..."), rowWidth),
-		padSetupLine("  "+zeroTheme.faint.Render("Built-in models will be used if discovery fails."), rowWidth),
+		padSetupLine("  "+runeTheme.faint.Render("Checking available models..."), rowWidth),
+		padSetupLine("  "+runeTheme.faint.Render("Built-in models will be used if discovery fails."), rowWidth),
 	}
 }
 
@@ -1553,12 +1553,12 @@ func setupModelBlockWidth(terminalWidth int, models []providerWizardModel) int {
 
 func (m model) setupModelSearchLine(width int) string {
 	query := strings.TrimSpace(m.setup.modelQuery)
-	prompt := zeroTheme.userPrompt.Render("search > ")
-	cursor := zeroTheme.accent.Render("▌")
+	prompt := runeTheme.userPrompt.Render("search > ")
+	cursor := runeTheme.accent.Render("▌")
 	if query == "" {
-		return fitStyledLine(prompt+cursor+zeroTheme.faint.Render("model name..."), width)
+		return fitStyledLine(prompt+cursor+runeTheme.faint.Render("model name..."), width)
 	}
-	return fitStyledLine(prompt+zeroTheme.ink.Render(query)+cursor, width)
+	return fitStyledLine(prompt+runeTheme.ink.Render(query)+cursor, width)
 }
 
 func (m model) setupModelStatus() string {
@@ -1574,10 +1574,10 @@ func (m model) setupModelStatus() string {
 func (m model) setupModelRow(width int, index int, model providerWizardModel) string {
 	selected := index == m.setup.modelIndex
 	marker := "  "
-	style := zeroTheme.ink
+	style := runeTheme.ink
 	if selected {
 		marker = "❯ "
-		style = zeroTheme.accent.Bold(true)
+		style = runeTheme.accent.Bold(true)
 	}
 	left := marker + style.Render(model.displayLabel())
 	return padSetupLine(left, width)
@@ -1599,18 +1599,18 @@ func (m model) setupMethodLines(width int) []string {
 	rowWidth := setupMethodBlockWidth(width, options)
 	idx := clamp(m.setup.selectedMethod, 0, maxInt(0, len(options)-1))
 	lines := []string{
-		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("How do you want to connect?"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Bold(true).Render("How do you want to connect?"), rowWidth),
 		blankSetupBlockLine(rowWidth),
 	}
 	for index, option := range options {
 		marker := "  "
-		style := zeroTheme.ink
+		style := runeTheme.ink
 		if index == idx {
 			marker = "❯ "
-			style = zeroTheme.accent.Bold(true)
+			style = runeTheme.accent.Bold(true)
 		}
 		lines = append(lines, padSetupLine(marker+style.Render(option.label), rowWidth))
-		lines = append(lines, padSetupLine("    "+zeroTheme.faint.Render(option.subtitle), rowWidth))
+		lines = append(lines, padSetupLine("    "+runeTheme.faint.Render(option.subtitle), rowWidth))
 	}
 	return lines
 }
@@ -1630,29 +1630,29 @@ func (m model) setupOAuthWaitingLines(width int) []string {
 	name := displayValue(provider.Name, provider.ID)
 	var lines []string
 	if m.setup.oauthDevice {
-		lines = []string{zeroTheme.ink.Bold(true).Render("Device-code sign-in for " + name), ""}
+		lines = []string{runeTheme.ink.Bold(true).Render("Device-code sign-in for " + name), ""}
 		if m.setup.deviceUserCode == "" {
-			lines = append(lines, zeroTheme.faint.Render("Requesting a device code..."))
+			lines = append(lines, runeTheme.faint.Render("Requesting a device code..."))
 		} else {
 			lines = append(lines,
-				"1. On any device, visit:  "+zeroTheme.accent.Render(m.setup.deviceVerificationURI),
-				"2. Enter the code:  "+zeroTheme.accent.Bold(true).Render(m.setup.deviceUserCode),
+				"1. On any device, visit:  "+runeTheme.accent.Render(m.setup.deviceVerificationURI),
+				"2. Enter the code:  "+runeTheme.accent.Bold(true).Render(m.setup.deviceUserCode),
 				"",
-				zeroTheme.faint.Render("Waiting for authorization..."),
+				runeTheme.faint.Render("Waiting for authorization..."),
 			)
 		}
 	} else {
 		lines = []string{
-			zeroTheme.ink.Bold(true).Render("Signing in with " + name),
+			runeTheme.ink.Bold(true).Render("Signing in with " + name),
 			"",
 			"Opening your browser — approve there, then return here.",
-			zeroTheme.faint.Render("Waiting for authorization..."),
+			runeTheme.faint.Render("Waiting for authorization..."),
 			"",
-			zeroTheme.faint.Render("If your browser didn't open, run:  " + providerWizardOAuthCLIHint(provider)),
+			runeTheme.faint.Render("If your browser didn't open, run:  " + providerWizardOAuthCLIHint(provider)),
 		}
 	}
 	if m.setup.oauthErr != "" {
-		lines = append(lines, "", zeroTheme.red.Render("Sign-in failed: "+m.setup.oauthErr))
+		lines = append(lines, "", runeTheme.red.Render("Sign-in failed: "+m.setup.oauthErr))
 	}
 	return lines
 }
@@ -1663,16 +1663,16 @@ func (m model) setupProviderLines(width int, height int) []string {
 	start := selectableListStart(len(m.setup.providers), maxVisible, m.setup.selected)
 	visibleProviders := m.setup.providers[start : start+maxVisible]
 	lines := []string{
-		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("Choose a provider"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Bold(true).Render("Choose a provider"), rowWidth),
 		blankSetupBlockLine(rowWidth),
 	}
 	for index, option := range visibleProviders {
 		absoluteIndex := start + index
 		marker := "  "
-		style := zeroTheme.ink
+		style := runeTheme.ink
 		if absoluteIndex == m.setup.selected {
 			marker = "❯ "
-			style = zeroTheme.accent.Bold(true)
+			style = runeTheme.accent.Bold(true)
 		}
 		label := displayValue(option.Name, option.ID)
 		if option.Recommended {
@@ -1680,7 +1680,7 @@ func (m model) setupProviderLines(width int, height int) []string {
 		}
 		line := marker + style.Render(label)
 		if option.Recommended {
-			line += zeroTheme.faint.Render("  (recommended)")
+			line += runeTheme.faint.Render("  (recommended)")
 		}
 		lines = append(lines, padSetupLine(line, rowWidth))
 	}
@@ -1690,7 +1690,7 @@ func (m model) setupProviderLines(width int, height int) []string {
 	if m.setup.oauthMode && m.setup.oauthErr != "" {
 		lines = append(lines,
 			blankSetupBlockLine(rowWidth),
-			padSetupLine("  "+zeroTheme.red.Render("Sign-in failed: "+m.setup.oauthErr), rowWidth),
+			padSetupLine("  "+runeTheme.red.Render("Sign-in failed: "+m.setup.oauthErr), rowWidth),
 		)
 	}
 	return lines
@@ -1701,10 +1701,10 @@ func (m model) setupEndpointLines(width int) []string {
 	provider := setupProviderDescriptor(option)
 	rowWidth := setupTextInputBlockWidth(width, providerWizardEndpointPlaceholder(provider), m.setup.baseURL)
 	return []string{
-		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("Endpoint URL"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Bold(true).Render("Endpoint URL"), rowWidth),
 		blankSetupBlockLine(rowWidth),
-		padSetupLine("  "+zeroTheme.ink.Render("Enter the API base URL for "+displayValue(option.Name, option.ID)+"."), rowWidth),
-		padSetupLine("  "+zeroTheme.faint.Render(providerWizardEndpointHint(provider)), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Render("Enter the API base URL for "+displayValue(option.Name, option.ID)+"."), rowWidth),
+		padSetupLine("  "+runeTheme.faint.Render(providerWizardEndpointHint(provider)), rowWidth),
 		blankSetupBlockLine(rowWidth),
 		padSetupLine("  "+providerWizardInputLine("url > ", strings.TrimSpace(m.setup.baseURL), providerWizardEndpointPlaceholder(provider), rowWidth-2), rowWidth),
 	}
@@ -1716,10 +1716,10 @@ func (m model) setupNameLines(width int) []string {
 	name := providerWizardDisplayName(provider, m.setup.baseURL, m.setup.name)
 	rowWidth := setupTextInputBlockWidth(width, name, m.setup.name)
 	return []string{
-		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("Provider name"), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Bold(true).Render("Provider name"), rowWidth),
 		blankSetupBlockLine(rowWidth),
-		padSetupLine("  "+zeroTheme.ink.Render("Choose the short label shown in Rune."), rowWidth),
-		padSetupLine("  "+zeroTheme.faint.Render("Leave blank to use "+name+"."), rowWidth),
+		padSetupLine("  "+runeTheme.ink.Render("Choose the short label shown in Rune."), rowWidth),
+		padSetupLine("  "+runeTheme.faint.Render("Leave blank to use "+name+"."), rowWidth),
 		blankSetupBlockLine(rowWidth),
 		padSetupLine("  "+providerWizardInputLine("name > ", strings.TrimSpace(m.setup.name), name, rowWidth-2), rowWidth),
 	}
@@ -1763,7 +1763,7 @@ func blankSetupBlockLine(width int) string {
 func (m model) setupCredentialLines(width int) []string {
 	option := m.setupProvider()
 	lines := []string{
-		zeroTheme.ink.Bold(true).Render("Credentials"),
+		runeTheme.ink.Bold(true).Render("Credentials"),
 		"",
 	}
 	if option.Local || !option.RequiresAuth {
@@ -1780,8 +1780,8 @@ func (m model) setupCredentialLines(width int) []string {
 		"",
 		m.setupAPIKeyInputLine(width),
 		"",
-		zeroTheme.faint.Render("Saved keys stay in your user config."),
-		zeroTheme.faint.Render("Blank uses "+envVar+" from your shell."),
+		runeTheme.faint.Render("Saved keys stay in your user config."),
+		runeTheme.faint.Render("Blank uses "+envVar+" from your shell."),
 	)
 	return lines
 }
@@ -1789,7 +1789,7 @@ func (m model) setupCredentialLines(width int) []string {
 func (m model) setupAPIKeyInputLine(width int) string {
 	input := m.setup.apiKey
 	if strings.TrimSpace(input.Value()) == "" {
-		return zeroTheme.faint.Render(input.Placeholder)
+		return runeTheme.faint.Render(input.Placeholder)
 	}
 	contentWidth := lipgloss.Width(input.Value())
 	if contentWidth == 0 {
@@ -1819,38 +1819,38 @@ func (m model) setupCredentialSummary(option SetupProviderOption) string {
 
 func (m model) setupFooter() string {
 	if m.setup.oauthPending {
-		return zeroTheme.faint.Render("Esc cancel")
+		return runeTheme.faint.Render("Esc cancel")
 	}
 	switch m.setup.stage {
 	case setupStageMethod:
-		return zeroTheme.faint.Render("↑/↓ choose   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue   q quit")
+		return runeTheme.faint.Render("↑/↓ choose   ") + runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" continue   q quit")
 	case setupStageReady:
-		return zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" to save and start chat")
+		return runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" to save and start chat")
 	case setupStageEndpoint:
-		return zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue   left back")
+		return runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" continue   left back")
 	case setupStageName:
-		return zeroTheme.faint.Render("name optional   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue   left back")
+		return runeTheme.faint.Render("name optional   ") + runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" continue   left back")
 	case setupStageCredentials:
 		if m.setupCredentialInputActive() {
-			return zeroTheme.faint.Render("paste key optional   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue   left back")
+			return runeTheme.faint.Render("paste key optional   ") + runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" continue   left back")
 		}
-		return zeroTheme.accent.Render("Space") + zeroTheme.faint.Render(" to continue")
+		return runeTheme.accent.Render("Space") + runeTheme.faint.Render(" to continue")
 	case setupStageAimlapi:
-		return zeroTheme.faint.Render("type/↑↓ choose   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue   left back   Esc cancel")
+		return runeTheme.faint.Render("type/↑↓ choose   ") + runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" continue   left back   Esc cancel")
 	case setupStageProvider:
 		if m.setup.oauthMode && m.setupProviderDescriptor().OAuthDeviceFlow {
-			return zeroTheme.faint.Render("↑/↓ choose   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" sign in   ") + zeroTheme.accent.Render("d") + zeroTheme.faint.Render(" device code   q quit")
+			return runeTheme.faint.Render("↑/↓ choose   ") + runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" sign in   ") + runeTheme.accent.Render("d") + runeTheme.faint.Render(" device code   q quit")
 		}
-		return zeroTheme.faint.Render("↑/↓ choose   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue   q quit")
+		return runeTheme.faint.Render("↑/↓ choose   ") + runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" continue   q quit")
 	case setupStageModel:
 		if m.setup.modelLoad {
-			return zeroTheme.faint.Render("checking models...")
+			return runeTheme.faint.Render("checking models...")
 		}
-		return zeroTheme.faint.Render("↑/↓ choose   type search   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue")
+		return runeTheme.faint.Render("↑/↓ choose   type search   ") + runeTheme.accent.Render("Enter") + runeTheme.faint.Render(" continue")
 	case setupStageWelcome:
-		return zeroTheme.accent.Render("Space") + zeroTheme.faint.Render(" to set up Rune")
+		return runeTheme.accent.Render("Space") + runeTheme.faint.Render(" to set up Rune")
 	default:
-		return zeroTheme.accent.Render("Space") + zeroTheme.faint.Render(" to continue")
+		return runeTheme.accent.Render("Space") + runeTheme.faint.Render(" to continue")
 	}
 }
 
@@ -1871,7 +1871,7 @@ func (m model) setupProgressText() string {
 			break
 		}
 	}
-	return zeroTheme.faint.Render(fmt.Sprintf("%d/%d", position+1, len(stages)))
+	return runeTheme.faint.Render(fmt.Sprintf("%d/%d", position+1, len(stages)))
 }
 
 func padSetupLine(line string, width int) string {

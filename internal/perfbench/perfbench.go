@@ -377,7 +377,7 @@ func resolveRuneVersionCommand(rootDir string) ([]string, error) {
 			return nil, err
 		}
 	}
-	binaryName := release.ZeroArtifactName(runtime.GOOS)
+	binaryName := release.RuneArtifactName(runtime.GOOS)
 	binaryPath := filepath.Join(rootDir, binaryName)
 	if _, err := os.Stat(binaryPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {

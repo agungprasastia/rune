@@ -79,15 +79,15 @@ func ValidThemeArg(s string) bool {
 	return validThemeMode(s)
 }
 
-// applyTheme swaps the active palette (zeroTheme) and the globals derived from it
+// applyTheme swaps the active palette (runeTheme) and the globals derived from it
 // — the streaming-fade ramp and the static render cache — so a committed switch
 // repaints every subsequent render. `system` (and legacy `auto`) preserve the
 // terminal canvas. Named palettes adapt their contrast direction to the terminal
 // background without painting it. Must run on the Bubble Tea update goroutine (or
-// before the program starts), like every other zeroTheme access.
+// before the program starts), like every other runeTheme access.
 func applyTheme(mode themeMode, terminalDark bool) themeMode {
 	resolved, theme := themeForMode(mode, terminalDark)
-	zeroTheme = theme
+	runeTheme = theme
 	rebuildStreamingFadePalette()
 	if defaultRenderCache != nil {
 		defaultRenderCache.clear() // old-palette entries must not be reused
@@ -95,7 +95,7 @@ func applyTheme(mode themeMode, terminalDark bool) themeMode {
 	return resolved
 }
 
-// themeForMode resolves a candidate without mutating zeroTheme. The /theme picker
+// themeForMode resolves a candidate without mutating runeTheme. The /theme picker
 // uses it to render a contained preview while the active UI remains untouched.
 func themeForMode(mode themeMode, terminalDark bool) (themeMode, tuiTheme) {
 	if mode == themeSystem || mode == themeAuto || mode == "" {

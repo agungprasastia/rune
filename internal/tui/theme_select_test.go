@@ -181,15 +181,15 @@ func TestApplyThemeResolution(t *testing.T) {
 			t.Errorf("applyTheme(%q, darkBg=%v) = %q, want %q", c.mode, c.darkBg, got, c.want)
 		}
 		if c.wantInk == "" {
-			if _, ok := zeroTheme.bgPanel.(lipgloss.NoColor); !ok {
-				t.Errorf("applyTheme(%q,%v): system mode painted canvas with %T", c.mode, c.darkBg, zeroTheme.bgPanel)
+			if _, ok := runeTheme.bgPanel.(lipgloss.NoColor); !ok {
+				t.Errorf("applyTheme(%q,%v): system mode painted canvas with %T", c.mode, c.darkBg, runeTheme.bgPanel)
 			}
 			continue
 		}
 		wantR, wantG, wantB, _ := lipgloss.Color(c.wantInk).RGBA()
-		gotR, gotG, gotB, _ := zeroTheme.inkColor.RGBA()
+		gotR, gotG, gotB, _ := runeTheme.inkColor.RGBA()
 		if gotR != wantR || gotG != wantG || gotB != wantB {
-			t.Errorf("applyTheme(%q,%v): zeroTheme.inkColor not the %q ink", c.mode, c.darkBg, c.want)
+			t.Errorf("applyTheme(%q,%v): runeTheme.inkColor not the %q ink", c.mode, c.darkBg, c.want)
 		}
 	}
 }
@@ -284,7 +284,7 @@ func TestHandleThemeCommand(t *testing.T) {
 	if m.themeMode != themeMode("dracula") {
 		t.Fatalf("after /theme dracula, mode = %q", m.themeMode)
 	}
-	if got, want := colorHex(t, zeroTheme.inkColor), draculaPalette.ink; got != want {
+	if got, want := colorHex(t, runeTheme.inkColor), draculaPalette.ink; got != want {
 		t.Errorf("/theme dracula ink = %s, want %s", got, want)
 	}
 	if !strings.Contains(out, "dracula") {
@@ -335,7 +335,7 @@ func TestNewThemePresetsWired(t *testing.T) {
 }
 
 // The --theme flag and RUNE_THEME both resolve through resolveThemeMode, and
-// applyTheme must actually swap zeroTheme to the resolved preset, adapting only
+// applyTheme must actually swap runeTheme to the resolved preset, adapting only
 // its contrast direction when the terminal has the opposite polarity.
 func TestNewThemePresetsResolveThroughCLIAndEnvPath(t *testing.T) {
 	defer applyTheme(themeDark, true)
@@ -348,12 +348,12 @@ func TestNewThemePresetsResolveThroughCLIAndEnvPath(t *testing.T) {
 	}
 
 	applyTheme(themeMode("dune"), true)
-	if got, want := colorHex(t, zeroTheme.inkColor), invertPaletteColor(dunePalette.ink); got != want {
+	if got, want := colorHex(t, runeTheme.inkColor), invertPaletteColor(dunePalette.ink); got != want {
 		t.Errorf("applying dune ink = %s, want %s", got, want)
 	}
 
 	applyTheme(themeMode("neon"), true)
-	if got, want := colorHex(t, zeroTheme.inkColor), neonPalette.ink; got != want {
+	if got, want := colorHex(t, runeTheme.inkColor), neonPalette.ink; got != want {
 		t.Errorf("applying neon ink = %s, want %s", got, want)
 	}
 }

@@ -1,7 +1,7 @@
 {
-  "id": "zero-local-agent-quality",
-  "name": "zero-local-agent-quality",
-  "description": "Clean-room local fixture suite for exercising Zero coding-agent task success without provider or network calls.",
+  "id": "rune-local-agent-quality",
+  "name": "rune-local-agent-quality",
+  "description": "Clean-room local fixture suite for exercising Rune coding-agent task success without provider or network calls.",
   "tasks": [
     {
       "id": "document-stream-json-verify-events",
@@ -13,7 +13,7 @@
         "verify"
       ],
       "difficulty": "easy",
-      "prompt": "Update the stream-json protocol docs so maintainers can see how `zero verify --json` and `zero selfverify --json` report start, check, summary, and error events. Keep the wording accurate, local-first, deterministic, and do not change runtime code.",
+      "prompt": "Update the stream-json protocol docs so maintainers can see how `rune verify --json` and `rune selfverify --json` report start, check, summary, and error events. Keep the wording accurate, local-first, deterministic, and do not change runtime code.",
       "workspaceFixture": "fixtures/rune-mini",
       "expectedChangedFiles": [
         "docs/STREAM_JSON_PROTOCOL.md"
@@ -41,45 +41,6 @@
             "test",
             "./internal/verify",
             "./internal/selfverify"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "separate-go-release-from-node-wrapper-smoke",
-      "name": "Separate Go release checks from Node wrapper checks",
-      "description": "Docs-only task that keeps npm wrapper guidance honest and dependency-free.",
-      "tags": [
-        "docs",
-        "release",
-        "npm-wrapper"
-      ],
-      "difficulty": "easy",
-      "prompt": "Improve the npm wrapper smoke checklist so a maintainer can distinguish Go release checks from direct `bin/zero.js` wrapper checks. Keep Node usage limited to the wrapper itself, avoid provider or network calls, and do not add Bun, TypeScript, or package build dependencies.",
-      "workspaceFixture": "fixtures/rune-mini",
-      "expectedChangedFiles": [
-        "docs/NPM_WRAPPER_SMOKE.md"
-      ],
-      "forbiddenChangedFiles": [
-        "package.json",
-        "go.mod"
-      ],
-      "contextChecks": {
-        "requiredFiles": [
-          "bin/zero.js",
-          "docs/NPM_WRAPPER_SMOKE.md",
-          "internal/npmwrapper/wrapper.go"
-        ]
-      },
-      "verificationCommands": [
-        {
-          "id": "npm-wrapper-release-tests",
-          "name": "NPM wrapper and release tests",
-          "command": [
-            "go",
-            "test",
-            "./internal/npmwrapper",
-            "./internal/release"
           ]
         }
       ]
@@ -268,8 +229,7 @@
         "docs/RELEASE_SMOKE.md"
       ],
       "forbiddenChangedFiles": [
-        "go.mod",
-        "bin/zero.js"
+        "go.mod"
       ],
       "requiredTraceEvents": [
         "tool:read_file",
@@ -291,49 +251,6 @@
             "test",
             "./cmd/rune-release",
             "./internal/release"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "add-npm-wrapper-argv-helper",
-      "name": "Add npm wrapper argv helper",
-      "description": "Small Go task that improves wrapper command construction without adding JavaScript tooling.",
-      "tags": [
-        "npm-wrapper",
-        "go",
-        "tests"
-      ],
-      "difficulty": "medium",
-      "prompt": "Refactor the npm wrapper helper to expose a reusable `WrapperCommand(args ...string) []string` that always prefixes `node bin/zero.js`, then update `DirectCommand` to use it for `--version`. Add focused tests for argument preservation. Keep Node usage limited to invoking `bin/zero.js` and do not add Bun, TypeScript, or package build dependencies.",
-      "workspaceFixture": "fixtures/rune-mini",
-      "expectedChangedFiles": [
-        "internal/npmwrapper/wrapper.go",
-        "internal/npmwrapper/wrapper_test.go"
-      ],
-      "forbiddenChangedFiles": [
-        "package.json",
-        "go.mod"
-      ],
-      "requiredTraceEvents": [
-        "tool:read_file",
-        "tool:apply_patch"
-      ],
-      "contextChecks": {
-        "requiredFiles": [
-          "bin/zero.js",
-          "internal/npmwrapper/wrapper.go",
-          "internal/npmwrapper/wrapper_test.go"
-        ]
-      },
-      "verificationCommands": [
-        {
-          "id": "npm-wrapper-tests",
-          "name": "NPM wrapper tests",
-          "command": [
-            "go",
-            "test",
-            "./internal/npmwrapper"
           ]
         }
       ]

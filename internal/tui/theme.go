@@ -10,7 +10,7 @@ import (
 
 // tuiTheme is the resolved terminal palette Rune renders with. The default system
 // theme keeps the terminal's foreground and background intact; named palettes only
-// style local UI surfaces. The active theme lives in zeroTheme and changes only
+// style local UI surfaces. The active theme lives in runeTheme and changes only
 // after an explicit /theme selection. Every renderer consumes these named styles —
 // no hex literal may appear outside theme_palettes.go (the palette tables + theme
 // registry).
@@ -444,11 +444,11 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 	}
 }
 
-// zeroTheme is the active palette every renderer reads. Run applies the terminal-
+// runeTheme is the active palette every renderer reads. Run applies the terminal-
 // native system default before it creates the interactive program; the dark palette
 // here keeps package-level render helpers deterministic before a model has started
 // (including in unit tests that construct more than one model).
-var zeroTheme = buildTheme(darkPalette)
+var runeTheme = buildTheme(darkPalette)
 
 // onPanel returns a copy of style that paints on the panel surface. lipgloss
 // resets the background between adjacent Render calls, so every segment of a

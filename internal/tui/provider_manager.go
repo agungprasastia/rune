@@ -703,10 +703,10 @@ func (wizard *providerWizardState) renderManageStep(width int) []string {
 	rows := wizard.manageRows
 	lines := []string{}
 	if wizard.manageStatus != "" {
-		lines = append(lines, fitStyledLine(zeroTheme.accent.Render(wizard.manageStatus), width), "")
+		lines = append(lines, fitStyledLine(runeTheme.accent.Render(wizard.manageStatus), width), "")
 	}
 	if len(rows) == 0 {
-		lines = append(lines, zeroTheme.faint.Render("  No providers saved — press a to add one."))
+		lines = append(lines, runeTheme.faint.Render("  No providers saved — press a to add one."))
 		return lines
 	}
 	wizard.manageCursor = clampInt(wizard.manageCursor, 0, len(rows)-1)
@@ -721,26 +721,26 @@ func (wizard *providerWizardState) renderManageStep(width int) []string {
 	for offset, row := range rows[start : start+maxVisible] {
 		index := start + offset
 		surface := transparentSurface
-		marker := surface(zeroTheme.faintest).Render("  ")
+		marker := surface(runeTheme.faintest).Render("  ")
 		if index == wizard.manageCursor {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
 		active := ""
 		if strings.EqualFold(strings.TrimSpace(row.profile.Name), strings.TrimSpace(wizard.manageActiveName)) {
-			active = surface(zeroTheme.accent).Render(" ● active")
+			active = surface(runeTheme.accent).Render(" ● active")
 		}
 		name := padProviderManagerCell(row.profile.Name, nameWidth)
 		meta := providerManagerRowMeta(row.profile)
-		left := marker + surface(zeroTheme.ink).Render(name) + "  " + surface(zeroTheme.faint).Render(meta)
-		right := surface(zeroTheme.faint).Render(providerManagerCredDisplay(row)) + active
+		left := marker + surface(runeTheme.ink).Render(name) + "  " + surface(runeTheme.faint).Render(meta)
+		right := surface(runeTheme.faint).Render(providerManagerCredDisplay(row)) + active
 		gap := width - lipgloss.Width(left) - lipgloss.Width(right)
-		line := left + surface(zeroTheme.ink).Render(strings.Repeat(" ", maxInt(1, gap))) + right
+		line := left + surface(runeTheme.ink).Render(strings.Repeat(" ", maxInt(1, gap))) + right
 		lines = append(lines, fillPaletteLine(line, width, surface))
 	}
 
 	if row, ok := wizard.currentManagerRow(); ok {
-		lines = append(lines, zeroTheme.line.Render(strings.Repeat("─", width)))
+		lines = append(lines, runeTheme.line.Render(strings.Repeat("─", width)))
 		detail := strings.TrimSpace(row.profile.BaseURL)
 		if description := strings.TrimSpace(row.profile.Description); description != "" {
 			if detail != "" {
@@ -751,9 +751,9 @@ func (wizard *providerWizardState) renderManageStep(width int) []string {
 		if detail == "" {
 			detail = "(no endpoint)"
 		}
-		lines = append(lines, fitStyledLine(zeroTheme.faint.Render(detail), width))
+		lines = append(lines, fitStyledLine(runeTheme.faint.Render(detail), width))
 		if wizard.manageDeleting {
-			lines = append(lines, fitStyledLine(zeroTheme.red.Render("Delete "+row.profile.Name+"? This also removes its stored API key.  Enter/y confirm · Esc/n cancel"), width))
+			lines = append(lines, fitStyledLine(runeTheme.red.Render("Delete "+row.profile.Name+"? This also removes its stored API key.  Enter/y confirm · Esc/n cancel"), width))
 		}
 	}
 	return lines
@@ -800,14 +800,14 @@ func padProviderManagerCell(value string, width int) string {
 }
 
 func (wizard *providerWizardState) renderEditMenuStep(width int) []string {
-	lines := []string{zeroTheme.accent.Render("Edit " + wizard.editOriginal.Name)}
+	lines := []string{runeTheme.accent.Render("Edit " + wizard.editOriginal.Name)}
 	wizard.editCursor = clampInt(wizard.editCursor, 0, len(providerEditFields)-1)
 	for index, entry := range providerEditFields {
 		surface := transparentSurface
-		marker := surface(zeroTheme.faintest).Render("  ")
+		marker := surface(runeTheme.faintest).Render("  ")
 		if index == wizard.editCursor {
-			surface = zeroTheme.onSel
-			marker = surface(zeroTheme.accent).Render("❯ ")
+			surface = runeTheme.onSel
+			marker = surface(runeTheme.accent).Render("❯ ")
 		}
 		value := wizard.editFieldValue(entry.field, wizard.editDraft)
 		display := ""
@@ -825,14 +825,14 @@ func (wizard *providerWizardState) renderEditMenuStep(width int) []string {
 		default:
 			display = displayValue(value, "(empty)")
 		}
-		left := marker + surface(zeroTheme.ink).Render(padProviderManagerCell(entry.label, 12))
+		left := marker + surface(runeTheme.ink).Render(padProviderManagerCell(entry.label, 12))
 		if display != "" {
-			left += surface(zeroTheme.faint).Render(display)
+			left += surface(runeTheme.faint).Render(display)
 		}
 		lines = append(lines, fillPaletteLine(fitStyledLine(left, width), width, surface))
 	}
 	entry := providerEditFields[wizard.editCursor]
-	lines = append(lines, "", fitStyledLine(zeroTheme.faint.Render(entry.hint), width))
+	lines = append(lines, "", fitStyledLine(runeTheme.faint.Render(entry.hint), width))
 	return lines
 }
 
@@ -842,16 +842,16 @@ func (wizard *providerWizardState) renderEditValueStep(width int) []string {
 	if wizard.editField == providerEditFieldAPIKey {
 		value = maskedProviderWizardKey(value)
 	}
-	prompt := zeroTheme.userPrompt.Render(entry.label + " > ")
+	prompt := runeTheme.userPrompt.Render(entry.label + " > ")
 	if value == "" {
-		value = zeroTheme.faint.Render("(empty)")
+		value = runeTheme.faint.Render("(empty)")
 	} else {
-		value = zeroTheme.ink.Render(value)
+		value = runeTheme.ink.Render(value)
 	}
 	return []string{
-		zeroTheme.accent.Render("Edit " + wizard.editOriginal.Name + " — " + entry.label),
+		runeTheme.accent.Render("Edit " + wizard.editOriginal.Name + " — " + entry.label),
 		fitStyledLine(prompt+value, width),
 		"",
-		fitStyledLine(zeroTheme.faint.Render(entry.hint), width),
+		fitStyledLine(runeTheme.faint.Render(entry.hint), width),
 	}
 }

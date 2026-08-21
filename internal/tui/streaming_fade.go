@@ -80,7 +80,7 @@ type streamingFadeTickMsg time.Time
 // struct-field access and a single Render call, not a hex parse.
 var streamingFadePalette [streamingFadeSteps]lipgloss.Style
 
-// init builds the palette once at package load (after zeroTheme's var init), so
+// init builds the palette once at package load (after runeTheme's var init), so
 // the fade tracks the active theme's accent→ink. Cheap; before any model exists.
 func init() {
 	rebuildStreamingFadePalette()
@@ -92,8 +92,8 @@ func init() {
 func rebuildStreamingFadePalette() {
 	streamingFadePalette = buildStreamingFadePalette(
 		streamingFadeSteps,
-		zeroTheme.accentColor,
-		zeroTheme.inkColor,
+		runeTheme.accentColor,
+		runeTheme.inkColor,
 	)
 }
 
@@ -273,14 +273,14 @@ func (m model) styleStreamingLine(line string, visualIndex, visualCount int) str
 	// palette-aware final style before the line reaches the terminal. Otherwise
 	// a streaming frame briefly flashes the terminal's reverse background.
 	if hasMarkdownDisplayControls(line) {
-		return styleAssistantMarkdownLine(line, zeroTheme.ink)
+		return styleAssistantMarkdownLine(line, runeTheme.ink)
 	}
 	if strings.Contains(line, "\x1b") {
 		return line
 	}
 	if !m.fadeActive || m.lineAges == nil {
-		return zeroTheme.ink.Render(line)
+		return runeTheme.ink.Render(line)
 	}
 	bornAt := streamingLineBornAt(visualIndex, visualCount, m.lineAges, m.lastStreamActivity)
-	return ageDimLine(line, bornAt, m.now(), zeroTheme.ink)
+	return ageDimLine(line, bornAt, m.now(), runeTheme.ink)
 }

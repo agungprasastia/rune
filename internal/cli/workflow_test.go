@@ -977,7 +977,7 @@ func TestRunExecWorktreeRedactsReleaseFailureText(t *testing.T) {
 func TestRunExecRejectsForkWithWorktree(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	exitCode := runWithDeps([]string{"exec", "--worktree", "--fork", "zero_parent", "hello"}, &stdout, &stderr, appDeps{
+	exitCode := runWithDeps([]string{"exec", "--worktree", "--fork", "rune_parent", "hello"}, &stdout, &stderr, appDeps{
 		prepareWorktree: func(context.Context, worktrees.Options) (worktrees.Result, error) {
 			t.Fatal("prepareWorktree should not be called for invalid flags")
 			return worktrees.Result{}, nil

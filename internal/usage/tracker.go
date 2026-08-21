@@ -115,7 +115,7 @@ func (tracker *Tracker) Record(input RecordInput) (Record, error) {
 	sequence := tracker.nextSeq
 	tracker.nextSeq++
 	record := Record{
-		ID:        fmt.Sprintf("zero_usage_%d", sequence),
+		ID:        fmt.Sprintf("rune_usage_%d", sequence),
 		Sequence:  sequence,
 		ModelID:   model.ID,
 		Provider:  model.Provider,

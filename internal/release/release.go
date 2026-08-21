@@ -199,8 +199,8 @@ func Package(ctx context.Context, options PackageOptions) (PackageResult, error)
 	}
 	stagingDir := filepath.Join(stagingRoot, packageName)
 	archivePath := filepath.Join(releaseDir, archiveName)
-	artifactPath := filepath.Join(rootDir, ZeroArtifactName(goos))
-	stagedBinaryPath := filepath.Join(stagingDir, ZeroArtifactName(goos))
+	artifactPath := filepath.Join(rootDir, RuneArtifactName(goos))
+	stagedBinaryPath := filepath.Join(stagingDir, RuneArtifactName(goos))
 	helperArtifacts := map[string]string{}
 	if goos == "linux" {
 		helperPath := filepath.Join(rootDir, LinuxSandboxHelperArtifactName(goos))
@@ -260,7 +260,7 @@ func Package(ctx context.Context, options PackageOptions) (PackageResult, error)
 	}, nil
 }
 
-func ZeroArtifactName(goos string) string {
+func RuneArtifactName(goos string) string {
 	if goos == "windows" {
 		return "rune.exe"
 	}
@@ -296,7 +296,7 @@ func WindowsSandboxSetupArtifactName(goos string) string {
 }
 
 func DefaultBuildOutput(rootDir string, goos string) string {
-	return filepath.Join(rootDir, ZeroArtifactName(goos))
+	return filepath.Join(rootDir, RuneArtifactName(goos))
 }
 
 func BuildLdflags(version string) string {

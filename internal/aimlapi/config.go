@@ -19,9 +19,7 @@ type Endpoints struct {
 }
 
 const (
-	DefaultPartnerID   = "part_62yQoGYDq4Yqnrj2R1iGrDNJ"
-	DefaultPartnerName = "Gitlawb"
-	PartnerHeaderName  = "X-AIMLAPI-Partner-ID"
+	PartnerHeaderName = "X-AIMLAPI-Partner-ID"
 	// DefaultReturnURL is the https fallback the browser is sent to after the
 	// checkout / OAuth consent finishes when no frontend base is known. It must be
 	// a real web page the browser can open — NOT a custom scheme like
@@ -46,15 +44,12 @@ func ResolveEndpoints() Endpoints {
 	}
 }
 
-// ResolvePartnerID applies the same explicit-option, environment, and default
-// precedence everywhere partner attribution is used. Keeping checkout creation
-// and saved inference profiles on one resolver prevents them from attributing
-// the same user to different partners.
+// ResolvePartnerID returns only explicit or user-configured partner attribution.
 func ResolvePartnerID(explicit string) string {
 	if value := strings.TrimSpace(explicit); value != "" {
 		return value
 	}
-	return envOrDefault("AIMLAPI_PARTNER_ID", DefaultPartnerID)
+	return strings.TrimSpace(os.Getenv("AIMLAPI_PARTNER_ID"))
 }
 
 // WithResolvedPartnerHeader returns a copy with the effective partner ID set.
@@ -69,7 +64,9 @@ func WithResolvedPartnerHeader(headers map[string]string) map[string]string {
 		}
 		resolved[key] = value
 	}
-	resolved[PartnerHeaderName] = ResolvePartnerID("")
+	if partnerID := ResolvePartnerID(""); partnerID != "" {
+		resolved[PartnerHeaderName] = partnerID
+	}
 	return resolved
 }
 

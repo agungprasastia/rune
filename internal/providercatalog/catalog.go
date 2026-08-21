@@ -99,19 +99,11 @@ func RuntimeUnsupportedReason(descriptor Descriptor) string {
 }
 
 var descriptors = []Descriptor{
-	// GitLawb OpenGateway — the recommended default. An OpenAI-compatible gateway
-	// that smart-routes by model id across upstream providers (xiaomi-mimo,
-	// minimax, qwen, google, nvidia, tencent, z-ai). Flat /v1/chat/completions
-	// with a Bearer ogw_live_… key; listed first and badged in every picker.
-	recommended(openAICompat("gitlawb-opengateway", "GitLawb OpenGateway", "https://opengateway.gitlawb.com/v1", "mimo-v2.5-pro", []string{"GITLAWB_OPENGATEWAY_API_KEY"}, "gitlawb opengateway", "opengateway")),
-	// aimlapi.com — OpenAI-compatible aggregating gateway, also badged as
-	// recommended (second, right after the OpenGateway default). The built-in TUI
-	// onboarding can register/top up an account and save the issued key; the partner
-	// headers attribute usage for the rebate.
-	recommended(aimlapi()),
 	openAI("openai", "OpenAI", "https://api.openai.com/v1", "gpt-4.1", []string{"OPENAI_API_KEY"}),
 	anthropic("anthropic", "Anthropic", "https://api.anthropic.com", "claude-sonnet-4.5", []string{"ANTHROPIC_API_KEY"}),
 	google("google", "Google", "https://generativelanguage.googleapis.com", "gemini-2.5-pro", []string{"GEMINI_API_KEY", "GOOGLE_API_KEY"}, "gemini"),
+	openAICompat("gitlawb-opengateway", "GitLawb OpenGateway", "https://opengateway.gitlawb.com/v1", "mimo-v2.5-pro", []string{"GITLAWB_OPENGATEWAY_API_KEY"}, "gitlawb opengateway", "opengateway"),
+	aimlapi(),
 	openAICompat("ollama-cloud", "Ollama Cloud", "https://ollama.com/v1", "qwen3-coder:480b", []string{"OLLAMA_API_KEY"}, "ollama.com", "ollama cloud"),
 	localOpenAI("ollama", "Ollama Local", "http://localhost:11434/v1", "llama3.1", "ollama local"),
 	localOpenAI("lmstudio", "LM Studio", "http://localhost:1234/v1", "local-model", "lm-studio", "lm studio"),
@@ -275,7 +267,6 @@ func google(id string, name string, baseURL string, model string, env []string, 
 func aimlapi() Descriptor {
 	descriptor := openAICompat(AIMLAPIID, "aimlapi.com", "https://api.aimlapi.com/v1", "anthropic/claude-sonnet-5", []string{"AIMLAPI_API_KEY"}, "aimlapi", "aiml api", "ai/ml api", "ai ml api")
 	descriptor.CustomHeaders = map[string]string{
-		"X-AIMLAPI-Partner-ID":          "part_62yQoGYDq4Yqnrj2R1iGrDNJ",
 		"X-AIMLAPI-Integration-Repo":    "agungprasastia/rune",
 		"X-AIMLAPI-Integration-Version": "rune",
 	}

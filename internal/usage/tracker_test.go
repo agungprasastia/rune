@@ -22,7 +22,7 @@ func TestTrackerNormalizesUsageAndComputesModelCost(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Record returned error: %v", err)
 	}
-	if record.Sequence != 1 || record.ID != "zero_usage_1" || record.CreatedAt != "2026-06-04T13:00:00Z" {
+	if record.Sequence != 1 || record.ID != "rune_usage_1" || record.CreatedAt != "2026-06-04T13:00:00Z" {
 		t.Fatalf("unexpected record identity: %#v", record)
 	}
 	if record.Usage.InputTokens != 1_000 || record.Usage.OutputTokens != 250 || record.Usage.TotalTokens != 1_250 {

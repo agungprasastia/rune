@@ -85,7 +85,7 @@ func NewAgent(conn *Conn, deps Deps) *Agent {
 	conn.Handle(MethodSessionPrompt, a.handleSessionPrompt)
 	conn.Handle(MethodSessionSetMode, a.handleSetMode)
 	conn.Handle(MethodSessionSetConfigOption, a.handleSetConfigOption)
-	conn.Handle(MethodZeroSetModel, a.handleZeroSetModel)
+	conn.Handle(MethodRuneSetModel, a.handleRuneSetModel)
 	conn.HandleNotify(MethodSessionCancel, a.handleCancel)
 	return a
 }
@@ -417,10 +417,10 @@ func (a *Agent) handleSetConfigOption(_ context.Context, params json.RawMessage)
 	return SetSessionConfigOptionResult{ConfigOptions: a.configOptions(sess)}, nil
 }
 
-func (a *Agent) handleZeroSetModel(_ context.Context, params json.RawMessage) (any, error) {
-	var p ZeroSetModelParams
+func (a *Agent) handleRuneSetModel(_ context.Context, params json.RawMessage) (any, error) {
+	var p RuneSetModelParams
 	if err := json.Unmarshal(params, &p); err != nil {
-		return nil, RPCError(codeInvalidParams, "invalid _zero/set_model params")
+		return nil, RPCError(codeInvalidParams, "invalid _rune/set_model params")
 	}
 	sess := a.session(p.SessionID)
 	if sess == nil {
@@ -430,7 +430,7 @@ func (a *Agent) handleZeroSetModel(_ context.Context, params json.RawMessage) (a
 	if err := a.updateModel(sess, model, false); err != nil {
 		return nil, err
 	}
-	return ZeroSetModelResult{Model: model}, nil
+	return RuneSetModelResult{Model: model}, nil
 }
 
 func (a *Agent) updateModel(sess *acpSession, model string, restrictModels bool) error {

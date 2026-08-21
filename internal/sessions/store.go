@@ -864,7 +864,7 @@ func (store *Store) timestamp() string {
 
 func (store *Store) createID() string {
 	timestamp := store.now().UTC()
-	return fmt.Sprintf("zero_%s_%d_%d", timestamp.Format("20060102150405"), timestamp.UnixNano(), store.idCounter.Add(1))
+	return fmt.Sprintf("rune_%s_%d_%d", timestamp.Format("20060102150405"), timestamp.UnixNano(), store.idCounter.Add(1))
 }
 
 func (store *Store) sessionLock(sessionID string) *sync.Mutex {

@@ -149,7 +149,7 @@ func TestComposerDividerRendersMetaAtExactFit(t *testing.T) {
 		PermissionMode: agent.PermissionModeAsk,
 	})
 	// The divider meta is model-only now (mode/effort moved to the status line).
-	meta := zeroTheme.muted.Render("gpt-4o")
+	meta := runeTheme.muted.Render("gpt-4o")
 	width := lipgloss.Width(meta) + 4
 
 	got := plainRender(t, m.composerDividerLine(width))

@@ -30,11 +30,11 @@ func TestWordmarkIsPlain(t *testing.T) {
 		t.Fatalf("expected uncolored wordmark, got %q", wordmark)
 	}
 	lines := strings.Split(wordmark, "\n")
-	if len(lines) != len(zeroWordmarkPrefixLines) {
-		t.Fatalf("expected %d wordmark lines, got %d", len(zeroWordmarkPrefixLines), len(lines))
+	if len(lines) != len(runeWordmarkPrefixLines) {
+		t.Fatalf("expected %d wordmark lines, got %d", len(runeWordmarkPrefixLines), len(lines))
 	}
 	for index, line := range lines {
-		if want := zeroWordmarkPrefixLines[index] + zeroWordmarkOLines[index]; line != want {
+		if want := runeWordmarkPrefixLines[index] + runeWordmarkOLines[index]; line != want {
 			t.Fatalf("wordmark line %d: expected %q, got %q", index, want, line)
 		}
 	}
@@ -111,7 +111,7 @@ func TestBorderedBlockFitsLongPlainLines(t *testing.T) {
 
 func TestBorderedBlockFitsLongStyledLines(t *testing.T) {
 	block := borderedBlock(26, []string{
-		zeroTheme.accent.Render("styled line should truncate inside the border"),
+		runeTheme.accent.Render("styled line should truncate inside the border"),
 	})
 
 	assertContains(t, block, "\u2026")

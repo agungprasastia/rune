@@ -13,9 +13,8 @@ const (
 	minStartupWidth      = 58
 )
 
-// zeroWordmarkPrefixLines is the white `ZER` part of the empty-state ANSI
-// Shadow-style wordmark. zeroWordmarkOLines keeps the old lime `O` glyph.
-var zeroWordmarkPrefixLines = []string{
+// runeWordmarkPrefixLines is the white Rune part of the empty-state wordmark.
+var runeWordmarkPrefixLines = []string{
 	`███████╗███████╗██████╗ `,
 	`╚══███╔╝██╔════╝██╔══██╗`,
 	`  ███╔╝ █████╗  ██████╔╝`,
@@ -24,7 +23,7 @@ var zeroWordmarkPrefixLines = []string{
 	`╚══════╝╚══════╝╚═╝  ╚═╝`,
 }
 
-var zeroWordmarkOLines = []string{
+var runeWordmarkOLines = []string{
 	` ██████╗ `,
 	`██╔═══██╗`,
 	`██║   ██║`,
@@ -65,11 +64,11 @@ func (m model) emptyStateWithOverlay(width int, overlay string) string {
 
 func (m model) emptyStateLines(width int) []string {
 	lines := []string{}
-	for _, glyph := range zeroWordmarkLines() {
+	for _, glyph := range runeWordmarkLines() {
 		lines = append(lines, centerLine(glyph, width))
 	}
 	lines = append(lines, "")
-	lines = append(lines, centerLine(zeroTheme.muted.Render(emptyStateTagline), width))
+	lines = append(lines, centerLine(runeTheme.muted.Render(emptyStateTagline), width))
 	// Orientation: where RUNE is pointed (cwd · branch · model) so a returning user
 	// sees the context before typing instead of a blank brand screen.
 	if orient := m.emptyStateOrientation(); orient != "" {
@@ -78,9 +77,9 @@ func (m model) emptyStateLines(width int) []string {
 	}
 	// A couple of example prompts to seed the first message.
 	lines = append(lines, "")
-	lines = append(lines, centerLine(zeroTheme.faint.Render(emptyStateExamples), width))
+	lines = append(lines, centerLine(runeTheme.faint.Render(emptyStateExamples), width))
 	lines = append(lines, "")
-	lines = append(lines, centerLine(zeroTheme.faint.Render("Press ? for keyboard shortcuts · / for commands"), width))
+	lines = append(lines, centerLine(runeTheme.faint.Render("Press ? for keyboard shortcuts · / for commands"), width))
 	// centerLine pads but never truncates; below ~62 cols the lines would exceed
 	// the frame without this fit.
 	for index := range lines {
@@ -112,7 +111,7 @@ func (m model) emptyStateOrientation() string {
 	if len(parts) == 0 {
 		return ""
 	}
-	return zeroTheme.faint.Render(strings.Join(parts, "  ·  "))
+	return runeTheme.faint.Render(strings.Join(parts, "  ·  "))
 }
 
 // displayVersion formats the CLI build version for display: numeric releases
@@ -129,10 +128,10 @@ func displayVersion(version string) string {
 	return version
 }
 
-func zeroWordmarkLines() []string {
-	lines := make([]string, 0, minInt(len(zeroWordmarkPrefixLines), len(zeroWordmarkOLines)))
-	for index := 0; index < len(zeroWordmarkPrefixLines) && index < len(zeroWordmarkOLines); index++ {
-		lines = append(lines, zeroTheme.ink.Render(zeroWordmarkPrefixLines[index])+zeroTheme.accent.Render(zeroWordmarkOLines[index]))
+func runeWordmarkLines() []string {
+	lines := make([]string, 0, minInt(len(runeWordmarkPrefixLines), len(runeWordmarkOLines)))
+	for index := 0; index < len(runeWordmarkPrefixLines) && index < len(runeWordmarkOLines); index++ {
+		lines = append(lines, runeTheme.ink.Render(runeWordmarkPrefixLines[index])+runeTheme.accent.Render(runeWordmarkOLines[index]))
 	}
 	return lines
 }
@@ -143,9 +142,9 @@ func zeroWordmarkLines() []string {
 // global palette here would ignore a selected light theme and be unreadable
 // on light terminals. The terminal's default foreground works everywhere.
 func Wordmark() string {
-	lines := make([]string, 0, minInt(len(zeroWordmarkPrefixLines), len(zeroWordmarkOLines)))
-	for index := 0; index < len(zeroWordmarkPrefixLines) && index < len(zeroWordmarkOLines); index++ {
-		lines = append(lines, zeroWordmarkPrefixLines[index]+zeroWordmarkOLines[index])
+	lines := make([]string, 0, minInt(len(runeWordmarkPrefixLines), len(runeWordmarkOLines)))
+	for index := 0; index < len(runeWordmarkPrefixLines) && index < len(runeWordmarkOLines); index++ {
+		lines = append(lines, runeWordmarkPrefixLines[index]+runeWordmarkOLines[index])
 	}
 	return strings.Join(lines, "\n")
 }

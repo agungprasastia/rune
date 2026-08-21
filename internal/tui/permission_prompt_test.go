@@ -471,7 +471,7 @@ func TestShiftDownComposerGuard(t *testing.T) {
 }
 
 // The highlighted permission option must use the selected-row tint, not the
-// brand chip. zeroTheme.badge is the accent-filled chip for short labels
+// brand chip. runeTheme.badge is the accent-filled chip for short labels
 // (" 0 ", " ASK ", " SPEC REVIEW "); using it for a whole row painted a
 // full-brightness accent slab across a card whose palette is deliberately amber
 // (warning), and skipped the card tint every other line composes onto. selBg is
@@ -495,7 +495,7 @@ func TestFocusedPermissionSelectedRowUsesSelectionTintNotBrandChip(t *testing.T)
 	accentBg := backgroundCode(darkPalette.accent)
 	selBg := backgroundCode(darkPalette.selBg)
 	if strings.Contains(selected, accentBg) {
-		t.Errorf("selected row is filled with the brand accent %s (zeroTheme.badge); want the selection tint:\n%q", darkPalette.accent, selected)
+		t.Errorf("selected row is filled with the brand accent %s (runeTheme.badge); want the selection tint:\n%q", darkPalette.accent, selected)
 	}
 	if !strings.Contains(selected, selBg) {
 		t.Errorf("selected row should carry the selection tint %s:\n%q", darkPalette.selBg, selected)

@@ -8,11 +8,11 @@ import (
 )
 
 var expectedCatalogIDs = []string{
-	"gitlawb-opengateway",
-	"aimlapi",
 	"openai",
 	"anthropic",
 	"google",
+	"gitlawb-opengateway",
+	"aimlapi",
 	"ollama-cloud",
 	"ollama",
 	"lmstudio",
@@ -71,35 +71,16 @@ func TestAllHasStableUniqueIDs(t *testing.T) {
 	}
 }
 
-func TestRecommendedProvidersAreTopOfCatalog(t *testing.T) {
+func TestCatalogHasNoUpstreamRecommendedProvider(t *testing.T) {
 	descriptors := All()
-	// The recommended providers are badged and pinned to the top of the catalog,
-	// in this order (OpenGateway remains the default; aimlapi.com is also badged).
-	wantTop := []string{"gitlawb-opengateway", "aimlapi"}
-	if len(descriptors) < len(wantTop) {
-		t.Fatalf("All() returned %d descriptors, want at least %d", len(descriptors), len(wantTop))
-	}
-	for index, id := range wantTop {
-		if descriptors[index].ID != id {
-			t.Fatalf("descriptors[%d] = %q, want %q", index, descriptors[index].ID, id)
-		}
-		if !descriptors[index].Recommended {
-			t.Fatalf("descriptors[%d] (%q) should be recommended", index, id)
-		}
-	}
-	// Exactly those are recommended, and they are contiguous at the top.
-	recommended := 0
 	for _, descriptor := range descriptors {
 		if descriptor.Recommended {
-			recommended++
+			t.Fatalf("provider %q must not be upstream-recommended", descriptor.ID)
 		}
-	}
-	if recommended != len(wantTop) {
-		t.Fatalf("recommended descriptor count = %d, want %d", recommended, len(wantTop))
 	}
 }
 
-func TestRecommendedProviderEndpoint(t *testing.T) {
+func TestOpenGatewayProviderEndpoint(t *testing.T) {
 	descriptor, ok := Get("gitlawb-opengateway")
 	if !ok {
 		t.Fatal("gitlawb-opengateway not found in catalog")

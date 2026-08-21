@@ -202,7 +202,7 @@ func (m model) sidebarFilesHeader(width int) string {
 	if n == 0 {
 		return sidebarHeader("FILES", width)
 	}
-	return sidebarHeaderWithCount("FILES", fmt.Sprintf("%d", n), zeroTheme.muted, width)
+	return sidebarHeaderWithCount("FILES", fmt.Sprintf("%d", n), runeTheme.muted, width)
 }
 
 // sidebarFileLines renders the FILES section body: the live "writing" pulse row
@@ -223,8 +223,8 @@ func (m model) sidebarFileLines(width int) ([]string, []fileHit) {
 	// The file being written this instant: an accent pulse, not yet clickable
 	// (its result row — the diff — doesn't exist until the call completes).
 	if live != "" {
-		lines = append(lines, " "+zeroTheme.accent.Render("●")+" "+
-			zeroTheme.ink.Render(truncatePathLeft(live, room)))
+		lines = append(lines, " "+runeTheme.accent.Render("●")+" "+
+			runeTheme.ink.Render(truncatePathLeft(live, room)))
 	}
 
 	// Filter the live row out FIRST so the "+N more" trailer counts only rows
@@ -239,7 +239,7 @@ func (m model) sidebarFileLines(width int) ([]string, []fileHit) {
 	shown := 0
 	for _, f := range visible {
 		if shown >= maxSidebarFiles {
-			lines = append(lines, "   "+zeroTheme.faint.Render(fmt.Sprintf("+%d more", len(visible)-shown)))
+			lines = append(lines, "   "+runeTheme.faint.Render(fmt.Sprintf("+%d more", len(visible)-shown)))
 			break
 		}
 		shown++
@@ -255,14 +255,14 @@ func (m model) sidebarFileLines(width int) ([]string, []fileHit) {
 // and the +/− diffstat, with the selected file carrying an accent marker so the
 // selection reads in the sidebar as well as in the chat tint.
 func (m model) renderFileRow(f touchedFile, room int) string {
-	badge := zeroTheme.muted.Render("M")
+	badge := runeTheme.muted.Render("M")
 	switch {
 	case f.summarized:
-		badge = zeroTheme.muted.Render("Σ")
+		badge = runeTheme.muted.Render("Σ")
 	case f.failed:
-		badge = zeroTheme.red.Render("✗")
+		badge = runeTheme.red.Render("✗")
 	case f.created:
-		badge = zeroTheme.green.Render("A")
+		badge = runeTheme.green.Render("A")
 	}
 	// Reserve the diffstat's width so the path truncates around it.
 	stat := ""
@@ -270,15 +270,15 @@ func (m model) renderFileRow(f touchedFile, room int) string {
 		stat = fmt.Sprintf(" +%d −%d", f.adds, f.dels)
 	}
 	pathRoom := maxInt(4, room-len(stat))
-	pathStyle := zeroTheme.muted
+	pathStyle := runeTheme.muted
 	lead := " "
 	if m.selectedFile == f.path {
-		lead = zeroTheme.accent.Render("▸")
-		pathStyle = zeroTheme.ink
+		lead = runeTheme.accent.Render("▸")
+		pathStyle = runeTheme.ink
 	}
 	line := lead + badge + " " + pathStyle.Render(truncatePathLeft(f.path, pathRoom))
 	if stat != "" {
-		line += zeroTheme.faintest.Render(stat)
+		line += runeTheme.faintest.Render(stat)
 	}
 	return line
 }

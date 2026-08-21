@@ -1331,7 +1331,7 @@ func SlugifyBranchComponent(s string) string {
 }
 
 // BuildBranchName composes a "<user>/<slug>" branch name from a git identity
-// and a short feature slug (the convention used across Gitlawb tooling).
+// and a short feature slug.
 // Empty or unsafe inputs fall back to "user" and "changes" respectively so
 // the result is always a valid, non-empty branch name.
 func BuildBranchName(gitUser, slug string) string {

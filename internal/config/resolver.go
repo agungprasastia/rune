@@ -1102,10 +1102,13 @@ func applyCatalogDescriptor(profile *ProviderProfile, descriptor providercatalog
 		profile.APIKeyEnv = descriptor.AuthEnvVars[0]
 	}
 	canonicalCatalogEndpoint := !explicitBaseURL || sameBaseURL(profile.BaseURL, descriptor.DefaultBaseURL)
-	if len(descriptor.CustomHeaders) > 0 && canonicalCatalogEndpoint {
+	if canonicalCatalogEndpoint {
 		catalogHeaders := descriptor.CustomHeaders
 		if strings.EqualFold(strings.TrimSpace(descriptor.ID), "aimlapi") {
 			catalogHeaders = aimlapi.WithResolvedPartnerHeader(catalogHeaders)
+		}
+		if len(catalogHeaders) == 0 && len(profile.CustomHeaders) == 0 {
+			return
 		}
 		merged := copyStringMap(catalogHeaders)
 		for key, value := range profile.CustomHeaders {
@@ -1132,6 +1135,10 @@ func applyCatalogDescriptor(profile *ProviderProfile, descriptor providercatalog
 		// before sending requests to an arbitrary staging/proxy host while preserving
 		// unrelated headers explicitly supplied by the user.
 		for profileKey := range profile.CustomHeaders {
+			if strings.EqualFold(profileKey, aimlapi.PartnerHeaderName) {
+				delete(profile.CustomHeaders, profileKey)
+				continue
+			}
 			for catalogKey := range descriptor.CustomHeaders {
 				if strings.EqualFold(profileKey, catalogKey) {
 					delete(profile.CustomHeaders, profileKey)

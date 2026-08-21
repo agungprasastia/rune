@@ -19,7 +19,7 @@ func TestStoreCreatesAppendsListsAndReadsEvents(t *testing.T) {
 	store := NewStore(StoreOptions{RootDir: t.TempDir(), Now: now})
 
 	session, err := store.Create(CreateInput{
-		SessionID: "zero_test_1",
+		SessionID: "rune_test_1",
 		Title:     "First run",
 		Cwd:       "/repo",
 		ModelID:   "gpt-4.1",
@@ -47,7 +47,7 @@ func TestStoreCreatesAppendsListsAndReadsEvents(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AppendEvent returned error: %v", err)
 	}
-	if event.ID != "zero_test_1:1" || event.Sequence != 1 {
+	if event.ID != "rune_test_1:1" || event.Sequence != 1 {
 		t.Fatalf("unexpected event identity: %#v", event)
 	}
 
@@ -88,7 +88,7 @@ func TestStoreCreatesAppendsListsAndReadsEvents(t *testing.T) {
 
 func TestReadEventsToleratesTornTail(t *testing.T) {
 	store := NewStore(StoreOptions{RootDir: t.TempDir(), Now: fixedClock("2026-06-04T10:00:00Z")})
-	session, err := store.Create(CreateInput{SessionID: "zero_torn_1", Title: "t", Cwd: "/repo", ModelID: "m", Provider: "p"})
+	session, err := store.Create(CreateInput{SessionID: "rune_torn_1", Title: "t", Cwd: "/repo", ModelID: "m", Provider: "p"})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestReadEventsToleratesTornTail(t *testing.T) {
 
 func TestReadEventsFailsOnMidFileCorruption(t *testing.T) {
 	store := NewStore(StoreOptions{RootDir: t.TempDir(), Now: fixedClock("2026-06-04T10:00:00Z")})
-	session, err := store.Create(CreateInput{SessionID: "zero_corrupt_1", Title: "t", Cwd: "/repo", ModelID: "m", Provider: "p"})
+	session, err := store.Create(CreateInput{SessionID: "rune_corrupt_1", Title: "t", Cwd: "/repo", ModelID: "m", Provider: "p"})
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
