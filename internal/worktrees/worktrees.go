@@ -97,7 +97,7 @@ func Prepare(ctx context.Context, options Options) (Result, error) {
 	// happened to run from): git worktree list --porcelain always reports the
 	// main worktree first, regardless of invocation location, so this keeps
 	// Prepare and Release's ownership key derivation in agreement (see
-	// verifyZeroOwnedWorktree) even when Prepare runs from a linked worktree.
+	// verifyManagedWorktree) even when Prepare runs from a linked worktree.
 	// Without it, a worktree prepared from a linked checkout hashes a
 	// different repoKey than Release computes, and its lease can never be
 	// cleared.
@@ -360,7 +360,7 @@ func Release(ctx context.Context, options Options, path string) error {
 			dir = cwd
 		}
 	}
-	matchedPath, err := verifyZeroOwnedWorktree(ctx, runGit, dir, path)
+	matchedPath, err := verifyManagedWorktree(ctx, runGit, dir, path)
 	if err != nil {
 		if errors.Is(err, errAlreadyUnlocked) {
 			return nil
@@ -373,7 +373,7 @@ func Release(ctx context.Context, options Options, path string) error {
 	return nil
 }
 
-// zeroOwnerMarkerFile is the name of the ownership marker Prepare writes into
+// runeOwnerMarkerFile is the name of the ownership marker Prepare writes into
 // a worktree's own private git admin directory (`git rev-parse
 // --absolute-git-dir`), never into the working tree itself: the working tree
 // is what `git status` inspects for staleness/dirtiness, and a marker living
@@ -386,12 +386,12 @@ func Release(ctx context.Context, options Options, path string) error {
 // worktree - unlike the public rune-worktree-<repoKey> path convention and
 // the leaseReasonPrefix lock-reason string, both of which a user can
 // reproduce by hand for a worktree of the same repository.
-const zeroOwnerMarkerFile = "rune-owner"
+const runeOwnerMarkerFile = "rune-owner"
 
-// zeroOwnerMarkerContent is the marker's fixed body. Its value carries no
+// runeOwnerMarkerContent is the marker's fixed body. Its value carries no
 // meaning beyond "Prepare wrote this"; the file's mere presence at the
 // expected location is the signal Release and Clean check.
-const zeroOwnerMarkerContent = "rune: this worktree was created by `rune worktrees prepare`\n"
+const runeOwnerMarkerContent = "rune: this worktree was created by `rune worktrees prepare`\n"
 
 // writeOwnershipMarker persists the ownership marker for target, a worktree
 // path that must still exist on disk (Prepare calls this immediately after
@@ -406,8 +406,8 @@ func writeOwnershipMarker(ctx context.Context, runGit GitRunner, target string) 
 	// Atomic replace: Clean may read the same path from another process while
 	// Prepare re-marks a reused worktree. Write-then-rename so a concurrent
 	// reader never observes a truncated file.
-	destination := filepath.Join(gitDir, zeroOwnerMarkerFile)
-	temporary, err := os.CreateTemp(gitDir, zeroOwnerMarkerFile+".tmp-*")
+	destination := filepath.Join(gitDir, runeOwnerMarkerFile)
+	temporary, err := os.CreateTemp(gitDir, runeOwnerMarkerFile+".tmp-*")
 	if err != nil {
 		return fmt.Errorf("write worktree ownership marker: %w", err)
 	}
@@ -417,7 +417,7 @@ func writeOwnershipMarker(ctx context.Context, runGit GitRunner, target string) 
 		_ = temporary.Close()
 		return fmt.Errorf("write worktree ownership marker: %w", err)
 	}
-	if _, err := temporary.WriteString(zeroOwnerMarkerContent); err != nil {
+	if _, err := temporary.WriteString(runeOwnerMarkerContent); err != nil {
 		_ = temporary.Close()
 		return fmt.Errorf("write worktree ownership marker: %w", err)
 	}
@@ -440,19 +440,19 @@ func hasOwnershipMarker(ctx context.Context, runGit GitRunner, target string) (b
 	if err != nil {
 		return false, fmt.Errorf("resolve worktree git dir: %w", err)
 	}
-	content, err := os.ReadFile(filepath.Join(gitDir, zeroOwnerMarkerFile))
+	content, err := os.ReadFile(filepath.Join(gitDir, runeOwnerMarkerFile))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
 		}
 		return false, fmt.Errorf("read worktree ownership marker: %w", err)
 	}
-	return string(content) == zeroOwnerMarkerContent, nil
+	return string(content) == runeOwnerMarkerContent, nil
 }
 
-// isLegacyZeroWorktree verifies whether a worktree lacking rune-owner was
+// isMarkerlessLegacyWorktree verifies whether a worktree lacking rune-owner was
 // created by a pre-upgrade version of Rune for this repository.
-func isLegacyZeroWorktree(ctx context.Context, runGit GitRunner, target string, repoDir string, entry worktreeEntry) bool {
+func isMarkerlessLegacyWorktree(ctx context.Context, runGit GitRunner, target string, repoDir string, entry worktreeEntry) bool {
 	if !isUnderDir(canonicalizePath(target), repoDir) {
 		return false
 	}
@@ -468,7 +468,7 @@ func isLegacyZeroWorktree(ctx context.Context, runGit GitRunner, target string, 
 	return true
 }
 
-// verifyZeroOwnedWorktree confirms path has a rune-worktree-<repoKey> ancestor
+// verifyManagedWorktree confirms path has a rune-worktree-<repoKey> ancestor
 // directory component, is a registered worktree of the repository, and (when
 // locked) carries a lock reason Rune itself set, so Release cannot be used to
 // clear the lock on a worktree a user (or another tool) manages by hand: the
@@ -485,7 +485,7 @@ func isLegacyZeroWorktree(ctx context.Context, runGit GitRunner, target string, 
 // the main repository (its first entry is always the main working tree, from
 // any worktree, regardless of git-dir layout), so this needs no branching on
 // which of Release's two cwd cases is in play.
-func verifyZeroOwnedWorktree(ctx context.Context, runGit GitRunner, dir string, path string) (string, error) {
+func verifyManagedWorktree(ctx context.Context, runGit GitRunner, dir string, path string) (string, error) {
 	output, err := gitOutput(ctx, runGit, dir, "worktree", "list", "--porcelain")
 	if err != nil {
 		return "", fmt.Errorf("resolve repository for %s: %w", path, err)
@@ -501,14 +501,14 @@ func verifyZeroOwnedWorktree(ctx context.Context, runGit GitRunner, dir string, 
 
 	target := canonicalizePath(path)
 
-	hasZeroComponent := false
+	hasRuneComponent := false
 	for _, component := range strings.Split(target, string(filepath.Separator)) {
 		if component == want {
-			hasZeroComponent = true
+			hasRuneComponent = true
 			break
 		}
 	}
-	if !hasZeroComponent {
+	if !hasRuneComponent {
 		return "", fmt.Errorf("refusing to release %s: not a rune-managed worktree (expected an ancestor directory named %q)", path, want)
 	}
 
@@ -694,7 +694,7 @@ func gitOutput(ctx context.Context, runGit GitRunner, dir string, args ...string
 // primaryWorktreeRoot returns the repository's main worktree path. `git
 // worktree list --porcelain` always reports the main worktree first (its
 // first entry), regardless of which linked worktree the command runs from -
-// which is what lets Prepare and verifyZeroOwnedWorktree agree on one
+// which is what lets Prepare and verifyManagedWorktree agree on one
 // repoKey for the same repository even when invoked from different
 // worktrees of it.
 func primaryWorktreeRoot(ctx context.Context, runGit GitRunner, dir string) (string, error) {
@@ -957,7 +957,7 @@ func Clean(ctx context.Context, options Options, maxAge time.Duration) error {
 			}
 			legacy := false
 			if !owned {
-				legacy = isLegacyZeroWorktree(ctx, runGit, statPath, repoDir, entry)
+				legacy = isMarkerlessLegacyWorktree(ctx, runGit, statPath, repoDir, entry)
 			}
 			includeIgnored := expiredLease || legacy
 			if worktreeIsDirty(ctx, runGit, statPath, includeIgnored) {

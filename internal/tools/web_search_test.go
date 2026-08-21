@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	zeroSandbox "rune/internal/sandbox"
+	runeSandbox "rune/internal/sandbox"
 )
 
 type fakeSearchBackend struct {
@@ -204,8 +204,8 @@ func (b *fakeHostedBackend) Search(context.Context, string, int) ([]searchResult
 func TestWebSearchRunWithSandboxAllowsUnderShellNetworkDeny(t *testing.T) {
 	backend := &fakeHostedBackend{results: []searchResult{{Title: "T", URL: "https://x.test"}}}
 	tool := newWebSearchToolWithBackend(backend).(webSearchTool)
-	engine := zeroSandbox.NewEngine(zeroSandbox.EngineOptions{
-		Policy: zeroSandbox.Policy{Mode: zeroSandbox.ModeEnforce, Network: zeroSandbox.NetworkDeny},
+	engine := runeSandbox.NewEngine(runeSandbox.EngineOptions{
+		Policy: runeSandbox.Policy{Mode: runeSandbox.ModeEnforce, Network: runeSandbox.NetworkDeny},
 	})
 	res := tool.RunWithSandbox(context.Background(), map[string]any{"query": "hi"}, engine)
 	if res.Status != StatusOK {
@@ -219,8 +219,8 @@ func TestWebSearchRunWithSandboxAllowsUnderShellNetworkDeny(t *testing.T) {
 func TestWebSearchRunWithSandboxAllowsUnderShellNetworkAllow(t *testing.T) {
 	backend := &fakeHostedBackend{results: []searchResult{{Title: "T", URL: "https://x.test"}}}
 	tool := newWebSearchToolWithBackend(backend).(webSearchTool)
-	engine := zeroSandbox.NewEngine(zeroSandbox.EngineOptions{
-		Policy: zeroSandbox.Policy{Mode: zeroSandbox.ModeEnforce, Network: zeroSandbox.NetworkAllow},
+	engine := runeSandbox.NewEngine(runeSandbox.EngineOptions{
+		Policy: runeSandbox.Policy{Mode: runeSandbox.ModeEnforce, Network: runeSandbox.NetworkAllow},
 	})
 	res := tool.RunWithSandbox(context.Background(), map[string]any{"query": "hi"}, engine)
 	if res.Status != StatusOK {

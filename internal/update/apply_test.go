@@ -34,7 +34,7 @@ func TestApplyReturnsNoopWhenUpToDate(t *testing.T) {
 
 func TestApplyStandaloneUpdateReplacesBinary(t *testing.T) {
 	binaryName := "rune"
-	// macOS ships no optional helper binaries (matching scripts/postinstall.mjs),
+	// macOS ships no optional helper binaries, matching native release packaging,
 	// so there's nothing to refresh there; only linux/windows have one to check.
 	optionalName := ""
 	switch runtime.GOOS {

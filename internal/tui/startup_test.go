@@ -13,7 +13,7 @@ func TestEmptyStateShowsBrandAndTaglineOnly(t *testing.T) {
 	m.width, m.height = 100, 30
 
 	view := plainRender(t, m.View())
-	assertContains(t, view, "███████╗███████╗██████╗  ██████╗")
+	assertContains(t, view, "██████╗ ██╗   ██╗███╗   ██╗███████╗")
 	assertContains(t, view, emptyStateTagline)
 	assertNotContains(t, view, "running rune against ")
 	assertNotContains(t, view, "add a --version flag")
@@ -30,11 +30,11 @@ func TestWordmarkIsPlain(t *testing.T) {
 		t.Fatalf("expected uncolored wordmark, got %q", wordmark)
 	}
 	lines := strings.Split(wordmark, "\n")
-	if len(lines) != len(runeWordmarkPrefixLines) {
-		t.Fatalf("expected %d wordmark lines, got %d", len(runeWordmarkPrefixLines), len(lines))
+	if len(lines) != len(runeWordmarkLines) {
+		t.Fatalf("expected %d wordmark lines, got %d", len(runeWordmarkLines), len(lines))
 	}
 	for index, line := range lines {
-		if want := runeWordmarkPrefixLines[index] + runeWordmarkOLines[index]; line != want {
+		if want := runeWordmarkLines[index]; line != want {
 			t.Fatalf("wordmark line %d: expected %q, got %q", index, want, line)
 		}
 	}

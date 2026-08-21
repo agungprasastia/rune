@@ -26,14 +26,14 @@ func TestParseBuildArgsUsesEnvAndCliOverrides(t *testing.T) {
 		t.Fatalf("env options = %#v", options)
 	}
 
-	options, help, err = parseBuildArgs([]string{"--goos=windows", "--goarch", "amd64", "--output", "dist/zero.exe"}, emptyEnv)
+	options, help, err = parseBuildArgs([]string{"--goos=windows", "--goarch", "amd64", "--output", "dist/rune.exe"}, emptyEnv)
 	if err != nil {
 		t.Fatalf("parseBuildArgs CLI returned error: %v", err)
 	}
 	if help {
 		t.Fatal("parseBuildArgs CLI help = true, want false")
 	}
-	if options.GOOS != "windows" || options.GOARCH != "amd64" || options.Output != "dist/zero.exe" {
+	if options.GOOS != "windows" || options.GOARCH != "amd64" || options.Output != "dist/rune.exe" {
 		t.Fatalf("CLI options = %#v", options)
 	}
 }
@@ -51,14 +51,14 @@ func TestParseBuildArgsRejectsMissingValues(t *testing.T) {
 }
 
 func TestParseSmokeArgsAcceptsPathAlias(t *testing.T) {
-	options, help, err := parseSmokeArgs([]string{"--binary=dist/zero", "--goos", "linux", "--version", "0.1.0"})
+	options, help, err := parseSmokeArgs([]string{"--binary=dist/rune", "--goos", "linux", "--version", "0.1.0"})
 	if err != nil {
 		t.Fatalf("parseSmokeArgs returned error: %v", err)
 	}
 	if help {
 		t.Fatal("parseSmokeArgs help = true, want false")
 	}
-	if options.BinaryPath != "dist/zero" || options.GOOS != "linux" || options.Version != "0.1.0" {
+	if options.BinaryPath != "dist/rune" || options.GOOS != "linux" || options.Version != "0.1.0" {
 		t.Fatalf("smoke options = %#v", options)
 	}
 }

@@ -171,7 +171,7 @@ func safeExtractPath(destDir string, name string) (string, error) {
 }
 
 // findByBasename recursively searches root for the first regular file whose
-// basename matches name, mirroring scripts/postinstall.mjs's lookup so
+// basename matches name, matching release packaging's helper lookup so
 // helper binaries nested under archive subdirectories (e.g. helpers/) are
 // still found.
 func findByBasename(root string, name string) (string, error) {

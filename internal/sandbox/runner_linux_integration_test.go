@@ -242,7 +242,7 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 	}{
 		{
 			name:   "outside write",
-			script: "if echo leak > /etc/zero_sandbox_smoke 2>/dev/null; then echo OUTSIDE_WRITE_SUCCEEDED; exit 42; fi",
+			script: "if echo leak > /etc/rune_sandbox_smoke 2>/dev/null; then echo OUTSIDE_WRITE_SUCCEEDED; exit 42; fi",
 			marker: "OUTSIDE_WRITE_SUCCEEDED",
 		},
 		{

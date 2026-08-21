@@ -13,26 +13,16 @@ const (
 	minStartupWidth      = 58
 )
 
-// runeWordmarkPrefixLines is the white Rune part of the empty-state wordmark.
-var runeWordmarkPrefixLines = []string{
-	`███████╗███████╗██████╗ `,
-	`╚══███╔╝██╔════╝██╔══██╗`,
-	`  ███╔╝ █████╗  ██████╔╝`,
-	` ███╔╝  ██╔══╝  ██╔══██╗`,
-	`███████╗███████╗██║  ██║`,
-	`╚══════╝╚══════╝╚═╝  ╚═╝`,
+var runeWordmarkLines = []string{
+	`██████╗ ██╗   ██╗███╗   ██╗███████╗`,
+	`██╔══██╗██║   ██║████╗  ██║██╔════╝`,
+	`██████╔╝██║   ██║██╔██╗ ██║█████╗  `,
+	`██╔══██╗██║   ██║██║╚██╗██║██╔══╝  `,
+	`██║  ██║╚██████╔╝██║ ╚████║███████╗`,
+	`╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝`,
 }
 
-var runeWordmarkOLines = []string{
-	` ██████╗ `,
-	`██╔═══██╗`,
-	`██║   ██║`,
-	`██║   ██║`,
-	`╚██████╔╝`,
-	` ╚═════╝ `,
-}
-
-const emptyStateTagline = "Any model. Every tool. Rune limits."
+const emptyStateTagline = "Any model. Every tool. One terminal."
 
 // emptyState renders the centered stream-area block shown while the
 // transcript has no real content: the brand glyph and tagline.
@@ -64,7 +54,7 @@ func (m model) emptyStateWithOverlay(width int, overlay string) string {
 
 func (m model) emptyStateLines(width int) []string {
 	lines := []string{}
-	for _, glyph := range runeWordmarkLines() {
+	for _, glyph := range styledRuneWordmarkLines() {
 		lines = append(lines, centerLine(glyph, width))
 	}
 	lines = append(lines, "")
@@ -128,10 +118,10 @@ func displayVersion(version string) string {
 	return version
 }
 
-func runeWordmarkLines() []string {
-	lines := make([]string, 0, minInt(len(runeWordmarkPrefixLines), len(runeWordmarkOLines)))
-	for index := 0; index < len(runeWordmarkPrefixLines) && index < len(runeWordmarkOLines); index++ {
-		lines = append(lines, runeTheme.ink.Render(runeWordmarkPrefixLines[index])+runeTheme.accent.Render(runeWordmarkOLines[index]))
+func styledRuneWordmarkLines() []string {
+	lines := make([]string, 0, len(runeWordmarkLines))
+	for _, line := range runeWordmarkLines {
+		lines = append(lines, runeTheme.ink.Render(line))
 	}
 	return lines
 }
@@ -142,11 +132,7 @@ func runeWordmarkLines() []string {
 // global palette here would ignore a selected light theme and be unreadable
 // on light terminals. The terminal's default foreground works everywhere.
 func Wordmark() string {
-	lines := make([]string, 0, minInt(len(runeWordmarkPrefixLines), len(runeWordmarkOLines)))
-	for index := 0; index < len(runeWordmarkPrefixLines) && index < len(runeWordmarkOLines); index++ {
-		lines = append(lines, runeWordmarkPrefixLines[index]+runeWordmarkOLines[index])
-	}
-	return strings.Join(lines, "\n")
+	return strings.Join(runeWordmarkLines, "\n")
 }
 
 // styledBlock draws a rounded box around lines with the given border style,

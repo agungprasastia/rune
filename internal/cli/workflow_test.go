@@ -331,7 +331,7 @@ func TestRunWorktreesReleaseReportsErrors(t *testing.T) {
 
 func TestRunWorktreesReleaseRedactsErrorText(t *testing.T) {
 	// Release errors interpolate the caller-supplied path (see
-	// verifyZeroOwnedWorktree's "refusing to release %s" messages); unlike the
+	// verifyManagedWorktree's "refusing to release %s" messages); unlike the
 	// success path, which redacts before printing, the error was previously
 	// forwarded to stderr verbatim, so a rejected path containing a key-shaped
 	// segment would reach terminal/model-visible output unredacted.
@@ -939,7 +939,7 @@ func TestRunExecWorktreeRedactsReleaseFailureText(t *testing.T) {
 	// The release path argument was already redacted before this diagnostic
 	// was added, but the error's own text was forwarded verbatim; Release's
 	// ownership errors interpolate the caller-supplied path (see
-	// verifyZeroOwnedWorktree), so a key-shaped path reaching this message
+	// verifyManagedWorktree), so a key-shaped path reaching this message
 	// leaked unredacted onto stderr.
 	root := t.TempDir()
 	worktreeDir := t.TempDir()

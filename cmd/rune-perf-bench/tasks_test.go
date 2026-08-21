@@ -77,7 +77,7 @@ func TestParseTaskArgsFlagsOverrideEnv(t *testing.T) {
 func TestRunTasksCommandWritesRecordWithoutBinary(t *testing.T) {
 	// With --dry-run no agent is invoked: every task is recorded as skipped. This
 	// exercises the full record path (model + commit + self-correct flag) without
-	// needing a real zero binary or model.
+	// needing a real rune binary or model.
 	suite := writeTaskSuite(t, `{
 		"id": "terminal-bench-mini",
 		"name": "Terminal-Bench (mini)",

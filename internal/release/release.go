@@ -114,7 +114,7 @@ func Build(ctx context.Context, options BuildOptions) (BuildResult, error) {
 	if output == "" {
 		output = DefaultBuildOutput(rootDir, goos)
 	}
-	if err := buildZero(ctx, rootDir, output, version, goos, goarch); err != nil {
+	if err := buildRune(ctx, rootDir, output, version, goos, goarch); err != nil {
 		return BuildResult{}, err
 	}
 	return BuildResult{
@@ -228,7 +228,7 @@ func Package(ctx context.Context, options PackageOptions) (PackageResult, error)
 		return PackageResult{}, fmt.Errorf("create release dir: %w", err)
 	}
 
-	if err := buildZero(ctx, rootDir, artifactPath, version, goos, goarch); err != nil {
+	if err := buildRune(ctx, rootDir, artifactPath, version, goos, goarch); err != nil {
 		return PackageResult{}, err
 	}
 	for name, path := range helperArtifacts {
@@ -582,7 +582,7 @@ func PackageVersion(rootDir string) (string, error) {
 	return "dev", nil
 }
 
-func buildZero(ctx context.Context, rootDir string, output string, version string, goos string, goarch string) error {
+func buildRune(ctx context.Context, rootDir string, output string, version string, goos string, goarch string) error {
 	return buildGoPackage(ctx, rootDir, output, version, goos, goarch, "./cmd/rune")
 }
 

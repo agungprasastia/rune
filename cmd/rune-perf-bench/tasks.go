@@ -205,7 +205,7 @@ func taskHelpText() string {
 		"  --model <model>     Model to run (required); recorded with the result",
 		"  --mode <name>       Exec mode preset to apply",
 		"  --self-correct      Enable the post-edit verify-and-correct loop",
-		"  --binary <path>     Path to the `zero` binary (required unless --dry-run)",
+		"  --binary <path>     Path to the `rune` binary (required unless --dry-run)",
 		"  --version <v>       Record the RUNE version (default: $RUNE_BENCH_VERSION)",
 		"  --commit <sha>      Record the RUNE commit (default: $RUNE_BENCH_COMMIT)",
 		"  --output <path>     Write the JSON result to path",

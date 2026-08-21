@@ -326,7 +326,7 @@ func credentialDenyReadPaths(policy Policy, commandDir string, commandEnv []stri
 	return trusted
 }
 
-// zeroConfigReadCarveoutNames are the supported non-secret subtrees of
+// runeConfigReadCarveoutNames are the supported non-secret subtrees of
 // <configDir>/rune. Their contents are extension code and prompts that a
 // sandboxed command legitimately executes or reads (a user plugin's tool
 // command lives below the plugin root), so the credential deny must not hide

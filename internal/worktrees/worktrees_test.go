@@ -90,7 +90,7 @@ func TestPrepareCreatesDetachedGitWorktree(t *testing.T) {
 	}
 	// Prepare must lock every worktree it creates: this is what makes
 	// entry.locked inside Clean protect rune's own worktrees, not just ones a
-	// human locked by hand (see TestCleanSkipsLockedZeroOwnedWorktree).
+	// human locked by hand (see TestCleanSkipsLockedManagedWorktree).
 	if got := runner.commandLine(5); got != "git worktree lock --reason rune: active task worktree "+result.Path {
 		t.Fatalf("git worktree lock command = %q", got)
 	}
@@ -113,7 +113,7 @@ func TestReleaseUnlocksWorktree(t *testing.T) {
 	// platform where the temp dir is itself a symlink (macOS /var ->
 	// /private/var), real `git worktree list --porcelain` reports the
 	// physical spelling, so computing repoKey from the lexical spelling here
-	// would produce a different key than verifyZeroOwnedWorktree derives in
+	// would produce a different key than verifyManagedWorktree derives in
 	// production, and Release would reject this genuinely Rune-owned fixture
 	// as not-rune-managed. The worktree path itself is physicalized for the
 	// same reason: Release compares the registered entry against the
@@ -161,7 +161,7 @@ func TestReleaseUnlocksWorktree(t *testing.T) {
 	}
 }
 
-// TestReleaseRejectsForgedZeroLeaseWithoutOwnershipMarker pins the fix for
+// TestReleaseRejectsForgedManagedLeaseWithoutOwnershipMarker pins the fix for
 // ownership being inferred from the public rune-worktree-<repoKey> path
 // convention plus a lock reason that merely starts with leaseReasonPrefix: a
 // user (or another tool) can create a same-repository worktree at that
@@ -170,7 +170,7 @@ func TestReleaseUnlocksWorktree(t *testing.T) {
 // HasPrefix checks. Only the ownership marker Prepare itself writes can tell
 // that apart from a genuine Rune lease, so Release must still refuse to
 // unlock it when the worktree directory exists but carries no marker.
-func TestReleaseRejectsForgedZeroLeaseWithoutOwnershipMarker(t *testing.T) {
+func TestReleaseRejectsForgedManagedLeaseWithoutOwnershipMarker(t *testing.T) {
 	repoRoot := physicalTestPath(t, t.TempDir())
 	base := physicalTestPath(t, t.TempDir())
 	path := filepath.Join(base, "rune-worktree-"+repoKey(repoRoot), "manually-owned")
@@ -230,12 +230,12 @@ func TestReleaseFallsBackToCwdWhenWorktreeDirMissing(t *testing.T) {
 	}
 }
 
-// TestReleaseRejectsNonZeroOwnedWorktree pins the fix for Release being
+// TestReleaseRejectsUnmanagedWorktree pins the fix for Release being
 // usable to clear the lock on a worktree a user (or another tool) manages by
 // hand: the command is documented as releasing a worktree `prepare` created,
 // not an arbitrary git worktree lock, so a path with no rune-worktree-<repoKey>
 // ancestor component must be refused before any unlock is attempted.
-func TestReleaseRejectsNonZeroOwnedWorktree(t *testing.T) {
+func TestReleaseRejectsUnmanagedWorktree(t *testing.T) {
 	repoRoot := t.TempDir()
 	manualWorktree := filepath.Join(t.TempDir(), "my-manual-worktree")
 	if err := os.MkdirAll(manualWorktree, 0o700); err != nil {
@@ -772,7 +772,7 @@ func TestPrepareValidatesRequestBeforeCleanup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolve stale worktree git dir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(gitDir, zeroOwnerMarkerFile), []byte(zeroOwnerMarkerContent), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(gitDir, runeOwnerMarkerFile), []byte(runeOwnerMarkerContent), 0o600); err != nil {
 		t.Fatalf("plant ownership marker: %v", err)
 	}
 	// Age every filesystem entry past the 24h staleness cutoff.
@@ -969,7 +969,7 @@ func plantOwnershipMarker(t *testing.T, path string) {
 	if err := os.MkdirAll(gitDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(gitDir, zeroOwnerMarkerFile), []byte(zeroOwnerMarkerContent), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(gitDir, runeOwnerMarkerFile), []byte(runeOwnerMarkerContent), 0o600); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -1323,7 +1323,7 @@ func TestCleanSkipsLockedWorktree(t *testing.T) {
 // again, and mtime alone can't distinguish that from an abandoned worktree.
 // Before this fix, Prepare never locked its own worktrees, so entry.locked
 // only ever protected worktrees a human locked by hand.
-func TestCleanSkipsLockedZeroOwnedWorktree(t *testing.T) {
+func TestCleanSkipsLockedManagedWorktree(t *testing.T) {
 	tempDir := physicalTestPath(t, t.TempDir())
 	baseDir := filepath.Join(tempDir, "rune-worktrees")
 	repoRoot := filepath.Join(tempDir, "repo")
@@ -2055,7 +2055,7 @@ func TestPreserveUnreachableWorktreeHeadFailsClosedOnProbeError(t *testing.T) {
 	}
 }
 
-func TestCleanMigratesAndReclaimsLegacyZeroWorktrees(t *testing.T) {
+func TestCleanMigratesAndReclaimsMarkerlessLegacyWorktrees(t *testing.T) {
 	tempDir := physicalTestPath(t, t.TempDir())
 	baseDir := filepath.Join(tempDir, "rune-worktrees")
 	repoRoot := filepath.Join(tempDir, "repo")

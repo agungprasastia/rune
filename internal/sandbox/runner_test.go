@@ -244,7 +244,7 @@ func TestSandboxExecProfileAllowsDevNullAndTemp(t *testing.T) {
 
 	// A write outside the workspace must still be denied — the richer profile must
 	// not have loosened the boundary.
-	if out, err := run("echo leak > /etc/zero_sandbox_should_fail 2>/dev/null"); err == nil {
+	if out, err := run("echo leak > /etc/rune_sandbox_should_fail 2>/dev/null"); err == nil {
 		t.Fatalf("write outside workspace unexpectedly succeeded: output: %s", out)
 	}
 }
