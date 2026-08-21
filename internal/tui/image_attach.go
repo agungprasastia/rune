@@ -15,8 +15,8 @@ import (
 	_ "golang.org/x/image/webp"
 	"rune/internal/imageinput"
 	"rune/internal/modelregistry"
+	"rune/internal/runeruntime"
 	"rune/internal/terminalpet"
-	"rune/internal/zeroruntime"
 )
 
 const attachmentThumbnailMaxPixels = 16 << 20
@@ -153,7 +153,7 @@ func (m model) attachClipboardImage(data []byte, mediaType string) model {
 	if len(data) > imageinput.MaxImageBytes {
 		return m.appendImageNotice("Clipboard image is larger than the 10 MiB limit.")
 	}
-	m.pendingImages = append(m.pendingImages, zeroruntime.ImageBlock{
+	m.pendingImages = append(m.pendingImages, runeruntime.ImageBlock{
 		MediaType: mediaType,
 		Data:      data,
 	})
@@ -315,7 +315,7 @@ func (m *model) refreshPendingImageThumbnail() {
 	}
 }
 
-func attachmentThumbnail(block zeroruntime.ImageBlock) (*terminalpet.Animation, error) {
+func attachmentThumbnail(block runeruntime.ImageBlock) (*terminalpet.Animation, error) {
 	config, _, err := image.DecodeConfig(bytes.NewReader(block.Data))
 	if err != nil {
 		return nil, err

@@ -32,6 +32,8 @@ import (
 	"rune/internal/provideronboarding"
 	"rune/internal/providers"
 	"rune/internal/redaction"
+	"rune/internal/runegit"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/selfverify"
 	"rune/internal/sessions"
@@ -43,8 +45,6 @@ import (
 	"rune/internal/update"
 	"rune/internal/verify"
 	"rune/internal/worktrees"
-	"rune/internal/zerogit"
-	"rune/internal/zeroruntime"
 )
 
 var version = "dev"
@@ -55,7 +55,7 @@ type appDeps struct {
 	userConfigPath   func() (string, error)
 	resolveConfig    func(workspaceRoot string, overrides config.Overrides) (config.ResolvedConfig, error)
 	resolveMCPConfig func(workspaceRoot string, excludeProject bool) (config.MCPConfig, error)
-	newProvider      func(config.ProviderProfile) (zeroruntime.Provider, error)
+	newProvider      func(config.ProviderProfile) (runeruntime.Provider, error)
 	// exportActiveProvider pins spawned children to the run's provider (production:
 	// config.SetActiveProviderEnv, set in defaultAppDeps — deliberately NOT filled
 	// by fillAppDeps, so tests never mutate the process environment unless they
@@ -87,12 +87,12 @@ type appDeps struct {
 	runVerify                    func(context.Context, verify.Plan, verify.RunOptions) verify.Report
 	runSelfVerify                func(context.Context, verify.Plan, selfverify.Options) selfverify.Report
 	runAgentEval                 func(context.Context, agentEvalOptions) (agentEvalReport, error)
-	inspectChanges               func(context.Context, zerogit.InspectOptions) (zerogit.ChangeSummary, error)
-	commitChanges                func(context.Context, zerogit.CommitOptions) (zerogit.CommitResult, error)
-	pushChanges                  func(context.Context, zerogit.PushOptions) (zerogit.PushResult, error)
-	createPR                     func(context.Context, zerogit.PROptions) (zerogit.PRResult, error)
-	createBranch                 func(context.Context, zerogit.BranchOptions) (zerogit.BranchResult, error)
-	isDefaultBranch              func(context.Context, zerogit.DefaultBranchOptions) (bool, string, string, error)
+	inspectChanges               func(context.Context, runegit.InspectOptions) (runegit.ChangeSummary, error)
+	commitChanges                func(context.Context, runegit.CommitOptions) (runegit.CommitResult, error)
+	pushChanges                  func(context.Context, runegit.PushOptions) (runegit.PushResult, error)
+	createPR                     func(context.Context, runegit.PROptions) (runegit.PRResult, error)
+	createBranch                 func(context.Context, runegit.BranchOptions) (runegit.BranchResult, error)
+	isDefaultBranch              func(context.Context, runegit.DefaultBranchOptions) (bool, string, string, error)
 	currentGitUser               func(context.Context, string) string
 	headCommitSubject            func(context.Context, string) string
 	commitsAhead                 func(context.Context, string, string, string) (int, error)
@@ -157,7 +157,7 @@ func defaultAppDeps() appDeps {
 			options.ExcludeProject = excludeProject
 			return config.ResolveMCP(options)
 		},
-		newProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			// Resolve the OAuth login ONCE: the bearer resolver and the login key it
 			// bound must describe the same login (the key is passed on to the Codex
 			// account-header resolver so it never re-selects independently).
@@ -209,50 +209,50 @@ func defaultAppDeps() appDeps {
 		runVerify:        verify.Run,
 		runSelfVerify:    selfverify.Run,
 		runAgentEval:     defaultRunAgentEval,
-		inspectChanges:   zerogit.Inspect,
-		commitChanges:    zerogit.Commit,
-		pushChanges:      zerogit.Push,
-		createPR:         zerogit.CreatePR,
-		createBranch:     zerogit.CreateBranch,
-		isDefaultBranch:  zerogit.IsDefaultBranch,
+		inspectChanges:   runegit.Inspect,
+		commitChanges:    runegit.Commit,
+		pushChanges:      runegit.Push,
+		createPR:         runegit.CreatePR,
+		createBranch:     runegit.CreateBranch,
+		isDefaultBranch:  runegit.IsDefaultBranch,
 		currentGitUser: func(ctx context.Context, cwd string) string {
-			return zerogit.CurrentGitUser(ctx, cwd, nil)
+			return runegit.CurrentGitUser(ctx, cwd, nil)
 		},
 		headCommitSubject: func(ctx context.Context, cwd string) string {
-			return zerogit.HeadCommitSubject(ctx, cwd, nil)
+			return runegit.HeadCommitSubject(ctx, cwd, nil)
 		},
 		commitsAhead: func(ctx context.Context, cwd, remote, branch string) (int, error) {
-			return zerogit.CommitsAhead(ctx, cwd, remote, branch, nil)
+			return runegit.CommitsAhead(ctx, cwd, remote, branch, nil)
 		},
 		isUnbornRemote: func(ctx context.Context, cwd, remote string) (bool, error) {
-			return zerogit.IsUnbornRemote(ctx, cwd, remote, nil)
+			return runegit.IsUnbornRemote(ctx, cwd, remote, nil)
 		},
 		refreshTrackingRef: func(ctx context.Context, cwd, remote, branch string) error {
-			return zerogit.RefreshTrackingRef(ctx, cwd, remote, branch, nil)
+			return runegit.RefreshTrackingRef(ctx, cwd, remote, branch, nil)
 		},
 		branchUpstreamRemote: func(ctx context.Context, cwd, branch string) string {
-			return zerogit.UpstreamRemote(ctx, cwd, branch, nil)
+			return runegit.UpstreamRemote(ctx, cwd, branch, nil)
 		},
 		branchUpstreamRemoteAndMerge: func(ctx context.Context, cwd, branch string) (string, string) {
-			return zerogit.UpstreamRemoteAndMergeBranch(ctx, cwd, branch, nil)
+			return runegit.UpstreamRemoteAndMergeBranch(ctx, cwd, branch, nil)
 		},
 		resolveRemoteBranchTip: func(ctx context.Context, cwd, remote, branch string) (string, error) {
-			return zerogit.ResolveRemoteBranchTip(ctx, cwd, remote, branch, nil)
+			return runegit.ResolveRemoteBranchTip(ctx, cwd, remote, branch, nil)
 		},
 		remoteHasBranch: func(ctx context.Context, cwd, remote, branch string) (bool, error) {
-			return zerogit.RemoteHasBranch(ctx, cwd, remote, branch, nil)
+			return runegit.RemoteHasBranch(ctx, cwd, remote, branch, nil)
 		},
 		currentGitBranch: func(ctx context.Context, cwd string) string {
-			return zerogit.CurrentBranch(ctx, cwd, nil)
+			return runegit.CurrentBranch(ctx, cwd, nil)
 		},
 		currentBranchTip: func(ctx context.Context, cwd string) string {
-			return zerogit.CurrentBranchTip(ctx, cwd, nil)
+			return runegit.CurrentBranchTip(ctx, cwd, nil)
 		},
 		deleteBranch: func(ctx context.Context, cwd, fallbackBranch, branchToDelete string) error {
-			return zerogit.DeleteBranch(ctx, cwd, fallbackBranch, branchToDelete, nil)
+			return runegit.DeleteBranch(ctx, cwd, fallbackBranch, branchToDelete, nil)
 		},
 		resetBranchRef: func(ctx context.Context, cwd, branch, newTip, expectedOld string) error {
-			return zerogit.ResetBranchRef(ctx, cwd, branch, newTip, nil, expectedOld)
+			return runegit.ResetBranchRef(ctx, cwd, branch, newTip, nil, expectedOld)
 		},
 		runTUI:      tui.Run,
 		runEditor:   openEditor,
@@ -680,7 +680,7 @@ func fillAppDeps(deps appDeps) appDeps {
 	// safe and idempotent for every profile kind and every injected newProvider.
 	baseNewProvider := deps.newProvider
 	userConfigPath := deps.userConfigPath
-	deps.newProvider = func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+	deps.newProvider = func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 		return baseNewProvider(applyStoredProviderKeyAt(profile, userConfigPath))
 	}
 	baseProbeProviderHealth := deps.probeProviderHealth
@@ -1043,7 +1043,7 @@ func tuiSandboxSetupCommand(backend sandbox.Backend, deps appDeps) func(context.
 // buildProvider constructs the run's provider at STARTUP — it is called only from
 // the two launch paths (interactive TUI and headless exec), never from mid-run
 // rebuilds (escalation, wizard, ACP go through deps.newProvider directly).
-func buildProvider(resolved config.ResolvedConfig, deps appDeps) (zeroruntime.Provider, error) {
+func buildProvider(resolved config.ResolvedConfig, deps appDeps) (runeruntime.Provider, error) {
 	if !config.HasProviderProfile(resolved.Provider) {
 		return nil, nil
 	}

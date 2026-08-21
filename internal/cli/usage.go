@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"rune/internal/modelregistry"
+	"rune/internal/runegit"
 	"rune/internal/sessions"
 	"rune/internal/usage"
-	"rune/internal/zerogit"
 )
 
 type usageOptions struct {
@@ -120,13 +120,13 @@ func runUsage(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) i
 	// The net-LOC column is best-effort garnish on a token report: outside a
 	// git repository (or on any git failure) it degrades to rune instead of
 	// aborting the entire report.
-	diff := zerogit.DiffStat{}
+	diff := runegit.DiffStat{}
 	if workspaceRoot, err := resolveWorkspaceRoot("", deps); err == nil {
-		if summary, err := deps.inspectChanges(context.Background(), zerogit.InspectOptions{Cwd: workspaceRoot}); err == nil {
+		if summary, err := deps.inspectChanges(context.Background(), runegit.InspectOptions{Cwd: workspaceRoot}); err == nil {
 			// The --stat summary line ("N files changed, A insertions(+), B
 			// deletions(-)") carries no secret-bearing tokens, so parsing the
-			// already-redacted DiffStat returned by zerogit.Inspect is safe.
-			diff = zerogit.ParseDiffStat(summary.DiffStat)
+			// already-redacted DiffStat returned by runegit.Inspect is safe.
+			diff = runegit.ParseDiffStat(summary.DiffStat)
 		}
 	}
 

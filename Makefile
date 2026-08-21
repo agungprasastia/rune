@@ -1,4 +1,4 @@
-# Zero build/test/lint targets. AGENTS.md says to build and run quality checks
+# Rune build/test/lint targets. AGENTS.md says to build and run quality checks
 # with `make` — these targets back those instructions.
 .DEFAULT_GOAL := build
 GO_VERSION = $(word 2,$(shell git grep -G -h "^go[[:space:]]" -- go.mod))
@@ -9,9 +9,9 @@ GOVULNCHECK_VERSION := v1.3.0
 
 .PHONY: build build-all test test-race vet fmt fmt-check lint lint-static deadcode vulncheck tidy clean baseline help
 
-# Build the main CLI binary into ./zero.
+# Build the main CLI binary into ./rune.
 build:
-	go build -o zero ./cmd/zero
+	go build -o rune ./cmd/rune
 
 # Build every command in cmd/.
 build-all:
@@ -59,18 +59,18 @@ tidy:
 	go mod tidy
 
 clean:
-	rm -f zero
+	rm -f rune
 	go clean ./...
 
 # Run the per-turn benchmark harness over the checked-in baseline manifest and
 # write the JSON result to internal/perfbench/reports/baseline.json. Requires a
-# built `zero` binary and a model; set RUNE_BENCH_MODEL (required) and
-# RUNE_BENCH_BINARY (defaults to ./zero) to configure the run. The report is
+# built `rune` binary and a model; set RUNE_BENCH_MODEL (required) and
+# RUNE_BENCH_BINARY (defaults to ./rune) to configure the run. The report is
 # machine-specific and regenerated, not hand-edited.
 baseline: build
 	@if [ -z "$(RUNE_BENCH_MODEL)" ]; then echo "Set RUNE_BENCH_MODEL (and optionally RUNE_BENCH_BINARY) before running 'make baseline'"; exit 2; fi
-	@RUNE_BIN="$${RUNE_BENCH_BINARY:-./zero}"; \
-	go run ./cmd/zero-perf-bench turn \
+	@RUNE_BIN="$${RUNE_BENCH_BINARY:-./rune}"; \
+	go run ./cmd/rune-perf-bench turn \
 		--suite internal/perfbench/manifests/baseline.json \
 		--model $(RUNE_BENCH_MODEL) \
 		--binary "$$RUNE_BIN" \

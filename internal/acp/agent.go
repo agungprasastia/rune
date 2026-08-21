@@ -14,10 +14,10 @@ import (
 	"rune/internal/providercatalog"
 	"rune/internal/providermodelcatalog"
 	"rune/internal/providermodeldiscovery"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 // Deps are the RUNE capabilities the ACP Agent drives. The CLI fills these with
@@ -28,8 +28,8 @@ import (
 type Deps struct {
 	ResolveConfig  func(workspaceRoot string, overrides config.Overrides) (config.ResolvedConfig, error)
 	DiscoverModels func(context.Context, config.ProviderProfile) ([]providermodeldiscovery.Model, error)
-	NewProvider    func(profile config.ProviderProfile) (zeroruntime.Provider, error)
-	RunAgent       func(ctx context.Context, prompt string, provider zeroruntime.Provider, opts agent.Options) (agent.Result, error)
+	NewProvider    func(profile config.ProviderProfile) (runeruntime.Provider, error)
+	RunAgent       func(ctx context.Context, prompt string, provider runeruntime.Provider, opts agent.Options) (agent.Result, error)
 	// BuildWorkspace builds the SCOPED tool registry and the sandbox engine for a
 	// validated workspace root, so ACP shell tools (bash/exec_command) are confined
 	// exactly like the exec surface — never run unconfined on the host.
@@ -228,7 +228,7 @@ func (a *Agent) handleSessionPrompt(ctx context.Context, params json.RawMessage)
 	return PromptResult{StopReason: reason}, nil
 }
 
-func (a *Agent) runTurn(ctx context.Context, sess *acpSession, userText string, images []zeroruntime.ImageBlock) (string, error) {
+func (a *Agent) runTurn(ctx context.Context, sess *acpSession, userText string, images []runeruntime.ImageBlock) (string, error) {
 	overrides := config.Overrides{}
 	if model := sess.currentModel(); model != "" {
 		overrides.Provider.Model = model
@@ -649,8 +649,8 @@ func buildPrompt(history []turnRecord, userText string) string {
 	return b.String()
 }
 
-func promptImages(blocks []ContentBlock) []zeroruntime.ImageBlock {
-	var images []zeroruntime.ImageBlock
+func promptImages(blocks []ContentBlock) []runeruntime.ImageBlock {
+	var images []runeruntime.ImageBlock
 	for _, blk := range blocks {
 		if blk.Type != "image" || blk.Data == "" {
 			continue
@@ -659,7 +659,7 @@ func promptImages(blocks []ContentBlock) []zeroruntime.ImageBlock {
 		if err != nil {
 			continue
 		}
-		images = append(images, zeroruntime.ImageBlock{MediaType: blk.MimeType, Data: data})
+		images = append(images, runeruntime.ImageBlock{MediaType: blk.MimeType, Data: data})
 	}
 	return images
 }

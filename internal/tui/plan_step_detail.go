@@ -13,7 +13,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // planStepWork is one captured unit of implementation attributed to a plan step:
@@ -347,14 +347,14 @@ func (m model) requestPlanStepExplanation(stepIndex int, step planStep) tea.Cmd 
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), planStepExplanationTimeout)
 		defer cancel()
-		events, err := provider.StreamCompletion(ctx, zeroruntime.CompletionRequest{
-			Messages:        zeroruntime.SeedMessages(system, user),
+		events, err := provider.StreamCompletion(ctx, runeruntime.CompletionRequest{
+			Messages:        runeruntime.SeedMessages(system, user),
 			ReasoningEffort: effort,
 		})
 		if err != nil {
 			return planStepExplanationMsg{stepIndex: stepIndex, key: key, gen: gen, err: err}
 		}
-		collected := zeroruntime.CollectStream(ctx, events)
+		collected := runeruntime.CollectStream(ctx, events)
 		if collected.Error != "" {
 			return planStepExplanationMsg{stepIndex: stepIndex, key: key, gen: gen, err: fmt.Errorf("%s", collected.Error)}
 		}

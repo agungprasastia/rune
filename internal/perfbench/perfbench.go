@@ -182,11 +182,11 @@ func Run(ctx context.Context, options Options) (Result, error) {
 }
 
 func ResolveColdStartCommand(rootDir string) ([]string, error) {
-	return resolveZeroVersionCommand(rootDir)
+	return resolveRuneVersionCommand(rootDir)
 }
 
 func ResolveFirstOutputCommand(rootDir string) ([]string, error) {
-	return resolveZeroVersionCommand(rootDir)
+	return resolveRuneVersionCommand(rootDir)
 }
 
 func SummarizeSamples(samples []float64) NumericStats {
@@ -369,7 +369,7 @@ func EscapeActionCommand(value string) string {
 	return replacer.Replace(value)
 }
 
-func resolveZeroVersionCommand(rootDir string) ([]string, error) {
+func resolveRuneVersionCommand(rootDir string) ([]string, error) {
 	if strings.TrimSpace(rootDir) == "" {
 		var err error
 		rootDir, err = os.Getwd()

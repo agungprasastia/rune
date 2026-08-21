@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // Codex-specific headers, lifted from the openai/codex CLI's behavior. The
@@ -159,7 +159,7 @@ func NewCodexProvider(options CodexOptions) (*CodexProvider, error) {
 // the response is parsed from the typed SSE event stream the Codex
 // backend emits (response.output_text.delta, response.function_call_
 // arguments.delta, response.completed, ...).
-func (p *CodexProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (p *CodexProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	responsesReq, err := p.buildResponsesRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("encode codex request: %w", err)
@@ -168,7 +168,7 @@ func (p *CodexProvider) StreamCompletion(ctx context.Context, request zeroruntim
 	if err != nil {
 		return nil, fmt.Errorf("encode codex request: %w", err)
 	}
-	events := make(chan zeroruntime.StreamEvent, 16)
+	events := make(chan runeruntime.StreamEvent, 16)
 	go func() {
 		defer close(events)
 		p.streamResponses(ctx, body, events)

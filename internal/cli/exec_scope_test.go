@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	"rune/internal/config"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 // TestRunAddDirDispatchForwardsGrantIntoExecScope pins the dispatch seam
@@ -94,7 +94,7 @@ func runExecAddDirWriteProbe(t *testing.T, cwd string, args []string, target str
 		resolveConfig: func(_ string, _ config.Overrides) (config.ResolvedConfig, error) {
 			return execResolvedConfig(), nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return toolCallingExecProvider{
 				toolCallID: "call_write_extra",
 				toolName:   "write_file",

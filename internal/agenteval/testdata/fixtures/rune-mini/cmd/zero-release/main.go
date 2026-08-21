@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/rune-ai/rune-fixture/internal/release"
+	"rune-fixture/internal/release"
 )
 
 func smokeTarget(alreadyBuilt bool) string {

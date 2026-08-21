@@ -3,16 +3,16 @@ package agent
 import (
 	"testing"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestMeasureContextSplitsByCategory(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: filler(2000)},
-		{Role: zeroruntime.MessageRoleUser, Content: filler(400)},
-		{Role: zeroruntime.MessageRoleAssistant, Content: filler(400)},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: filler(2000)},
+		{Role: runeruntime.MessageRoleUser, Content: filler(400)},
+		{Role: runeruntime.MessageRoleAssistant, Content: filler(400)},
 	}
-	tools := []zeroruntime.ToolDefinition{
+	tools := []runeruntime.ToolDefinition{
 		{Name: "read_file", Description: filler(200), Parameters: map[string]any{"type": "object"}},
 	}
 
@@ -38,8 +38,8 @@ func TestMeasureContextSplitsByCategory(t *testing.T) {
 }
 
 func TestMeasureContextUnknownWindowHasZeroFraction(t *testing.T) {
-	breakdown := MeasureContext([]zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleUser, Content: "hi"},
+	breakdown := MeasureContext([]runeruntime.Message{
+		{Role: runeruntime.MessageRoleUser, Content: "hi"},
 	}, nil, 0)
 	if breakdown.UsedFraction != 0 {
 		t.Fatalf("UsedFraction = %v, want 0 when context window unknown", breakdown.UsedFraction)
@@ -50,8 +50,8 @@ func TestMeasureContextUnknownWindowHasZeroFraction(t *testing.T) {
 }
 
 func TestMeasureContextNoSystemMessage(t *testing.T) {
-	breakdown := MeasureContext([]zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleUser, Content: filler(400)},
+	breakdown := MeasureContext([]runeruntime.Message{
+		{Role: runeruntime.MessageRoleUser, Content: filler(400)},
 	}, nil, 1000)
 	if breakdown.SystemTokens != 0 {
 		t.Fatalf("SystemTokens = %d, want 0 when there is no system message", breakdown.SystemTokens)

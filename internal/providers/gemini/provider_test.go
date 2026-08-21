@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
@@ -42,23 +42,23 @@ func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
 		t.Fatalf("New returned error: %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleSystem, Content: "You are Rune."},
-			{Role: zeroruntime.MessageRoleUser, Content: "Read the file."},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleSystem, Content: "You are Rune."},
+			{Role: runeruntime.MessageRoleUser, Content: "Read the file."},
 			{
-				Role:    zeroruntime.MessageRoleAssistant,
+				Role:    runeruntime.MessageRoleAssistant,
 				Content: "I will inspect it.",
-				ToolCalls: []zeroruntime.ToolCall{{
+				ToolCalls: []runeruntime.ToolCall{{
 					ID:        "call_1",
 					Name:      "read_file",
 					Arguments: `{"path":"src/index.ts"}`,
 				}},
 			},
-			{Role: zeroruntime.MessageRoleTool, Content: "file contents", ToolCallID: "call_1"},
-			{Role: zeroruntime.MessageRoleUser, Content: "Now grep for Rune."},
+			{Role: runeruntime.MessageRoleTool, Content: "file contents", ToolCallID: "call_1"},
+			{Role: runeruntime.MessageRoleUser, Content: "Now grep for Rune."},
 		},
-		Tools: []zeroruntime.ToolDefinition{{
+		Tools: []runeruntime.ToolDefinition{{
 			Name:        "read_file",
 			Description: "Read a file",
 			Parameters:  map[string]any{"type": "object", "properties": map[string]any{"path": map[string]any{"type": "string"}}},
@@ -131,8 +131,8 @@ func TestStreamCompletionEnablesThinkingWhenEffortRequested(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages:        []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages:        []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 		ReasoningEffort: "medium",
 	})
 	if err != nil {
@@ -164,8 +164,8 @@ func TestStreamCompletionOmitsThinkingWithoutEffort(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned error: %v", err)
@@ -187,11 +187,11 @@ func TestStreamCompletionCapturesThoughtSignatureAndSkipsThoughtText(t *testing.
 
 	events := collectProviderEvents(t, provider)
 	for _, event := range events {
-		if event.Type == zeroruntime.StreamEventText && strings.Contains(event.Content, "internal reasoning") {
+		if event.Type == runeruntime.StreamEventText && strings.Contains(event.Content, "internal reasoning") {
 			t.Fatalf("thought text leaked into answer: %#v", event)
 		}
 	}
-	starts := eventsOfType(events, zeroruntime.StreamEventToolCallStart)
+	starts := eventsOfType(events, runeruntime.StreamEventToolCallStart)
 	if len(starts) != 1 {
 		t.Fatalf("want one tool-call start, got %#v", events)
 	}
@@ -214,14 +214,14 @@ func TestGeminiRequestReplaysThoughtSignature(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleUser, Content: "go"},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleUser, Content: "go"},
 			{
-				Role:      zeroruntime.MessageRoleAssistant,
-				ToolCalls: []zeroruntime.ToolCall{{ID: "call_1", Name: "grep", Arguments: `{"pattern":"x"}`, Signature: "sig-xyz"}},
+				Role:      runeruntime.MessageRoleAssistant,
+				ToolCalls: []runeruntime.ToolCall{{ID: "call_1", Name: "grep", Arguments: `{"pattern":"x"}`, Signature: "sig-xyz"}},
 			},
-			{Role: zeroruntime.MessageRoleTool, Content: "result", ToolCallID: "call_1"},
+			{Role: runeruntime.MessageRoleTool, Content: "result", ToolCallID: "call_1"},
 		},
 	})
 	if err != nil {
@@ -260,8 +260,8 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned error: %v", err)
@@ -286,11 +286,11 @@ func TestStreamCompletionEmitsTextUsageAndReasoningTokens(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	want := []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "Hello"},
-		{Type: zeroruntime.StreamEventText, Content: " Rune"},
-		{Type: zeroruntime.StreamEventUsage, Usage: zeroruntime.Usage{InputTokens: 25, OutputTokens: 18, PromptTokens: 25, CompletionTokens: 18, ReasoningTokens: 3, CachedInputTokens: 7}},
-		{Type: zeroruntime.StreamEventDone},
+	want := []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "Hello"},
+		{Type: runeruntime.StreamEventText, Content: " Rune"},
+		{Type: runeruntime.StreamEventUsage, Usage: runeruntime.Usage{InputTokens: 25, OutputTokens: 18, PromptTokens: 25, CompletionTokens: 18, ReasoningTokens: 3, CachedInputTokens: 7}},
+		{Type: runeruntime.StreamEventDone},
 	}
 	if !reflect.DeepEqual(events, want) {
 		t.Fatalf("events = %#v, want %#v", events, want)
@@ -303,14 +303,14 @@ func TestStreamCompletionEmitsCandidateFunctionCalls(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	want := []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"src/index.ts"}`},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_2", ToolName: "grep"},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_2", ArgumentsFragment: `{"pattern":"Rune"}`},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_2"},
-		{Type: zeroruntime.StreamEventDone},
+	want := []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
+		{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"src/index.ts"}`},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call_2", ToolName: "grep"},
+		{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call_2", ArgumentsFragment: `{"pattern":"Rune"}`},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call_2"},
+		{Type: runeruntime.StreamEventDone},
 	}
 	if !reflect.DeepEqual(events, want) {
 		t.Fatalf("events = %#v, want %#v", events, want)
@@ -323,11 +323,11 @@ func TestStreamCompletionEmitsTopLevelFunctionCalls(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	want := []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"README.md"}`},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
-		{Type: zeroruntime.StreamEventDone},
+	want := []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
+		{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"README.md"}`},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
+		{Type: runeruntime.StreamEventDone},
 	}
 	if !reflect.DeepEqual(events, want) {
 		t.Fatalf("events = %#v, want %#v", events, want)
@@ -354,7 +354,7 @@ func TestStreamCompletionClassifiesHTTPAndPromptBlockErrors(t *testing.T) {
 		t.Fatalf("StreamCompletion returned setup error: %v", err)
 	}
 	events := readAll(stream)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError || !strings.HasPrefix(events[0].Error, "auth error:") {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError || !strings.HasPrefix(events[0].Error, "auth error:") {
 		t.Fatalf("events = %#v, want auth error", events)
 	}
 	if strings.Contains(events[0].Error, "sk-google") {
@@ -365,7 +365,7 @@ func TestStreamCompletionClassifiesHTTPAndPromptBlockErrors(t *testing.T) {
 		writeSSE(w, `{"promptFeedback":{"blockReason":"SAFETY","blockReasonMessage":"blocked by policy"}}`)
 	})
 	events = collectProviderEvents(t, blockProvider)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError || !strings.Contains(events[0].Error, "Content blocked: blocked by policy") {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError || !strings.Contains(events[0].Error, "Content blocked: blocked by policy") {
 		t.Fatalf("events = %#v, want content block error", events)
 	}
 }
@@ -427,7 +427,7 @@ func TestStreamCompletionEmitsStreamErrorObject(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want one error", events)
 	}
 	if !strings.HasPrefix(events[0].Error, "rate limit error:") {
@@ -445,13 +445,13 @@ func TestStreamCompletionStopsOnMalformedStreamToolArgs(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want one error", events)
 	}
 	if !strings.Contains(events[0].Error, "streamed tool arguments for grep") {
 		t.Fatalf("error = %q, want streamed tool arguments error", events[0].Error)
 	}
-	if len(eventsOfType(events, zeroruntime.StreamEventDone)) != 0 {
+	if len(eventsOfType(events, runeruntime.StreamEventDone)) != 0 {
 		t.Fatalf("events = %#v, want no done after stream tool arg error", events)
 	}
 }
@@ -461,19 +461,19 @@ func TestStreamCompletionRejectsMalformedHistoryBeforeDispatch(t *testing.T) {
 		t.Fatal("provider should not dispatch malformed history")
 	})
 
-	_, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleTool, Content: "missing id"}},
+	_, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleTool, Content: "missing id"}},
 	})
 	if err == nil || !strings.Contains(err.Error(), "requires toolCallId") {
 		t.Fatalf("error = %v, want missing toolCallId", err)
 	}
 
-	_, err = provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleUser, Content: "call tool"},
+	_, err = provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleUser, Content: "call tool"},
 			{
-				Role:      zeroruntime.MessageRoleAssistant,
-				ToolCalls: []zeroruntime.ToolCall{{ID: "call_1", Name: "read_file", Arguments: `"src/index.ts"`}},
+				Role:      runeruntime.MessageRoleAssistant,
+				ToolCalls: []runeruntime.ToolCall{{ID: "call_1", Name: "read_file", Arguments: `"src/index.ts"`}},
 			},
 		},
 	})
@@ -511,7 +511,7 @@ func newTestProviderWithKey(t *testing.T, apiKey string, handler http.HandlerFun
 	return provider
 }
 
-func collectProviderEvents(t *testing.T, provider *Provider) []zeroruntime.StreamEvent {
+func collectProviderEvents(t *testing.T, provider *Provider) []runeruntime.StreamEvent {
 	t.Helper()
 	stream, err := provider.StreamCompletion(context.Background(), validRequest())
 	if err != nil {
@@ -520,21 +520,21 @@ func collectProviderEvents(t *testing.T, provider *Provider) []zeroruntime.Strea
 	return readAll(stream)
 }
 
-func validRequest() zeroruntime.CompletionRequest {
-	return zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+func validRequest() runeruntime.CompletionRequest {
+	return runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	}
 }
 
-func readAll(stream <-chan zeroruntime.StreamEvent) []zeroruntime.StreamEvent {
-	events := []zeroruntime.StreamEvent{}
+func readAll(stream <-chan runeruntime.StreamEvent) []runeruntime.StreamEvent {
+	events := []runeruntime.StreamEvent{}
 	for event := range stream {
 		events = append(events, event)
 	}
 	return events
 }
 
-func drain(stream <-chan zeroruntime.StreamEvent) {
+func drain(stream <-chan runeruntime.StreamEvent) {
 	for range stream {
 	}
 }
@@ -547,8 +547,8 @@ func writeSSE(w http.ResponseWriter, payload string) {
 	}
 }
 
-func eventsOfType(events []zeroruntime.StreamEvent, eventType zeroruntime.StreamEventType) []zeroruntime.StreamEvent {
-	matching := []zeroruntime.StreamEvent{}
+func eventsOfType(events []runeruntime.StreamEvent, eventType runeruntime.StreamEventType) []runeruntime.StreamEvent {
+	matching := []runeruntime.StreamEvent{}
 	for _, event := range events {
 		if event.Type == eventType {
 			matching = append(matching, event)
@@ -647,9 +647,9 @@ func TestGeminiRequestOmitsAdditionalPropertiesInToolSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
-		Tools: []zeroruntime.ToolDefinition{{
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
+		Tools: []runeruntime.ToolDefinition{{
 			Name:        "grep",
 			Description: "search",
 			Parameters: map[string]any{ // exactly what schemaToRuntimeMap produces

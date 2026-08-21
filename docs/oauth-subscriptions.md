@@ -1,13 +1,13 @@
 # OAuth logins & using ChatGPT / Claude subscriptions
 
-Zero supports two distinct things people mean by "log in with OAuth":
+Rune supports two distinct things people mean by "log in with OAuth":
 
 1. **OAuth login for a provider/gateway** that issues a *standard* bearer token —
-   fully built in (`zero auth login …`). Zero attaches the token to model calls
+   fully built in (`rune auth login …`). Rune attaches the token to model calls
    automatically.
 2. **Using a ChatGPT or Claude *subscription*** (Plus / Pro / Max) instead of a
    pay-per-token API key — only possible through a **local proxy**, for the
-   reasons documented below. Zero ships a convenience preset and this recipe.
+   reasons documented below. Rune ships a convenience preset and this recipe.
 
 ---
 
@@ -22,15 +22,15 @@ export RUNE_OAUTH_ACME_CLIENT_ID=…
 export RUNE_OAUTH_ACME_AUTHORIZE_URL=https://acme.example/oauth/authorize
 export RUNE_OAUTH_ACME_TOKEN_URL=https://acme.example/oauth/token
 export RUNE_OAUTH_ACME_SCOPES="openid profile"
-zero auth login acme            # browser (loopback); --device for headless
-zero auth status
+rune auth login acme            # browser (loopback); --device for headless
+rune auth status
 ```
 
 When a login exists for a provider, the **OpenAI and Anthropic** providers send
 `Authorization: Bearer <fresh-token>` (auto-refreshed; one refresh-and-retry on a
 `401`) instead of the API key. With no login they use the API key exactly as
 before. Tokens are stored 0600 (or the OS keyring with
-`RUNE_OAUTH_STORAGE=keyring`) and never logged. See `zero auth --help`.
+`RUNE_OAUTH_STORAGE=keyring`) and never logged. See `rune auth --help`.
 
 ### In the setup wizard (`/provider`)
 
@@ -62,7 +62,7 @@ Pick **Sign in with OAuth** → the list of providers that do real OAuth → cho
   device instead of opening a browser. On an SSH session or headless Linux box
   (no `DISPLAY`) device code is used automatically; set `RUNE_OAUTH_DEVICE=1`
   to force it anywhere. The CLI equivalent is
-  `zero auth login <name> --device`.
+  `rune auth login <name> --device`.
 - **ChatGPT / Claude are intentionally not in this list for the proxy path** —
   use the dedicated `chatgpt-proxy` / `custom-anthropic-compatible` preset
   (see §2) for subscription-via-proxy. ChatGPT *is* a first-class OAuth
@@ -71,35 +71,35 @@ Pick **Sign in with OAuth** → the list of providers that do real OAuth → cho
 
 ### Built-in OAuth providers
 
-- **OpenRouter (no env needed)** — `zero auth openrouter` opens a browser, you
+- **OpenRouter (no env needed)** — `rune auth openrouter` opens a browser, you
   approve, and it **mints an OpenRouter API key** (public PKCE flow, no client_id).
   In the interactive setup wizard, pick **OpenRouter** and press **ctrl+o** at the
   key step to do the same inline ("Log in with OAuth"). The minted key is saved to
   the provider profile and used normally.
-- **xAI (Grok) — opt-in preset** — xAI's flow needs an OAuth `client_id`. Zero
+- **xAI (Grok) — opt-in preset** — xAI's flow needs an OAuth `client_id`. Rune
   ships a built-in preset for the public Grok-CLI client, but to keep third-party
   client identities out of the default credential path it is **off by default**.
-  Enable it with `export RUNE_OAUTH_ALLOW_PRESETS=1`, then `zero auth login xai`
+  Enable it with `export RUNE_OAUTH_ALLOW_PRESETS=1`, then `rune auth login xai`
   (browser, or `--device` for headless) works one-click; the token is used directly
   on `api.x.ai/v1`. Without the opt-in, set `RUNE_OAUTH_XAI_CLIENT_ID` (and
   endpoints, or an issuer) yourself via `RUNE_OAUTH_XAI_*`. Either way the preset is
   fully overridable by `RUNE_OAUTH_XAI_*` (env wins), and it requires a
   SuperGrok / X Premium+ subscription; the client_id is an undocumented public
   Grok-CLI client that may change without notice.
-- **ChatGPT (Codex) — opt-in preset** — `zero auth chatgpt` opens a browser, you
+- **ChatGPT (Codex) — opt-in preset** — `rune auth chatgpt` opens a browser, you
   approve with your ChatGPT Plus/Pro/Business/Enterprise account, and the bearer is
   stored. The bearer routes to `https://chatgpt.com/backend-api/codex/responses`
   (the same endpoint the openai/codex CLI uses), with `originator: codex_cli_rs` and
   the `chatgpt-account-id` claim injected as headers on every request. The
   `chatgpt-account-id` is extracted from the OIDC ID token and stored alongside the
   bearer; if the claim is missing (older ChatGPT accounts, or a rotated
-  authorization server), the Codex backend will 401 and `zero auth status chatgpt`
+  authorization server), the Codex backend will 401 and `rune auth status chatgpt`
   will show the warning. Like xAI, the preset uses the publicly-shipped Codex CLI
   client identity (`app_EMoamEEZ73f0CkXaXp7hrann`) and is opt-in via
   `RUNE_OAUTH_ALLOW_PRESETS=1`. As of mid-2026 the Codex backend is
   Cloudflare-gated: requests from a non-Codex client can still be challenged, and
   the `chatgpt-proxy` route in §2 is the conservative fallback.
-- **Hugging Face — opt-in preset, BYO client_id** — `zero auth login huggingface`
+- **Hugging Face — opt-in preset, BYO client_id** — `rune auth login huggingface`
   (or `--device` for headless) opens a Hugging Face OAuth flow. The bearer works on
   the OpenAI-compatible router at `https://router.huggingface.co/v1` for hundreds
   of OSS models (Llama, Qwen, DeepSeek, Mistral, etc.). HF does not ship a
@@ -112,8 +112,8 @@ Pick **Sign in with OAuth** → the list of providers that do real OAuth → cho
   rate limits; Pro removes them.
 
 Any field of a preset is overridable via `RUNE_OAUTH_<NAME>_*`. For a fully custom
-OAuth/OIDC provider, set those env vars (see `zero auth --help`) and
-`zero auth login <name>`.
+OAuth/OIDC provider, set those env vars (see `rune auth --help`) and
+`rune auth login <name>`.
 
 ---
 
@@ -127,7 +127,7 @@ We researched this carefully. As of mid-2026, a **subscription** OAuth token doe
   API), **not** `api.openai.com`. That backend is **Cloudflare bot-protected** —
   non-browser / headless clients get `cf-mitigated: challenge` → `403`. It also
   requires mimicking the official Codex client (originator + account-id header).
-  **First-class path (this version):** `zero auth chatgpt` does exactly that
+  **First-class path (this version):** `rune auth chatgpt` does exactly that
   mimicking (`originator: codex_cli_rs`, `chatgpt-account-id: <claim>`) and
   routes requests to the Codex backend, no proxy required — see §1. The
   `chatgpt-proxy` route below is the conservative fallback when Cloudflare
@@ -148,11 +148,11 @@ We researched this carefully. As of mid-2026, a **subscription** OAuth token doe
   both per-token, not the flat subscription. The request to allow subscription use
   (claude-code #37205) was closed *"not planned."*
 
-So Zero does **not** call those backends directly or spoof those clients — that
+So Rune does **not** call those backends directly or spoof those clients — that
 would be fragile, account-risky, and (for Anthropic) against the vendor's terms.
 The robust, supported pattern is a **local proxy** that holds your subscription
 session and exposes a clean OpenAI- or Anthropic-compatible endpoint on
-`127.0.0.1`. The proxy absorbs the Cloudflare / client-spoofing surface; Zero
+`127.0.0.1`. The proxy absorbs the Cloudflare / client-spoofing surface; Rune
 just points at it.
 
 ### ChatGPT via a local proxy
@@ -162,7 +162,7 @@ typically listen on `127.0.0.1:10531/v1`). Then use the built-in **`chatgpt-prox
 preset (no API key — the proxy authenticates):
 
 ```jsonc
-// ~/.config/zero/config.json (or ./.zero/config.json)
+// ~/.config/rune/config.json (or ./.rune/config.json)
 {
   "activeProvider": "chatgpt",
   "providers": [
@@ -177,7 +177,7 @@ preset (no API key — the proxy authenticates):
 ```
 
 ```sh
-zero exec --prompt "say hi"   # routes through the proxy → your ChatGPT plan
+rune exec --prompt "say hi"   # routes through the proxy → your ChatGPT plan
 ```
 
 ### Claude via a local proxy

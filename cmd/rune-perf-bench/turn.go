@@ -14,7 +14,7 @@ import (
 )
 
 // turnOptions configures the `rune-perf-bench turn` subcommand: the per-turn
-// benchmark harness that runs ZERO headlessly with --trace, parses each turn's
+// benchmark harness that runs RUNE headlessly with --trace, parses each turn's
 // NDJSON trace, and records per-span latency plus the top controllable latency
 // sources — the Phase 0 baseline's "do not proceed until" criterion.
 type turnOptions struct {
@@ -253,10 +253,10 @@ func turnHelpText() string {
 	return strings.Join([]string{
 		"Usage: rune-perf-bench turn [options]",
 		"",
-		"Runs ZERO headlessly with --trace against a per-turn benchmark task set and",
+		"Runs RUNE headlessly with --trace against a per-turn benchmark task set and",
 		"records per-span latency plus the top controllable latency sources (the",
 		"Phase 0 baseline's \"do not proceed until\" criterion). Each task is a fresh",
-		"`zero exec` process, so iterations are cold-start samples; a warm path needs",
+		"`rune exec` process, so iterations are cold-start samples; a warm path needs",
 		"an in-process runner (future work).",
 		"",
 		"Options:",
@@ -265,12 +265,12 @@ func turnHelpText() string {
 		"  --mode <name>       Exec mode preset to apply",
 		"  --exec-profile <name>",
 		"                      Execution profile for every task (fast|balanced|thorough);",
-		"                      forwarded to zero exec and stamped into the result",
+		"                      forwarded to rune exec and stamped into the result",
 		"  --self-correct      Enable the post-edit verify-and-correct loop",
 		"  --binary <path>     Path to the `zero` binary (default: zero on PATH / repo root)",
 		"  --iterations <n>    Times to run each task (default: 1)",
-		"  --version <v>       Record the ZERO version (default: $RUNE_BENCH_VERSION)",
-		"  --commit <sha>      Record the ZERO commit (default: $RUNE_BENCH_COMMIT)",
+		"  --version <v>       Record the RUNE version (default: $RUNE_BENCH_VERSION)",
+		"  --commit <sha>      Record the RUNE commit (default: $RUNE_BENCH_COMMIT)",
 		"  --output <path>     Write the JSON result to path",
 		"  --json              Print only the JSON result",
 		"  --dry-run           Load the manifest and exit without invoking the agent",

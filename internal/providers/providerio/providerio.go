@@ -16,8 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"rune/internal/runeruntime"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 const maxSSELineBytes = 16 * 1024 * 1024
@@ -182,10 +182,10 @@ func HTTPClient(client *http.Client) *http.Client {
 }
 
 // SendEvent writes a provider event without blocking cancellation cleanup.
-func SendEvent(ctx context.Context, events chan<- zeroruntime.StreamEvent, event zeroruntime.StreamEvent) {
+func SendEvent(ctx context.Context, events chan<- runeruntime.StreamEvent, event runeruntime.StreamEvent) {
 	select {
 	case <-ctx.Done():
-		if event.Type == zeroruntime.StreamEventError {
+		if event.Type == runeruntime.StreamEventError {
 			select {
 			case events <- event:
 			default:

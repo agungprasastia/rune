@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // ReadClipboardImage returns the raw image bytes and media type from the OS
@@ -37,7 +37,7 @@ func ReadClipboardImage() ([]byte, string, error) {
 	if sniffLen > 512 {
 		sniffLen = 512
 	}
-	mediaType := zeroruntime.NormalizeImageMediaType(http.DetectContentType(data[:sniffLen]))
+	mediaType := runeruntime.NormalizeImageMediaType(http.DetectContentType(data[:sniffLen]))
 	if mediaType == "" {
 		return nil, "", fmt.Errorf("clipboard image is not a supported type (allowed: png, jpeg, gif, webp)")
 	}

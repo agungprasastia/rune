@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestToolCallKeyOutputIndexZero(t *testing.T) {
@@ -29,13 +29,13 @@ func TestHandleTerminalResponseNilPayload(t *testing.T) {
 	p := &CodexProvider{}
 
 	// response.failed with no Response payload must emit an error, not a silent done.
-	failed := make(chan zeroruntime.StreamEvent, 4)
+	failed := make(chan runeruntime.StreamEvent, 4)
 	st := &responsesState{}
 	p.handleTerminalResponse(context.Background(), &responsesEvent{Type: responsesEventFailed}, st, failed)
 	close(failed)
 	sawError := false
 	for ev := range failed {
-		if ev.Type == zeroruntime.StreamEventError {
+		if ev.Type == runeruntime.StreamEventError {
 			sawError = true
 		}
 	}
@@ -47,11 +47,11 @@ func TestHandleTerminalResponseNilPayload(t *testing.T) {
 	}
 
 	// response.completed with no payload is a clean (empty) done, not an error.
-	completed := make(chan zeroruntime.StreamEvent, 4)
+	completed := make(chan runeruntime.StreamEvent, 4)
 	p.handleTerminalResponse(context.Background(), &responsesEvent{Type: responsesEventCompleted}, &responsesState{}, completed)
 	close(completed)
 	for ev := range completed {
-		if ev.Type == zeroruntime.StreamEventError {
+		if ev.Type == runeruntime.StreamEventError {
 			t.Error("response.completed with nil payload should NOT emit an error")
 		}
 	}
@@ -63,7 +63,7 @@ func TestHandleTerminalResponseFailedPayloadWithoutError(t *testing.T) {
 	// A response.failed carrying a payload whose error object is null/omitted (the
 	// reason is in status) must still surface as an error, not fall through to a
 	// clean done — the same silent-failure class the nil-payload branch guards.
-	out := make(chan zeroruntime.StreamEvent, 8)
+	out := make(chan runeruntime.StreamEvent, 8)
 	st := &responsesState{}
 	p.handleTerminalResponse(context.Background(),
 		&responsesEvent{Type: responsesEventFailed, Response: &responsePayload{Status: "failed"}}, st, out)
@@ -71,9 +71,9 @@ func TestHandleTerminalResponseFailedPayloadWithoutError(t *testing.T) {
 	sawError, sawDone := false, false
 	for ev := range out {
 		switch ev.Type {
-		case zeroruntime.StreamEventError:
+		case runeruntime.StreamEventError:
 			sawError = true
-		case zeroruntime.StreamEventDone:
+		case runeruntime.StreamEventDone:
 			sawDone = true
 		}
 	}
@@ -88,12 +88,12 @@ func TestHandleTerminalResponseFailedPayloadWithoutError(t *testing.T) {
 	}
 
 	// A response.completed with a payload and no error remains a clean done.
-	ok := make(chan zeroruntime.StreamEvent, 8)
+	ok := make(chan runeruntime.StreamEvent, 8)
 	p.handleTerminalResponse(context.Background(),
 		&responsesEvent{Type: responsesEventCompleted, Response: &responsePayload{Status: "completed"}}, &responsesState{}, ok)
 	close(ok)
 	for ev := range ok {
-		if ev.Type == zeroruntime.StreamEventError {
+		if ev.Type == runeruntime.StreamEventError {
 			t.Error("response.completed with a non-error payload must NOT emit an error")
 		}
 	}

@@ -9,9 +9,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"rune/internal/agent"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 func pendingPermissionModel(t *testing.T, decide func(agent.PermissionDecision)) model {
@@ -603,7 +603,7 @@ func TestPermissionFeedbackPreservesComposerDraftOnCancel(t *testing.T) {
 // image/doc — which savedDraft does not restore.
 func TestPermissionFeedbackBackspaceKeepsStagedAttachment(t *testing.T) {
 	m := pendingPermissionModelWithRequest(t, feedbackRequest(), func(agent.PermissionDecision) {})
-	m.pendingImages = []zeroruntime.ImageBlock{{MediaType: "image/png"}}
+	m.pendingImages = []runeruntime.ImageBlock{{MediaType: "image/png"}}
 	m.pendingImageLabels = []string{"diagram.png"}
 
 	next, _ := m.Update(testKeyText("n")) // open feedback field (clears composer text)

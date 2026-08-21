@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"rune/internal/modelregistry"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 type Normalized struct {
@@ -19,7 +19,7 @@ type Normalized struct {
 
 type RecordInput struct {
 	ModelID string
-	Usage   zeroruntime.Usage
+	Usage   runeruntime.Usage
 	Source  string
 }
 
@@ -165,32 +165,32 @@ func (tracker *Tracker) Reset() {
 	tracker.nextSeq = 1
 }
 
-func Normalize(usage zeroruntime.Usage) (Normalized, zeroruntime.Usage, error) {
+func Normalize(usage runeruntime.Usage) (Normalized, runeruntime.Usage, error) {
 	inputTokens, err := nonNegative(firstNonZero(usage.InputTokens, usage.PromptTokens), "inputTokens")
 	if err != nil {
-		return Normalized{}, zeroruntime.Usage{}, err
+		return Normalized{}, runeruntime.Usage{}, err
 	}
 	outputTokens, err := nonNegative(firstNonZero(usage.OutputTokens, usage.CompletionTokens), "outputTokens")
 	if err != nil {
-		return Normalized{}, zeroruntime.Usage{}, err
+		return Normalized{}, runeruntime.Usage{}, err
 	}
 	cachedInputTokens, err := nonNegative(usage.CachedInputTokens, "cachedInputTokens")
 	if err != nil {
-		return Normalized{}, zeroruntime.Usage{}, err
+		return Normalized{}, runeruntime.Usage{}, err
 	}
 	if cachedInputTokens > inputTokens {
 		cachedInputTokens = inputTokens
 	}
 	cacheWriteTokens, err := nonNegative(usage.CacheWriteTokens, "cacheWriteTokens")
 	if err != nil {
-		return Normalized{}, zeroruntime.Usage{}, err
+		return Normalized{}, runeruntime.Usage{}, err
 	}
 	if cacheWriteTokens > inputTokens-cachedInputTokens {
 		cacheWriteTokens = inputTokens - cachedInputTokens
 	}
 	reasoningTokens, err := nonNegative(usage.ReasoningTokens, "reasoningTokens")
 	if err != nil {
-		return Normalized{}, zeroruntime.Usage{}, err
+		return Normalized{}, runeruntime.Usage{}, err
 	}
 	normalized := Normalized{
 		InputTokens:       inputTokens,
@@ -200,7 +200,7 @@ func Normalize(usage zeroruntime.Usage) (Normalized, zeroruntime.Usage, error) {
 		ReasoningTokens:   reasoningTokens,
 		TotalTokens:       inputTokens + outputTokens,
 	}
-	return normalized, zeroruntime.Usage{
+	return normalized, runeruntime.Usage{
 		InputTokens:       inputTokens,
 		PromptTokens:      inputTokens,
 		CachedInputTokens: cachedInputTokens,

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"rune/internal/runegit"
 	"rune/internal/sessions"
-	"rune/internal/zerogit"
 )
 
 func seedUsageStore(t *testing.T) *sessions.Store {
@@ -30,9 +30,9 @@ func seedUsageStore(t *testing.T) *sessions.Store {
 	return store
 }
 
-func stubInspectChanges(stat string) func(context.Context, zerogit.InspectOptions) (zerogit.ChangeSummary, error) {
-	return func(context.Context, zerogit.InspectOptions) (zerogit.ChangeSummary, error) {
-		return zerogit.ChangeSummary{Root: "/repo", DiffStat: stat}, nil
+func stubInspectChanges(stat string) func(context.Context, runegit.InspectOptions) (runegit.ChangeSummary, error) {
+	return func(context.Context, runegit.InspectOptions) (runegit.ChangeSummary, error) {
+		return runegit.ChangeSummary{Root: "/repo", DiffStat: stat}, nil
 	}
 }
 

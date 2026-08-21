@@ -7,7 +7,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -240,10 +239,7 @@ func Package(ctx context.Context, options PackageOptions) (PackageResult, error)
 	if err := smokeVersion(ctx, artifactPath, version); err != nil {
 		return PackageResult{}, err
 	}
-	if err := copyPackageFiles(rootDir, stagingDir, artifactPath, stagedBinaryPath, goos, version, helperArtifacts); err != nil {
-		return PackageResult{}, err
-	}
-	if err := stageLocalControlHelpers(ctx, rootDir, filepath.Join(stagingDir, "helpers")); err != nil {
+	if err := copyNativeReleaseFiles(stagingDir, artifactPath, stagedBinaryPath, goos, helperArtifacts); err != nil {
 		return PackageResult{}, err
 	}
 	if err := createArchive(stagingDir, archivePath, goos); err != nil {
@@ -582,20 +578,8 @@ func pathsOverlap(left string, right string) bool {
 }
 
 func PackageVersion(rootDir string) (string, error) {
-	bytes, err := os.ReadFile(filepath.Join(rootDir, "package.json"))
-	if err != nil {
-		return "", err
-	}
-	var payload struct {
-		Version string `json:"version"`
-	}
-	if err := json.Unmarshal(bytes, &payload); err != nil {
-		return "", fmt.Errorf("parse package.json: %w", err)
-	}
-	if strings.TrimSpace(payload.Version) == "" {
-		return "", errors.New("package.json must contain a non-empty string version")
-	}
-	return strings.TrimSpace(payload.Version), nil
+	_ = rootDir
+	return "dev", nil
 }
 
 func buildZero(ctx context.Context, rootDir string, output string, version string, goos string, goarch string) error {
@@ -682,7 +666,7 @@ func smokeVersion(ctx context.Context, binaryPath string, version string) error 
 	return nil
 }
 
-func copyPackageFiles(rootDir string, stagingDir string, artifactPath string, stagedBinaryPath string, goos string, version string, helperArtifacts map[string]string) error {
+func copyNativeReleaseFiles(stagingDir string, artifactPath string, stagedBinaryPath string, goos string, helperArtifacts map[string]string) error {
 	if err := copyFile(artifactPath, stagedBinaryPath, 0o755); err != nil {
 		return err
 	}
@@ -691,122 +675,12 @@ func copyPackageFiles(rootDir string, stagingDir string, artifactPath string, st
 			return err
 		}
 	}
-	for _, path := range []string{"README.md", "package.json"} {
-		if err := copyFile(filepath.Join(rootDir, path), filepath.Join(stagingDir, path), 0o644); err != nil {
-			return err
-		}
-	}
-	if err := copyFile(filepath.Join(rootDir, "bin", "rune.js"), filepath.Join(stagingDir, "bin", "rune.js"), 0o755); err != nil {
-		return err
-	}
 	for name, source := range helperArtifacts {
 		if err := copyFile(source, filepath.Join(stagingDir, name), 0o755); err != nil {
 			return err
 		}
 	}
-	if err := os.WriteFile(filepath.Join(stagingDir, "VERSION"), []byte(version+"\n"), 0o644); err != nil {
-		return err
-	}
 	return nil
-}
-
-var localControlHelperPackages = []string{"agent-browser", "tuistory"}
-
-func stageLocalControlHelpers(ctx context.Context, rootDir string, helpersDir string) error {
-	dependencies, err := localControlHelperDependencies(rootDir)
-	if err != nil {
-		return err
-	}
-	if err := os.MkdirAll(helpersDir, 0o755); err != nil {
-		return fmt.Errorf("create local-control helper staging dir: %w", err)
-	}
-	manifest := map[string]any{
-		"private":      true,
-		"type":         "module",
-		"dependencies": dependencies,
-	}
-	bytes, err := json.MarshalIndent(manifest, "", "  ")
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(filepath.Join(helpersDir, "package.json"), append(bytes, '\n'), 0o644); err != nil {
-		return fmt.Errorf("write local-control helper package.json: %w", err)
-	}
-	lockfilePath := filepath.Join(rootDir, "package-lock.json")
-	if _, err := os.Stat(lockfilePath); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("package-lock.json is required to package local-control helpers")
-		}
-		return fmt.Errorf("stat package-lock.json: %w", err)
-	}
-	if err := copyFile(lockfilePath, filepath.Join(helpersDir, "package-lock.json"), 0o644); err != nil {
-		return fmt.Errorf("copy local-control helper package-lock.json: %w", err)
-	}
-
-	npmPath, err := exec.LookPath("npm")
-	if err != nil {
-		return fmt.Errorf("npm is required to package local-control helpers: %w", err)
-	}
-	command := exec.CommandContext(ctx, npmPath, "ci", "--omit=dev", "--no-audit", "--no-fund", "--loglevel=error")
-	command.Dir = helpersDir
-	command.Env = append(os.Environ(), "npm_config_update_notifier=false")
-	output, err := command.CombinedOutput()
-	if err != nil {
-		message := strings.TrimSpace(string(output))
-		if message == "" {
-			message = err.Error()
-		}
-		return fmt.Errorf("install local-control helper packages: %s", message)
-	}
-	if err := verifyStagedLocalControlHelpers(helpersDir, runtime.GOOS); err != nil {
-		return err
-	}
-	return nil
-}
-
-func localControlHelperDependencies(rootDir string) (map[string]string, error) {
-	bytes, err := os.ReadFile(filepath.Join(rootDir, "package.json"))
-	if err != nil {
-		return nil, err
-	}
-	var payload struct {
-		Dependencies map[string]string `json:"dependencies"`
-	}
-	if err := json.Unmarshal(bytes, &payload); err != nil {
-		return nil, fmt.Errorf("parse package.json: %w", err)
-	}
-	dependencies := map[string]string{}
-	for _, name := range localControlHelperPackages {
-		version := strings.TrimSpace(payload.Dependencies[name])
-		if version == "" {
-			return nil, fmt.Errorf("package.json dependency %q is required for packaged local-control helpers", name)
-		}
-		dependencies[name] = version
-	}
-	return dependencies, nil
-}
-
-func verifyStagedLocalControlHelpers(helpersDir string, goos string) error {
-	for _, name := range localControlHelperPackages {
-		found := false
-		for _, shimName := range localControlHelperShimNames(name, goos) {
-			if info, err := os.Stat(filepath.Join(helpersDir, "node_modules", ".bin", shimName)); err == nil && !info.IsDir() {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return fmt.Errorf("local-control helper package did not create a %s executable shim", name)
-		}
-	}
-	return nil
-}
-
-func localControlHelperShimNames(name string, goos string) []string {
-	if goos == "windows" {
-		return []string{name + ".cmd", name + ".exe", name}
-	}
-	return []string{name}
 }
 
 func copyFile(source string, destination string, mode fs.FileMode) error {

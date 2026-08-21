@@ -12,13 +12,13 @@ import (
 	"rune/internal/execution"
 	"rune/internal/modelregistry"
 	"rune/internal/notify"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/specmode"
 	"rune/internal/streamjson"
 	"rune/internal/tools"
 	"rune/internal/usage"
-	"rune/internal/zeroruntime"
 )
 
 type execSpecDraftRun struct {
@@ -39,11 +39,11 @@ type execSpecDraftRun struct {
 	modelRegistry      modelregistry.Registry
 	resolved           config.ResolvedConfig
 	runMetadata        execRunMetadata
-	provider           zeroruntime.Provider
+	provider           runeruntime.Provider
 	sandboxEngine      *sandbox.Engine
 	prompt             string
 	sessionTitle       string
-	images             []zeroruntime.ImageBlock
+	images             []runeruntime.ImageBlock
 	reasoningEffort    string
 	specPermissionMode agent.PermissionMode
 	notifier           *notify.Notifier

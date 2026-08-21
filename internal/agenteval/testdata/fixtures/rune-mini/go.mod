@@ -1,3 +1,3 @@
-module github.com/rune-ai/rune-fixture
+module rune-fixture
 
 go 1.22

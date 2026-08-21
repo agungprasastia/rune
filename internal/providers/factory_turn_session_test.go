@@ -7,7 +7,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/modelregistry"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // TestNewTurnSessionProviderForEveryKind asserts every current provider kind
@@ -47,7 +47,7 @@ func TestNewTurnSessionProviderForEveryKind(t *testing.T) {
 			if err := session.Prewarm(context.Background()); err != nil {
 				t.Fatalf("Prewarm(%s): %v", kind, err)
 			}
-			if _, compactErr := session.Compact(context.Background(), zeroruntime.CompletionRequest{}); !errors.Is(compactErr, zeroruntime.ErrCompactionUnsupported) {
+			if _, compactErr := session.Compact(context.Background(), runeruntime.CompletionRequest{}); !errors.Is(compactErr, runeruntime.ErrCompactionUnsupported) {
 				t.Fatalf("Compact(%s) = %v, want ErrCompactionUnsupported", kind, compactErr)
 			}
 			caps := tsp.Capabilities()

@@ -15,22 +15,22 @@ import (
 	"rune/internal/agent"
 	"rune/internal/config"
 	"rune/internal/providermodeldiscovery"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 // fakeProvider streams a canned assistant message and ends the turn — enough to
 // drive the real agent.Run loop without a live model.
 type fakeProvider struct{ text string }
 
-func (f fakeProvider) StreamCompletion(_ context.Context, _ zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
-	ch := make(chan zeroruntime.StreamEvent, 4)
+func (f fakeProvider) StreamCompletion(_ context.Context, _ runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
+	ch := make(chan runeruntime.StreamEvent, 4)
 	go func() {
 		defer close(ch)
-		ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventText, Content: f.text}
-		ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone}
+		ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventText, Content: f.text}
+		ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventDone}
 	}()
 	return ch, nil
 }
@@ -49,7 +49,7 @@ func testDeps(t *testing.T) Deps {
 				MaxTurns: 4,
 			}, nil
 		},
-		NewProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return fakeProvider{text: "Hello from RUNE"}, nil
 		},
 		RunAgent: agent.Run,
@@ -435,7 +435,7 @@ func TestACPSetModeUpdatesSession(t *testing.T) {
 func TestACPPlanModeWiresPermissionModeIntoAgentOptions(t *testing.T) {
 	deps := testDeps(t)
 	var captured agent.Options
-	deps.RunAgent = func(_ context.Context, _ string, _ zeroruntime.Provider, opts agent.Options) (agent.Result, error) {
+	deps.RunAgent = func(_ context.Context, _ string, _ runeruntime.Provider, opts agent.Options) (agent.Result, error) {
 		captured = opts
 		return agent.Result{FinalAnswer: "ok"}, nil
 	}
@@ -472,7 +472,7 @@ func TestACPRunTurnWiresSandboxAndScopedRegistry(t *testing.T) {
 		return reg, engine, nil
 	}
 	var captured agent.Options
-	deps.RunAgent = func(_ context.Context, _ string, _ zeroruntime.Provider, opts agent.Options) (agent.Result, error) {
+	deps.RunAgent = func(_ context.Context, _ string, _ runeruntime.Provider, opts agent.Options) (agent.Result, error) {
 		captured = opts
 		return agent.Result{FinalAnswer: "ok"}, nil
 	}

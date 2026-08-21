@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"rune/internal/redaction"
+	"rune/internal/runecommands"
 	"rune/internal/sessions"
-	"rune/internal/zerocommands"
 )
 
 type sessionCommandOptions struct {
@@ -254,12 +254,12 @@ func runSessionsList(store *sessions.Store, options sessionCommandOptions, stdou
 	}
 	items = filterSessionsByKind(items, options.kind)
 	if options.json {
-		if err := writePrettyJSON(stdout, redaction.RedactValue(zerocommands.SessionSnapshots(items), redaction.Options{})); err != nil {
+		if err := writePrettyJSON(stdout, redaction.RedactValue(runecommands.SessionSnapshots(items), redaction.Options{})); err != nil {
 			return exitCrash
 		}
 		return exitSuccess
 	}
-	if _, err := fmt.Fprintln(stdout, formatSessionSnapshotsList(zerocommands.SessionSnapshots(items))); err != nil {
+	if _, err := fmt.Fprintln(stdout, formatSessionSnapshotsList(runecommands.SessionSnapshots(items))); err != nil {
 		return exitCrash
 	}
 	return exitSuccess
@@ -284,12 +284,12 @@ func runSessionsChildren(store *sessions.Store, sessionID string, options sessio
 		return writeSessionCommandError(stderr, err)
 	}
 	if options.json {
-		if err := writePrettyJSON(stdout, redaction.RedactValue(zerocommands.SessionSnapshots(items), redaction.Options{})); err != nil {
+		if err := writePrettyJSON(stdout, redaction.RedactValue(runecommands.SessionSnapshots(items), redaction.Options{})); err != nil {
 			return exitCrash
 		}
 		return exitSuccess
 	}
-	if _, err := fmt.Fprintln(stdout, formatSessionSnapshotsList(zerocommands.SessionSnapshots(items))); err != nil {
+	if _, err := fmt.Fprintln(stdout, formatSessionSnapshotsList(runecommands.SessionSnapshots(items))); err != nil {
 		return exitCrash
 	}
 	return exitSuccess
@@ -301,13 +301,13 @@ func runSessionsLineage(store *sessions.Store, sessionID string, options session
 		return writeSessionCommandError(stderr, err)
 	}
 	if options.json {
-		if err := writePrettyJSON(stdout, redaction.RedactValue(zerocommands.SessionSnapshots(lineage), redaction.Options{})); err != nil {
+		if err := writePrettyJSON(stdout, redaction.RedactValue(runecommands.SessionSnapshots(lineage), redaction.Options{})); err != nil {
 			return exitCrash
 		}
 		return exitSuccess
 	}
 	ids := make([]string, 0, len(lineage))
-	for _, session := range zerocommands.SessionSnapshots(lineage) {
+	for _, session := range runecommands.SessionSnapshots(lineage) {
 		ids = append(ids, redact(session.SessionID))
 	}
 	if _, err := fmt.Fprintln(stdout, strings.Join(ids, " -> ")); err != nil {
@@ -322,12 +322,12 @@ func runSessionsTree(store *sessions.Store, sessionID string, options sessionCom
 		return writeSessionCommandError(stderr, err)
 	}
 	if options.json {
-		if err := writePrettyJSON(stdout, redaction.RedactValue(zerocommands.SessionTreeSnapshotFromNode(tree), redaction.Options{})); err != nil {
+		if err := writePrettyJSON(stdout, redaction.RedactValue(runecommands.SessionTreeSnapshotFromNode(tree), redaction.Options{})); err != nil {
 			return exitCrash
 		}
 		return exitSuccess
 	}
-	if _, err := fmt.Fprint(stdout, formatSessionSnapshotTree(zerocommands.SessionTreeSnapshotFromNode(tree))); err != nil {
+	if _, err := fmt.Fprint(stdout, formatSessionSnapshotTree(runecommands.SessionTreeSnapshotFromNode(tree))); err != nil {
 		return exitCrash
 	}
 	return exitSuccess
@@ -453,7 +453,7 @@ func formatCompactionPlan(plan sessions.CompactionPlan) string {
 	return strings.Join(lines, "\n")
 }
 
-func formatSessionSnapshotsList(items []zerocommands.SessionSnapshot) string {
+func formatSessionSnapshotsList(items []runecommands.SessionSnapshot) string {
 	if len(items) == 0 {
 		return "No Rune sessions found."
 	}
@@ -464,20 +464,20 @@ func formatSessionSnapshotsList(items []zerocommands.SessionSnapshot) string {
 	return strings.Join(lines, "\n")
 }
 
-func formatSessionSnapshotTree(node zerocommands.SessionTreeSnapshot) string {
+func formatSessionSnapshotTree(node runecommands.SessionTreeSnapshot) string {
 	lines := []string{"Rune session tree:"}
 	appendSessionSnapshotTree(&lines, node, "")
 	return strings.Join(lines, "\n") + "\n"
 }
 
-func appendSessionSnapshotTree(lines *[]string, node zerocommands.SessionTreeSnapshot, prefix string) {
+func appendSessionSnapshotTree(lines *[]string, node runecommands.SessionTreeSnapshot, prefix string) {
 	*lines = append(*lines, prefix+formatSessionSnapshotLine(node.Session))
 	for _, child := range node.Children {
 		appendSessionSnapshotTree(lines, child, prefix+"  ")
 	}
 }
 
-func formatSessionSnapshotLine(session zerocommands.SessionSnapshot) string {
+func formatSessionSnapshotLine(session runecommands.SessionSnapshot) string {
 	parts := []string{"- " + redact(session.SessionID)}
 	if session.Kind != "" {
 		parts = append(parts, "["+redact(session.Kind)+"]")

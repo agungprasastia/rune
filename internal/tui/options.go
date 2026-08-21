@@ -12,12 +12,12 @@ import (
 	"rune/internal/peermsg"
 	"rune/internal/providerhealth"
 	"rune/internal/providermodeldiscovery"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/skills"
 	"rune/internal/tools"
 	"rune/internal/usage"
-	"rune/internal/zeroruntime"
 )
 
 // Options configures the reusable Rune terminal UI shell.
@@ -34,8 +34,8 @@ type Options struct {
 	FavoriteModels              []string
 	RecentModels                []config.RecentModelEntry
 	RecapsEnabled               bool
-	Provider                    zeroruntime.Provider
-	NewProvider                 func(config.ProviderProfile) (zeroruntime.Provider, error)
+	Provider                    runeruntime.Provider
+	NewProvider                 func(config.ProviderProfile) (runeruntime.Provider, error)
 	ProbeProviderHealth         func(context.Context, providerhealth.Options) providerhealth.Result
 	DiscoverProviderModels      func(context.Context, config.ProviderProfile) ([]providermodeldiscovery.Model, error)
 	DiscoverOllamaContextWindow func(ctx context.Context, baseURL string, model string) (int, error)

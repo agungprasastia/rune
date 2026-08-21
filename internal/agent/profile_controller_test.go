@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 func TestProfileControllerNilPolicyIsNoOp(t *testing.T) {
@@ -110,14 +110,14 @@ func TestProfileControllerEscalatesAtMostOnce(t *testing.T) {
 // counts as uncertain, escalates, and the very next request carries the target
 // effort.
 func TestPostureEscalationOnUncertainCompletion(t *testing.T) {
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventText, Content: "Let me read the file:"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "Let me read the file:"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "Done. All set."},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "Done. All set."},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -157,14 +157,14 @@ func TestPostureEscalationOnUncertainCompletion(t *testing.T) {
 // RestoreDefaultEffort lets escalation restore that default, which a plain ""
 // ReasoningEffort target cannot express (it means "leave untouched").
 func TestPostureEscalationRestoresDefaultEffort(t *testing.T) {
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventText, Content: "Let me read the file:"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "Let me read the file:"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "Done. All set."},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "Done. All set."},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -222,17 +222,17 @@ func TestPostureEscalationRaisesTurnCeilingMidRun(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(failingProfileTool{})
 
-	toolTurn := []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "flaky_probe"},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-		{Type: zeroruntime.StreamEventDone},
+	toolTurn := []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "flaky_probe"},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+		{Type: runeruntime.StreamEventDone},
 	}
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		toolTurn,
 		toolTurn,
 		{
-			{Type: zeroruntime.StreamEventText, Content: "recovered after escalation"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "recovered after escalation"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -275,12 +275,12 @@ func TestPostureEscalationAbsentWithoutProfile(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(failingProfileTool{})
 
-	toolTurn := []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "flaky_probe"},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-		{Type: zeroruntime.StreamEventDone},
+	toolTurn := []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "flaky_probe"},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+		{Type: runeruntime.StreamEventDone},
 	}
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{toolTurn, toolTurn}}
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{toolTurn, toolTurn}}
 
 	result, err := Run(context.Background(), "go", provider, Options{
 		Registry: registry,

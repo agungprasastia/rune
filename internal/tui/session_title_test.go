@@ -6,16 +6,16 @@ import (
 	"strings"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
-	"rune/internal/zeroruntime"
 )
 
 // titleProvider is a fakeProvider that streams a single line of text as the
 // model's title response.
 func titleProvider(title string) *fakeProvider {
-	return &fakeProvider{events: []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: title},
-		{Type: zeroruntime.StreamEventDone},
+	return &fakeProvider{events: []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: title},
+		{Type: runeruntime.StreamEventDone},
 	}}
 }
 

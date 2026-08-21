@@ -1559,7 +1559,7 @@ func TestApplyCatalogDescriptorStripsAimlapiAttributionFromRetargetedProfile(t *
 		BaseURL: "https://proxy.example.test/v1",
 		CustomHeaders: map[string]string{
 			"x-aimlapi-partner-id":          "persisted-partner",
-			"X-AIMLAPI-Integration-Repo":    "rune-ai/rune",
+			"X-AIMLAPI-Integration-Repo":    "agungprasastia/rune",
 			"X-AIMLAPI-Integration-Version": "rune",
 			"X-Environment":                 "staging",
 		},

@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"rune/internal/providers/providerio"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 const defaultBaseURL = "https://api.openai.com/v1"
@@ -146,14 +146,14 @@ func New(options Options) (*Provider, error) {
 // StreamCompletion sends one streaming chat completion request.
 func (provider *Provider) StreamCompletion(
 	ctx context.Context,
-	request zeroruntime.CompletionRequest,
-) (<-chan zeroruntime.StreamEvent, error) {
+	request runeruntime.CompletionRequest,
+) (<-chan runeruntime.StreamEvent, error) {
 	body, err := json.Marshal(provider.openAIRequest(request))
 	if err != nil {
 		return nil, fmt.Errorf("encode OpenAI request: %w", err)
 	}
 
-	events := make(chan zeroruntime.StreamEvent, 16)
+	events := make(chan runeruntime.StreamEvent, 16)
 	go func() {
 		defer close(events)
 		provider.stream(ctx, body, events)
@@ -162,7 +162,7 @@ func (provider *Provider) StreamCompletion(
 	return events, nil
 }
 
-func (provider *Provider) stream(ctx context.Context, body []byte, events chan<- zeroruntime.StreamEvent) {
+func (provider *Provider) stream(ctx context.Context, body []byte, events chan<- runeruntime.StreamEvent) {
 	endpoint := provider.endpoint
 
 	// streamCtx lets the idle watchdog abort an in-flight body read by cancelling
@@ -201,17 +201,17 @@ func (provider *Provider) stream(ctx context.Context, body []byte, events chan<-
 		// outage. Check the parent context first and surface its error verbatim, so
 		// only genuine connect failures (ctx still live) get humanized.
 		if ctxErr := ctx.Err(); ctxErr != nil {
-			sendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventError, Error: provider.redact("provider stream error: " + ctxErr.Error())})
+			sendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventError, Error: provider.redact("provider stream error: " + ctxErr.Error())})
 			return
 		}
 		// A direct connection that never completes (e.g. a hosted endpoint blocked
 		// by the local network) surfaces as a transport error; humanize it the same
 		// way as a proxy's gateway error so the user sees a clear connectivity cause.
 		if humanized, ok := providerio.UpstreamUnreachable(err.Error()); ok {
-			sendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventError, Error: provider.redact(humanized)})
+			sendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventError, Error: provider.redact(humanized)})
 			return
 		}
-		sendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventError, Error: provider.redact("provider stream error: " + err.Error())})
+		sendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventError, Error: provider.redact("provider stream error: " + err.Error())})
 		return
 	}
 	defer func() {
@@ -233,8 +233,8 @@ func (provider *Provider) stream(ctx context.Context, body []byte, events chan<-
 	if errors.Is(err, providerio.ErrStreamIdle) || errors.Is(err, providerio.ErrStreamStalled) {
 		state.flushBufferedContent(events)
 		state.closeBufferedOpen(events)
-		sendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		sendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: provider.redact("provider stream error: " + providerio.StreamTimeoutMessage(err, provider.streamIdleTimeout)),
 		})
 		return
@@ -242,19 +242,19 @@ func (provider *Provider) stream(ctx context.Context, body []byte, events chan<-
 	if err != nil {
 		state.flushBufferedContent(events)
 		state.closeBufferedOpen(events)
-		sendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventError, Error: provider.redact("provider stream error: " + err.Error())})
+		sendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventError, Error: provider.redact("provider stream error: " + err.Error())})
 		return
 	}
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		state.flushBufferedContent(events)
 		state.closeBufferedOpen(events)
-		sendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventError, Error: provider.redact("provider stream error: " + ctxErr.Error())})
+		sendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventError, Error: provider.redact("provider stream error: " + ctxErr.Error())})
 		return
 	}
 	if !state.done {
 		state.flushContent(ctx, events)
 		state.closeOpen(ctx, events)
-		sendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone, FinishReason: state.finishReason})
+		sendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventDone, FinishReason: state.finishReason})
 	}
 }
 
@@ -279,13 +279,13 @@ var openAIStreamErrorStatusByCode = map[string]int{
 // emitPayload handles one accumulated SSE data payload ([DONE]/blank lines are
 // already filtered by the shared reader). It returns false to abort the stream
 // after emitting a terminal error.
-func (provider *Provider) emitPayload(ctx context.Context, data string, state *toolState, events chan<- zeroruntime.StreamEvent) bool {
+func (provider *Provider) emitPayload(ctx context.Context, data string, state *toolState, events chan<- runeruntime.StreamEvent) bool {
 	var chunk streamChunk
 	if err := json.Unmarshal([]byte(data), &chunk); err != nil {
 		state.flushContent(ctx, events)
 		state.closeOpen(ctx, events)
-		sendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		sendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: provider.redact("provider stream error: malformed JSON: " + err.Error()),
 		})
 		state.done = true
@@ -311,8 +311,8 @@ func (provider *Provider) emitPayload(ctx context.Context, data string, state *t
 				}
 			}
 		}
-		sendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		sendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: provider.classifiedError(statusCode, chunk.Error.Message),
 		})
 		state.done = true
@@ -326,12 +326,12 @@ func (provider *Provider) emitChunk(
 	ctx context.Context,
 	chunk streamChunk,
 	state *toolState,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) {
 	for _, choice := range chunk.Choices {
 		if reasoning := choice.Delta.reasoningText(); reasoning != "" {
-			sendEvent(ctx, events, zeroruntime.StreamEvent{
-				Type:    zeroruntime.StreamEventReasoning,
+			sendEvent(ctx, events, runeruntime.StreamEvent{
+				Type:    runeruntime.StreamEventReasoning,
 				Content: reasoning,
 			})
 		}
@@ -351,9 +351,9 @@ func (provider *Provider) emitChunk(
 	}
 
 	if chunk.Usage != nil {
-		sendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type: zeroruntime.StreamEventUsage,
-			Usage: zeroruntime.Usage{
+		sendEvent(ctx, events, runeruntime.StreamEvent{
+			Type: runeruntime.StreamEventUsage,
+			Usage: runeruntime.Usage{
 				PromptTokens:      chunk.Usage.PromptTokens,
 				CompletionTokens:  chunk.Usage.CompletionTokens,
 				CachedInputTokens: chunk.Usage.PromptTokensDetails.CachedTokens,
@@ -375,15 +375,15 @@ func (delta streamDelta) reasoningText() string {
 func mapFinishReason(reason string) string {
 	switch reason {
 	case "length":
-		return zeroruntime.FinishReasonLength
+		return runeruntime.FinishReasonLength
 	case "content_filter":
-		return zeroruntime.FinishReasonContentFilter
+		return runeruntime.FinishReasonContentFilter
 	default:
 		return ""
 	}
 }
 
-func (provider *Provider) emitHTTPError(ctx context.Context, response *http.Response, events chan<- zeroruntime.StreamEvent) {
+func (provider *Provider) emitHTTPError(ctx context.Context, response *http.Response, events chan<- runeruntime.StreamEvent) {
 	body, _ := io.ReadAll(io.LimitReader(response.Body, 64*1024))
 	message := strings.TrimSpace(string(body))
 	var parsed struct {
@@ -399,11 +399,11 @@ func (provider *Provider) emitHTTPError(ctx context.Context, response *http.Resp
 	// localhost but returns a gateway error when it cannot reach its own backend.
 	// Surface that as a clear connectivity message instead of the raw proxied body.
 	if humanized, ok := providerio.UpstreamUnreachable(message); ok {
-		sendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventError, Error: provider.redact(humanized)})
+		sendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventError, Error: provider.redact(humanized)})
 		return
 	}
-	sendEvent(ctx, events, zeroruntime.StreamEvent{
-		Type:  zeroruntime.StreamEventError,
+	sendEvent(ctx, events, runeruntime.StreamEvent{
+		Type:  runeruntime.StreamEventError,
 		Error: provider.classifiedError(response.StatusCode, message),
 	})
 }
@@ -416,10 +416,10 @@ func (provider *Provider) redact(message string) string {
 	return providerio.Redact(message, provider.apiKey, provider.authHeaderValue)
 }
 
-func sendEvent(ctx context.Context, events chan<- zeroruntime.StreamEvent, event zeroruntime.StreamEvent) {
+func sendEvent(ctx context.Context, events chan<- runeruntime.StreamEvent, event runeruntime.StreamEvent) {
 	select {
 	case <-ctx.Done():
-		if event.Type == zeroruntime.StreamEventError {
+		if event.Type == runeruntime.StreamEventError {
 			select {
 			case events <- event:
 			default:
@@ -429,21 +429,21 @@ func sendEvent(ctx context.Context, events chan<- zeroruntime.StreamEvent, event
 	}
 }
 
-func sendBufferedEvent(events chan<- zeroruntime.StreamEvent, event zeroruntime.StreamEvent) {
+func sendBufferedEvent(events chan<- runeruntime.StreamEvent, event runeruntime.StreamEvent) {
 	select {
 	case events <- event:
 	default:
 	}
 }
 
-func (provider *Provider) openAIRequest(request zeroruntime.CompletionRequest) chatCompletionRequest {
+func (provider *Provider) openAIRequest(request runeruntime.CompletionRequest) chatCompletionRequest {
 	messages := make([]chatMessage, 0, len(request.Messages))
 	for _, message := range request.Messages {
 		// Drop a degenerate assistant turn that carries neither text nor tool calls
 		// (e.g. a sub-agent that failed with no output). The Anthropic/Gemini mappers
 		// already skip empty turns; without this, the contentless message reaches
 		// strict OpenAI-compatible servers and is rejected.
-		if message.Role == zeroruntime.MessageRoleAssistant &&
+		if message.Role == runeruntime.MessageRoleAssistant &&
 			strings.TrimSpace(message.Content) == "" && len(message.ToolCalls) == 0 {
 			continue
 		}
@@ -539,7 +539,7 @@ func openAIServiceTier(requested string) string {
 	}
 }
 
-func mapMessage(message zeroruntime.Message) chatMessage {
+func mapMessage(message runeruntime.Message) chatMessage {
 	mapped := chatMessage{
 		Role:       string(message.Role),
 		ToolCallID: message.ToolCallID,
@@ -550,7 +550,7 @@ func mapMessage(message zeroruntime.Message) chatMessage {
 	// this one mapper, so guard the parts path to the user role. A non-user
 	// message that happens to carry Images keeps the plain string/nil content
 	// path (its images are simply not serialized).
-	if len(message.Images) == 0 || message.Role != zeroruntime.MessageRoleUser {
+	if len(message.Images) == 0 || message.Role != runeruntime.MessageRoleUser {
 		// Always set content (to "" when empty) so it serializes as `"content":""`
 		// rather than being dropped. Strict OpenAI-compatible servers reject a
 		// message with no content field; tool results and assistant-with-tool-calls

@@ -9,9 +9,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"rune/internal/errhint"
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 const goalContinuationPrompt = "Continue pursuing the active goal. Review the existing session context, make concrete progress, and use update_goal when the objective is complete or genuinely blocked."
@@ -303,7 +303,7 @@ func (m model) launchGoalContinuationIfReady() (model, tea.Cmd) {
 	return m, tea.Batch(m.runAgent(m.activeRunID, runCtx, prompt, nil), m.spinner.Tick)
 }
 
-func (m model) reconcileGoalAfterRun(usageEvents []zeroruntime.Usage, runErr error) model {
+func (m model) reconcileGoalAfterRun(usageEvents []runeruntime.Usage, runErr error) model {
 	if m.sessionStore == nil || m.activeSession.SessionID == "" {
 		return m
 	}

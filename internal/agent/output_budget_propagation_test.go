@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"rune/internal/hooks"
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 type propagationOutputTool struct {
@@ -226,14 +226,14 @@ func TestRunTraceReflectsPostHookBudget(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(propagationOutputTool{output: "tool output"})
 	dispatcher := largeOutputBudgetHookDispatcher()
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-hook-trace", ToolName: "propagation_output"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-hook-trace", ArgumentsFragment: `{}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-hook-trace"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-hook-trace", ToolName: "propagation_output"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-hook-trace", ArgumentsFragment: `{}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-hook-trace"},
+			{Type: runeruntime.StreamEventDone},
 		},
-		{{Type: zeroruntime.StreamEventText, Content: "done"}, {Type: zeroruntime.StreamEventDone}},
+		{{Type: runeruntime.StreamEventText, Content: "done"}, {Type: runeruntime.StreamEventDone}},
 	}}
 	recorder := trace.NewRecorder("session", "run", "")
 	var toolResults []ToolResult

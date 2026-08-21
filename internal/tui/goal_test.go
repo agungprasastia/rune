@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 func TestGoalCommandCreatesPersistentGoalAndStartsRun(t *testing.T) {
@@ -103,9 +103,9 @@ func TestLoopRunExcludesGoalToolsAndInstructions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventText, Content: "Loop iteration complete."},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventText, Content: "Loop iteration complete."},
+		{Type: runeruntime.StreamEventDone},
 	}}}
 	m := newModel(context.Background(), Options{
 		Provider:     provider,
@@ -156,7 +156,7 @@ func TestLoopRunDoesNotConsumeGoalBudgetOrLaunchContinuation(t *testing.T) {
 	updated, _ := m.Update(agentResponseMsg{
 		runID:       1,
 		goalAware:   false,
-		usageEvents: []zeroruntime.Usage{{InputTokens: 8, OutputTokens: 4}},
+		usageEvents: []runeruntime.Usage{{InputTokens: 8, OutputTokens: 4}},
 		rows:        []transcriptRow{{kind: rowAssistant, text: "loop result", final: true}},
 	})
 	next := updated.(model)
@@ -174,16 +174,16 @@ func TestLoopRunDoesNotConsumeGoalBudgetOrLaunchContinuation(t *testing.T) {
 
 func TestAgentCanCompleteGoalWithoutAnotherContinuation(t *testing.T) {
 	store := testSessionStore(t)
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "goal_done", ToolName: "update_goal"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "goal_done", ArgumentsFragment: `{"status":"complete"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "goal_done"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "goal_done", ToolName: "update_goal"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "goal_done", ArgumentsFragment: `{"status":"complete"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "goal_done"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "The goal is complete."},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "The goal is complete."},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 	m := newModel(context.Background(), Options{
@@ -227,7 +227,7 @@ func TestGoalBudgetStopsAutomaticContinuation(t *testing.T) {
 	})
 	m.activeSession = session
 
-	m = m.reconcileGoalAfterRun([]zeroruntime.Usage{{InputTokens: 12, OutputTokens: 8}}, nil)
+	m = m.reconcileGoalAfterRun([]runeruntime.Usage{{InputTokens: 12, OutputTokens: 8}}, nil)
 	if m.activeSession.Goal.Status != sessions.GoalStatusBudgetLimited {
 		t.Fatalf("budgeted goal status = %q", m.activeSession.Goal.Status)
 	}

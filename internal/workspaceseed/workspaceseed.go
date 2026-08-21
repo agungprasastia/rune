@@ -248,7 +248,7 @@ func detectedProjectFiles(paths []string) []string {
 
 func memoryFiles(paths []string) []string {
 	out := []string{}
-	for _, candidate := range []string{"AGENTS.md", "RUNE.md", "ZERO.md"} {
+	for _, candidate := range []string{"AGENTS.md", "RUNE.md"} {
 		for _, rel := range paths {
 			if rel == candidate {
 				out = append(out, candidate)

@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // A tool_use content_block_start that arrives without a usable name/id can't be
@@ -29,9 +29,9 @@ func TestStreamCompletionEmitsDroppedOnNamelessToolUseBlock(t *testing.T) {
 	var dropped, started int
 	for _, e := range events {
 		switch e.Type {
-		case zeroruntime.StreamEventToolCallDropped:
+		case runeruntime.StreamEventToolCallDropped:
 			dropped++
-		case zeroruntime.StreamEventToolCallStart:
+		case runeruntime.StreamEventToolCallStart:
 			started++
 		}
 	}
@@ -59,7 +59,7 @@ func TestStreamCompletionDoesNotDropValidToolUseBlock(t *testing.T) {
 	events := collectProviderEvents(t, provider)
 
 	for _, e := range events {
-		if e.Type == zeroruntime.StreamEventToolCallDropped {
+		if e.Type == runeruntime.StreamEventToolCallDropped {
 			t.Errorf("valid tool_use block must not be dropped; events: %+v", events)
 		}
 	}

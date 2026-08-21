@@ -13,26 +13,26 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"rune/internal/agent"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 type scriptedProvider struct {
-	scripts    [][]zeroruntime.StreamEvent
-	requests   []zeroruntime.CompletionRequest
+	scripts    [][]runeruntime.StreamEvent
+	requests   []runeruntime.CompletionRequest
 	beforeCall func(int)
 	calls      int
 }
 
 func (provider *scriptedProvider) StreamCompletion(
 	ctx context.Context,
-	request zeroruntime.CompletionRequest,
-) (<-chan zeroruntime.StreamEvent, error) {
+	request runeruntime.CompletionRequest,
+) (<-chan runeruntime.StreamEvent, error) {
 	provider.requests = append(provider.requests, request)
 	if len(provider.scripts) == 0 {
-		ch := make(chan zeroruntime.StreamEvent)
+		ch := make(chan runeruntime.StreamEvent)
 		close(ch)
 		return ch, nil
 	}
@@ -44,7 +44,7 @@ func (provider *scriptedProvider) StreamCompletion(
 	if provider.beforeCall != nil {
 		provider.beforeCall(index)
 	}
-	ch := make(chan zeroruntime.StreamEvent, len(provider.scripts[index]))
+	ch := make(chan runeruntime.StreamEvent, len(provider.scripts[index]))
 	for _, event := range provider.scripts[index] {
 		ch <- event
 	}
@@ -54,10 +54,10 @@ func (provider *scriptedProvider) StreamCompletion(
 
 func TestPromptSubmitPersistsTUISessionEvents(t *testing.T) {
 	store := testSessionStore(t)
-	provider := &fakeProvider{events: []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "saved"},
-		{Type: zeroruntime.StreamEventUsage, Usage: zeroruntime.Usage{InputTokens: 10, OutputTokens: 4}},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &fakeProvider{events: []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "saved"},
+		{Type: runeruntime.StreamEventUsage, Usage: runeruntime.Usage{InputTokens: 10, OutputTokens: 4}},
+		{Type: runeruntime.StreamEventDone},
 	}}
 	m := newModel(context.Background(), Options{
 		Cwd:          "repo",
@@ -180,16 +180,16 @@ func TestPromptSubmitPersistsToolSessionEvents(t *testing.T) {
 	store := testSessionStore(t)
 	root := t.TempDir()
 	writeTestFile(t, root, "notes.txt", "file contents")
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"notes.txt"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"notes.txt"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "read complete"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "read complete"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 	registry := tools.NewRegistry()
@@ -243,16 +243,16 @@ func TestPromptSubmitPersistsToolSessionEvents(t *testing.T) {
 func TestPromptSubmitPersistsPermissionSessionEvents(t *testing.T) {
 	store := testSessionStore(t)
 	root := t.TempDir()
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_write", ToolName: "write_file"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_write", ArgumentsFragment: `{"path":"notes.txt","content":"hello"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_write"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call_write", ToolName: "write_file"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call_write", ArgumentsFragment: `{"path":"notes.txt","content":"hello"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call_write"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "write blocked"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "write blocked"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 	registry := tools.NewRegistry()
@@ -369,7 +369,7 @@ func TestPermissionWaitDoesNotCountTowardTurnElapsed(t *testing.T) {
 	base := time.Date(2026, 7, 29, 12, 0, 0, 0, time.UTC)
 	var clockNanos atomic.Int64
 	clockNanos.Store(base.UnixNano())
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		writeFileToolScript("call_write", "notes.txt", "hello"),
 		textScript("write blocked"),
 	}}
@@ -452,7 +452,7 @@ func TestPermissionWaitDoesNotCountTowardTurnElapsed(t *testing.T) {
 func TestPermissionPromptAllowWritesFileAndRecordsDecision(t *testing.T) {
 	store := testSessionStore(t)
 	root := t.TempDir()
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		writeFileToolScript("call_write", "notes.txt", "hello"),
 		textScript("write allowed"),
 	}}
@@ -498,7 +498,7 @@ func TestPermissionPromptAlwaysPersistsGrantAndSkipsLaterPrompt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		writeFileToolScript("call_first", "notes.txt", "first"),
 		textScript("first write"),
 		writeFileToolScript("call_second", "notes.txt", "second"),
@@ -609,7 +609,7 @@ func submitAndDrivePermissionRun(t *testing.T, m model, prompt string, key strin
 	return updated.(model)
 }
 
-func newPermissionTestModel(root string, provider zeroruntime.Provider, registry *tools.Registry, store *sessions.Store, grantStore *sandbox.GrantStore, runtimeMessages chan<- tea.Msg) model {
+func newPermissionTestModel(root string, provider runeruntime.Provider, registry *tools.Registry, store *sessions.Store, grantStore *sandbox.GrantStore, runtimeMessages chan<- tea.Msg) model {
 	engineOptions := sandbox.EngineOptions{
 		WorkspaceRoot: root,
 		Policy:        promptWritePolicy(),
@@ -642,19 +642,19 @@ func promptWritePolicy() sandbox.Policy {
 	return policy
 }
 
-func writeFileToolScript(callID string, path string, content string) []zeroruntime.StreamEvent {
-	return []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: "write_file"},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: `{"path":` + jsonString(path) + `,"content":` + jsonString(content) + `,"overwrite":true}`},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: callID},
-		{Type: zeroruntime.StreamEventDone},
+func writeFileToolScript(callID string, path string, content string) []runeruntime.StreamEvent {
+	return []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: "write_file"},
+		{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: `{"path":` + jsonString(path) + `,"content":` + jsonString(content) + `,"overwrite":true}`},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: callID},
+		{Type: runeruntime.StreamEventDone},
 	}
 }
 
-func textScript(text string) []zeroruntime.StreamEvent {
-	return []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: text},
-		{Type: zeroruntime.StreamEventDone},
+func textScript(text string) []runeruntime.StreamEvent {
+	return []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: text},
+		{Type: runeruntime.StreamEventDone},
 	}
 }
 
@@ -889,9 +889,9 @@ func TestResumeLatestHydratesNewestSession(t *testing.T) {
 
 func TestEscCancelRecordsSessionError(t *testing.T) {
 	store := testSessionStore(t)
-	provider := &fakeProvider{events: []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "ignored"},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &fakeProvider{events: []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "ignored"},
+		{Type: runeruntime.StreamEventDone},
 	}}
 	m := newModel(context.Background(), Options{
 		Provider:     provider,
@@ -938,7 +938,7 @@ func TestCancelledRunFlushesCheckpointSessionEvents(t *testing.T) {
 	store := testSessionStore(t)
 	root := t.TempDir()
 	writeTestFile(t, root, "notes.txt", "before")
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		writeFileToolScript("call_write", "notes.txt", "after"),
 		textScript("never reached"),
 	}}
@@ -1015,7 +1015,7 @@ func TestCtrlCCancelsAndFlushesCheckpointSessionEvents(t *testing.T) {
 	store := testSessionStore(t)
 	root := t.TempDir()
 	writeTestFile(t, root, "notes.txt", "before")
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		writeFileToolScript("call_write", "notes.txt", "after"),
 		textScript("never reached"),
 	}}
@@ -1111,9 +1111,9 @@ func TestResumedPromptIncludesSessionContext(t *testing.T) {
 	}
 	appendTestEvent(t, store, session.SessionID, sessions.EventMessage, map[string]any{"role": "user", "content": "previous request"})
 	appendTestEvent(t, store, session.SessionID, sessions.EventMessage, map[string]any{"role": "assistant", "content": "previous answer"})
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventText, Content: "continued"},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventText, Content: "continued"},
+		{Type: runeruntime.StreamEventDone},
 	}}}
 	m := newModel(context.Background(), Options{
 		Provider:     provider,

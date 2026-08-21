@@ -1,21 +1,21 @@
 # Update Flow
 
-`zero update --check` checks the latest GitHub release and compares it with the
-local CLI version. `zero update --apply` (or its shorthand, `zero upgrade`)
+`rune update --check` checks the latest GitHub release and compares it with the
+local CLI version. `rune update --apply` (or its shorthand, `rune upgrade`)
 downloads, verifies, and installs it.
 
 ```bash
-zero update --check
-zero update --check --json
-zero update --check --repo rune-ai/rune
-zero update --check --target windows-x64
+rune update --check
+rune update --check --json
+rune update --check --repo agungprasastia/rune
+rune update --check --target windows-x64
 
-zero upgrade
-zero update --apply
+rune upgrade
+rune update --apply
 ```
 
-`--check` and `--apply` are mutually exclusive. `zero update` requires one of
-them explicitly; `zero upgrade` is `zero update` with `--apply` implied.
+`--check` and `--apply` are mutually exclusive. `rune update` requires one of
+them explicitly; `rune upgrade` is `rune update` with `--apply` implied.
 
 `--check` is check-only:
 
@@ -28,22 +28,21 @@ them explicitly; `zero upgrade` is `zero update` with `--apply` implied.
 
 `--apply` installs the update in place:
 
-- npm installs delegate to `npm install -g @rune-ai/rune@latest`.
+- Native Rune builds use GitHub Releases for self-update.
 - Standalone installs download the release archive, verify its checksum,
   extract it, and atomically replace the running binary plus any installed
   optional sandbox helpers.
 - On Windows, the running executable is renamed aside and cleaned up on the
-  next `zero update --apply` or `zero upgrade`, since it can't be overwritten
+  next `rune update --apply` or `rune upgrade`, since it can't be overwritten
   while running.
 - `--target` cannot be combined with `--apply`; it only applies to `--check`,
   since applying always installs onto the current machine.
-- `--repo` and `--endpoint` are ignored when applying to an npm-managed
-  install: that path delegates to `npm install -g @rune-ai/rune@latest` and
-  takes its release from the npm registry, not from GitHub. They still apply to
+- `--repo` and `--endpoint` select the GitHub Release source used by native
+  update checks and applies. They apply to
   `--check` there.
-- `--json` serializes Zero's final result. For npm-managed installs, npm may
+- `--json` serializes Rune's final result. Native installs do not require npm.
   also write progress output to stdout, so neither
-  `zero update --apply --json` nor `zero upgrade --json` is guaranteed to
+  `rune update --apply --json` nor `rune upgrade --json` is guaranteed to
   produce a single parseable JSON document. Use `--check --json` for
   machine-readable automation.
 
@@ -51,13 +50,13 @@ Useful flags:
 
 | Flag | Purpose |
 |---|---|
-| `--repo <owner/repo>` | Use another GitHub repository for `--check` and `--apply`/`upgrade`. Ignored by an npm-managed apply. |
-| `--endpoint <url\|owner/repo>` | Use a specific release API URL or repository slug for `--check` and `--apply`/`upgrade`. Ignored by an npm-managed apply. |
+| `--repo <owner/repo>` | Use another GitHub repository for `--check` and `--apply`/`upgrade`. |
+| `--endpoint <url\|owner/repo>` | Use a specific release API URL or repository slug for `--check` and `--apply`/`upgrade`. |
 | `--timeout <duration>` | Override the default release check timeout. |
 | `--target <platform-arch>` | Validate release metadata for another supported target (`--check` only). |
 
 Supported targets are `linux-x64`, `linux-arm64`, `macos-x64`, `macos-arm64`,
-`windows-x64`, and `windows-arm64`. Without `--target`, Zero checks the current
+`windows-x64`, and `windows-arm64`. Without `--target`, Rune checks the current
 platform.
 
 Endpoint resolution order:
@@ -65,10 +64,10 @@ Endpoint resolution order:
 1. `--endpoint`
 2. `RUNE_UPDATE_RELEASE_URL`
 3. `--repo`
-4. `https://api.github.com/repos/rune-ai/rune/releases/latest`
+4. `https://api.github.com/repos/agungprasastia/rune/releases/latest`
 
 Installer scripts download the matching release asset for the local platform and
-verify its `.sha256` file. If Zero is already installed, run `zero upgrade`
+verify its `.sha256` file. If Rune is already installed, run `rune upgrade`
 instead of reinstalling.
 
 ## Windows recovery state (standalone installs)
@@ -80,11 +79,11 @@ aside copy, marker, or recovery record is ever created — a failed update leave
 the previous binary in place and nothing to resolve.
 
 On Windows, a running executable cannot be replaced in place, so the previous
-binary is moved aside to `<binary>.zero-update-<random>.old` first. The updater
+binary is moved aside to `<binary>.rune-update-<random>.old` first. The updater
 records that exact file — bound to its filesystem identity, in per-user state
 outside the installation directory — and deletes only that recorded copy after
 the next update is verified in place. Backups it did not create are never
-removed, so a file such as `zero.exe.before-manual-patch.old` is left alone. A
+removed, so a file such as `rune.exe.before-manual-patch.old` is left alone. A
 recorded copy that something else holds open (an on-access scanner, an editor)
 stays recorded and is removed by a later update instead.
 

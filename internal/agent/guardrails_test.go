@@ -5,45 +5,45 @@ import (
 	"strings"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 // emptyTurn is a stream that produces no visible text and no tool calls.
-func emptyTurn() []zeroruntime.StreamEvent {
-	return []zeroruntime.StreamEvent{{Type: zeroruntime.StreamEventDone}}
+func emptyTurn() []runeruntime.StreamEvent {
+	return []runeruntime.StreamEvent{{Type: runeruntime.StreamEventDone}}
 }
 
 // textTurn produces a turn with visible assistant text.
-func textTurn(content string) []zeroruntime.StreamEvent {
-	return []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: content},
-		{Type: zeroruntime.StreamEventDone},
+func textTurn(content string) []runeruntime.StreamEvent {
+	return []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: content},
+		{Type: runeruntime.StreamEventDone},
 	}
 }
 
 // reasoningTurn produces live reasoning without visible assistant text.
-func reasoningTurn(content string) []zeroruntime.StreamEvent {
-	return []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventReasoning, Content: content},
-		{Type: zeroruntime.StreamEventDone},
+func reasoningTurn(content string) []runeruntime.StreamEvent {
+	return []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventReasoning, Content: content},
+		{Type: runeruntime.StreamEventDone},
 	}
 }
 
 // toolTurn produces a turn that calls a named tool with the given args JSON.
-func toolTurn(callID string, toolName string, args string) []zeroruntime.StreamEvent {
-	return []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: toolName},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: args},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: callID},
-		{Type: zeroruntime.StreamEventDone},
+func toolTurn(callID string, toolName string, args string) []runeruntime.StreamEvent {
+	return []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: toolName},
+		{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: args},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: callID},
+		{Type: runeruntime.StreamEventDone},
 	}
 }
 
-func countUserMessagesContaining(messages []zeroruntime.Message, needle string) int {
+func countUserMessagesContaining(messages []runeruntime.Message, needle string) int {
 	count := 0
 	for _, message := range messages {
-		if message.Role == zeroruntime.MessageRoleUser && strings.Contains(message.Content, needle) {
+		if message.Role == runeruntime.MessageRoleUser && strings.Contains(message.Content, needle) {
 			count++
 		}
 	}
@@ -52,7 +52,7 @@ func countUserMessagesContaining(messages []zeroruntime.Message, needle string) 
 
 func TestRunStopsAfterConsecutiveEmptyTurns(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			emptyTurn(),
 			emptyTurn(),
 			emptyTurn(),
@@ -84,7 +84,7 @@ func TestRunStopsAfterConsecutiveEmptyTurns(t *testing.T) {
 
 func TestRunResetsEmptyTurnCounterOnVisibleOutput(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			emptyTurn(),
 			emptyTurn(),
 			textTurn("here is real progress"), // resets the counter and is the final answer
@@ -111,7 +111,7 @@ func TestRunResetsEmptyTurnCounterOnVisibleOutput(t *testing.T) {
 
 func TestRunResetsEmptyTurnCounterOnReasoning(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			reasoningTurn("thinking 1"),
 			reasoningTurn("thinking 2"),
 			reasoningTurn("thinking 3"),
@@ -141,7 +141,7 @@ func TestRunResetsEmptyTurnCounterOnToolCall(t *testing.T) {
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			emptyTurn(),
 			emptyTurn(),
 			toolTurn("call-1", "read_file", `{"path":"notes.txt"}`), // resets counter
@@ -202,14 +202,14 @@ func TestUnknownExecSessionProbingTripsFailureHalt(t *testing.T) {
 
 func TestGuardStateResetsToolOnlyStreakOnEmptyNonToolTurn(t *testing.T) {
 	var state guardState
-	toolOnly := zeroruntime.CollectedStream{
-		ToolCalls: []zeroruntime.ToolCall{{ID: "call", Name: "read_file", Arguments: `{}`}},
+	toolOnly := runeruntime.CollectedStream{
+		ToolCalls: []runeruntime.ToolCall{{ID: "call", Name: "read_file", Arguments: `{}`}},
 	}
 
 	for range toolOnlyProgressReminderAt - 1 {
 		state.observeTurn(toolOnly)
 	}
-	state.observeTurn(zeroruntime.CollectedStream{})
+	state.observeTurn(runeruntime.CollectedStream{})
 	state.observeTurn(toolOnly)
 
 	if reminder := state.progressReminder(); reminder != "" {
@@ -222,18 +222,18 @@ func TestGuardStateResetsToolOnlyStreakOnEmptyNonToolTurn(t *testing.T) {
 
 func TestRunDoesNotCountDroppedToolCallTurnsAsEmpty(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallDropped},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallDropped},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventToolCallDropped},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallDropped},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventToolCallDropped},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallDropped},
+				{Type: runeruntime.StreamEventDone},
 			},
 			textTurn("recovered"),
 		},
@@ -263,7 +263,7 @@ func TestRunInjectsPlanNotCalledReminderForMultiStepTask(t *testing.T) {
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			toolTurn("call-1", "read_file", `{"path":"notes.txt"}`), // turn 1: other tool call
 			toolTurn("call-2", "read_file", `{"path":"notes.txt"}`), // turn 2: still no update_plan
 			toolTurn("call-3", "read_file", `{"path":"notes.txt"}`), // turn 3: reminder fires here
@@ -294,7 +294,7 @@ func TestRunDoesNotInjectPlanReminderForTrivialTask(t *testing.T) {
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			toolTurn("call-1", "read_file", `{"path":"notes.txt"}`), // single tool call
 			textTurn("done"), // immediately answers
 		},
@@ -323,7 +323,7 @@ func TestRunDoesNotInjectNotCalledReminderWhenPlanUsed(t *testing.T) {
 	registry.Register(tools.NewUpdatePlanTool())
 
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			toolTurn("call-1", "update_plan", `{"plan":[{"content":"step one"}]}`),
 			toolTurn("call-2", "read_file", `{"path":"notes.txt"}`),
 			textTurn("done"),
@@ -354,7 +354,7 @@ func TestRunInjectsStalePlanReminderAfterManyToolCalls(t *testing.T) {
 
 	// Turn 1 calls update_plan (so the not-called reminder never triggers), then
 	// many read_file turns accumulate without another plan update.
-	turns := [][]zeroruntime.StreamEvent{
+	turns := [][]runeruntime.StreamEvent{
 		toolTurn("plan-1", "update_plan", `{"plan":[{"content":"step one"}]}`),
 	}
 	for i := 0; i < staleToolCallThreshold+2; i++ {
@@ -386,7 +386,7 @@ func TestRunStalePlanReminderIsOneShotPerInterval(t *testing.T) {
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	registry.Register(tools.NewUpdatePlanTool())
 
-	turns := [][]zeroruntime.StreamEvent{
+	turns := [][]runeruntime.StreamEvent{
 		toolTurn("plan-1", "update_plan", `{"plan":[{"content":"step one"}]}`),
 	}
 	// Enough tool calls to exceed the threshold by a wide margin; the reminder
@@ -420,7 +420,7 @@ func TestRunInjectsToolOnlyProgressReminder(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 
-	turns := make([][]zeroruntime.StreamEvent, 0, toolOnlyProgressReminderAt+1)
+	turns := make([][]runeruntime.StreamEvent, 0, toolOnlyProgressReminderAt+1)
 	for i := 0; i < toolOnlyProgressReminderAt; i++ {
 		turns = append(turns, toolTurn("call", "read_file", `{"path":"notes.txt"}`))
 	}
@@ -442,7 +442,7 @@ func TestRunInjectsToolOnlyProgressReminder(t *testing.T) {
 	}
 	found := false
 	for _, message := range provider.requests[toolOnlyProgressReminderAt].Messages {
-		if message.Role == zeroruntime.MessageRoleUser && strings.Contains(message.Content, toolOnlyProgressReminderMarker) {
+		if message.Role == runeruntime.MessageRoleUser && strings.Contains(message.Content, toolOnlyProgressReminderMarker) {
 			found = true
 		}
 	}
@@ -465,13 +465,13 @@ func (alwaysFailingTool) Run(context.Context, map[string]any) tools.Result {
 	return tools.Result{Status: tools.StatusError, Output: "Error: Invalid arguments for flaky: thing is required"}
 }
 
-func repeatedFlakyTurns(n int) [][]zeroruntime.StreamEvent {
-	turn := []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c", ToolName: "flaky"},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c"},
-		{Type: zeroruntime.StreamEventDone},
+func repeatedFlakyTurns(n int) [][]runeruntime.StreamEvent {
+	turn := []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c", ToolName: "flaky"},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c"},
+		{Type: runeruntime.StreamEventDone},
 	}
-	turns := make([][]zeroruntime.StreamEvent, 0, n)
+	turns := make([][]runeruntime.StreamEvent, 0, n)
 	for i := 0; i < n; i++ {
 		turns = append(turns, turn)
 	}
@@ -508,7 +508,7 @@ func TestRunInjectsToolFailureHintWithSchema(t *testing.T) {
 	// carries it (with the tool schema).
 	found := false
 	for _, m := range provider.requests[2].Messages {
-		if m.Role == zeroruntime.MessageRoleUser && strings.Contains(m.Content, toolFailureHintMarker) {
+		if m.Role == runeruntime.MessageRoleUser && strings.Contains(m.Content, toolFailureHintMarker) {
 			found = true
 			if !strings.Contains(m.Content, "object") { // schema rendered
 				t.Errorf("hint should include the tool schema, got %q", m.Content)

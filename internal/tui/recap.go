@@ -9,7 +9,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"rune/internal/config"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 const (
@@ -57,7 +57,7 @@ func cleanGeneratedRecap(raw string) string {
 
 // generateRecap asks the provider for a compact orientation note using bounded
 // session context. It is an isolated side request with no tools.
-func generateRecap(ctx context.Context, provider zeroruntime.Provider, sessionContext string) (string, error) {
+func generateRecap(ctx context.Context, provider runeruntime.Provider, sessionContext string) (string, error) {
 	if provider == nil {
 		return "", errors.New("no provider configured")
 	}
@@ -65,17 +65,17 @@ func generateRecap(ctx context.Context, provider zeroruntime.Provider, sessionCo
 	if sessionContext == "" {
 		return "", errors.New("no session context to recap")
 	}
-	request := zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleSystem, Content: recapSystemPrompt},
-			{Role: zeroruntime.MessageRoleUser, Content: sessionContext},
+	request := runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleSystem, Content: recapSystemPrompt},
+			{Role: runeruntime.MessageRoleUser, Content: sessionContext},
 		},
 	}
 	stream, err := provider.StreamCompletion(ctx, request)
 	if err != nil {
 		return "", err
 	}
-	collected := zeroruntime.CollectStreamWithOptions(ctx, stream, zeroruntime.CollectOptions{})
+	collected := runeruntime.CollectStreamWithOptions(ctx, stream, runeruntime.CollectOptions{})
 	if collected.Error != "" {
 		return "", errors.New(collected.Error)
 	}

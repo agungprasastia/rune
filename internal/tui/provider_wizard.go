@@ -22,7 +22,7 @@ import (
 	"rune/internal/providercatalog"
 	"rune/internal/provideroauth"
 	"rune/internal/redaction"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // providerWizardOAuthMsg carries the result of an in-wizard browser OAuth login.
@@ -1251,7 +1251,7 @@ func (m model) applyProviderWizard() (model, tea.Cmd) {
 	// chat running on the new provider while the status line, m.providerProfile,
 	// and the RUNE_PROVIDER export (which pins spawned children) still point at
 	// the old one — parent and children would silently run on different providers.
-	var nextProvider zeroruntime.Provider
+	var nextProvider runeruntime.Provider
 	if m.newProvider != nil {
 		built, err := m.newProvider(runtimeProfile)
 		if err != nil {

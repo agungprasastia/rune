@@ -10,9 +10,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 type taskStatus string
@@ -397,7 +397,7 @@ func removeString(values []string, target string) []string {
 // calls still present in messages. It mutates the snapshot and emits when the
 // parity value changes; objective, tool, and verification fields are not part of
 // this comparison.
-func (state *taskState) observePlanParity(messages []zeroruntime.Message) taskPlanParity {
+func (state *taskState) observePlanParity(messages []runeruntime.Message) taskPlanParity {
 	if state == nil {
 		return taskPlanParityUnknown
 	}
@@ -421,7 +421,7 @@ type completionContext struct {
 	PlanMatchesTranscript bool
 }
 
-func (state *taskState) completionContext(messages []zeroruntime.Message, transcriptPlanPending bool) completionContext {
+func (state *taskState) completionContext(messages []runeruntime.Message, transcriptPlanPending bool) completionContext {
 	context := completionContext{PlanPending: transcriptPlanPending}
 	if state == nil {
 		return context
@@ -434,7 +434,7 @@ func (state *taskState) completionContext(messages []zeroruntime.Message, transc
 	return context
 }
 
-func (state *taskState) snapshotForCompaction(messages []zeroruntime.Message) *taskStateSnapshot {
+func (state *taskState) snapshotForCompaction(messages []runeruntime.Message) *taskStateSnapshot {
 	if state == nil {
 		return nil
 	}
@@ -540,7 +540,7 @@ func summarizeTaskPlan(items []taskPlanItem) taskPlanState {
 	return plan
 }
 
-func latestTaskPlan(messages []zeroruntime.Message) ([]taskPlanItem, bool, bool) {
+func latestTaskPlan(messages []runeruntime.Message) ([]taskPlanItem, bool, bool) {
 	for i := len(messages) - 1; i >= 0; i-- {
 		for j := len(messages[i].ToolCalls) - 1; j >= 0; j-- {
 			call := messages[i].ToolCalls[j]

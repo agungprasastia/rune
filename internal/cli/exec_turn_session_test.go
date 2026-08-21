@@ -12,7 +12,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/providers/openai"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // TestRunExecOptimizedSessionUnderGate proves the end-to-end wiring: with
@@ -91,7 +91,7 @@ func TestRunExecOptimizedSessionUnderGate(t *testing.T) {
 				},
 			}, nil
 		},
-		newProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			// Pin a keep-alive transport so the probe fires on every platform:
 			// the shared default transport disables keep-alives on macOS, where
 			// the session correctly skips the prewarm.
@@ -146,7 +146,7 @@ func TestRunExecGateOnFallsBackForFakeProvider(t *testing.T) {
 			cfg.MaxTurns = 3
 			return cfg, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			builds++
 			return &escalatingExecProvider{}, nil
 		},

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestClipBytesHandlesTinyLimitsOnRuneBoundaries(t *testing.T) {
@@ -28,12 +28,12 @@ func TestBoundaryClippersHandleNonPositiveLimits(t *testing.T) {
 
 func TestProjectCompactionInputDropsRecoverableToolBodies(t *testing.T) {
 	largeBody := strings.Repeat("recoverable source line\n", 1000)
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleUser, Content: "Inspect the parser and preserve its current behavior."},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "I will inspect before editing.", ToolCalls: []zeroruntime.ToolCall{{ID: "read", Name: "read_file", Arguments: `{"path":"internal/parser.go"}`}}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "read", Content: largeBody},
-		{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{{ID: "test", Name: "exec_command", Arguments: `{"cmd":"go test ./internal/parser"}`}}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "test", Content: "Error: parser regression\nlong diagnostic details"},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleUser, Content: "Inspect the parser and preserve its current behavior."},
+		{Role: runeruntime.MessageRoleAssistant, Content: "I will inspect before editing.", ToolCalls: []runeruntime.ToolCall{{ID: "read", Name: "read_file", Arguments: `{"path":"internal/parser.go"}`}}},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "read", Content: largeBody},
+		{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{{ID: "test", Name: "exec_command", Arguments: `{"cmd":"go test ./internal/parser"}`}}},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "test", Content: "Error: parser regression\nlong diagnostic details"},
 	}
 
 	projection := projectCompactionInput(messages)
@@ -56,9 +56,9 @@ func TestProjectCompactionInputDropsRecoverableToolBodies(t *testing.T) {
 }
 
 func TestProjectCompactionInputRetainsStructurallyMarkedToolErrors(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{{ID: "git", Name: "exec_command", Arguments: `{"cmd":"git status"}`}}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "git", Content: "fatal: not a git repository", IsError: true},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{{ID: "git", Name: "exec_command", Arguments: `{"cmd":"git status"}`}}},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "git", Content: "fatal: not a git repository", IsError: true},
 	}
 
 	projected := projectCompactionInput(messages).messages
@@ -68,15 +68,15 @@ func TestProjectCompactionInputRetainsStructurallyMarkedToolErrors(t *testing.T)
 }
 
 func TestProjectCompactionInputRetainsAskUserExchangeAndSemanticArguments(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{{ID: "ask", Name: "ask_user", Arguments: `{"questions":[{"question":"Which database should remain?"}]}`}}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "ask", Content: "Which database should remain?: Postgres only; do not touch MySQL."},
-		{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{{ID: "ask", Name: "ask_user", Arguments: `{"questions":[{"question":"Which database should remain?"}]}`}}},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "ask", Content: "Which database should remain?: Postgres only; do not touch MySQL."},
+		{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{
 			{ID: "patch", Name: "apply_patch", Arguments: `{"patch":"*** Begin Patch\n*** Update File: internal/db.go\n*** End Patch"}`},
 			{ID: "fetch", Name: "web_fetch", Arguments: `{"url":"https://example.com/spec"}`},
 			{ID: "task", Name: "task", Arguments: `{"prompt":"Inspect the Windows implementation"}`},
 		}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "patch", Content: "Done!", ChangedFiles: []string{"internal/db.go"}},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "patch", Content: "Done!", ChangedFiles: []string{"internal/db.go"}},
 	}
 
 	content := projectCompactionInput(messages).messages[0].Content
@@ -88,11 +88,11 @@ func TestProjectCompactionInputRetainsAskUserExchangeAndSemanticArguments(t *tes
 }
 
 func TestProjectCompactionInputCapsToolCallsPerTurn(t *testing.T) {
-	calls := make([]zeroruntime.ToolCall, 12)
+	calls := make([]runeruntime.ToolCall, 12)
 	for index := range calls {
-		calls[index] = zeroruntime.ToolCall{Name: "read_file", Arguments: `{"path":"file.go"}`}
+		calls[index] = runeruntime.ToolCall{Name: "read_file", Arguments: `{"path":"file.go"}`}
 	}
-	projected := projectCompactionInput([]zeroruntime.Message{{Role: zeroruntime.MessageRoleAssistant, ToolCalls: calls}}).messages
+	projected := projectCompactionInput([]runeruntime.Message{{Role: runeruntime.MessageRoleAssistant, ToolCalls: calls}}).messages
 	content := projected[0].Content
 	if strings.Count(content, "* read_file") != compactionToolCallsPerTurn || !strings.Contains(content, "4 earlier tool calls omitted") {
 		t.Fatalf("tool-call tail was not bounded: %q", content)
@@ -101,10 +101,10 @@ func TestProjectCompactionInputCapsToolCallsPerTurn(t *testing.T) {
 
 func TestProjectCompactionInputCarriesPreviousSummaryOutsideBriefCap(t *testing.T) {
 	previous := "keep the earlier architecture decision\n" + strings.Repeat("prior detail ", 2000) + "\nkeep the newest prior decision"
-	messages := []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: summaryLabel + "\n" + previous + "\n\n" + preservedStateLabel + "\n{}"}}
+	messages := []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: summaryLabel + "\n" + previous + "\n\n" + preservedStateLabel + "\n{}"}}
 	for index := range 500 {
-		messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleAssistant, Content: strings.Repeat("later transcript detail ", 20)})
-		messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: "later request " + strings.Repeat("context ", 20) + string(rune('a'+index%26))})
+		messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleAssistant, Content: strings.Repeat("later transcript detail ", 20)})
+		messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: "later request " + strings.Repeat("context ", 20) + string(rune('a'+index%26))})
 	}
 
 	projection := projectCompactionInput(messages)
@@ -121,8 +121,8 @@ func TestProjectCompactionInputCarriesPreviousSummaryOutsideBriefCap(t *testing.
 }
 
 func TestProjectCompactionInputDoesNotInferTruncationFromUserText(t *testing.T) {
-	projection := projectCompactionInput([]zeroruntime.Message{{
-		Role: zeroruntime.MessageRoleUser, Content: "Keep this literal marker: [middle omitted]",
+	projection := projectCompactionInput([]runeruntime.Message{{
+		Role: runeruntime.MessageRoleUser, Content: "Keep this literal marker: [middle omitted]",
 	}})
 	if projection.truncated {
 		t.Fatal("literal user text produced a false truncation signal")

@@ -9,7 +9,7 @@ import (
 	"rune/internal/mcp"
 	"rune/internal/plugins"
 	"rune/internal/redaction"
-	"rune/internal/zerocommands"
+	"rune/internal/runecommands"
 )
 
 type backendStatusOptions struct {
@@ -119,64 +119,64 @@ func parseBackendsDoctorArgs(args []string) (backendDoctorOptions, bool, error) 
 	return options, false, nil
 }
 
-func backendLifecycleSnapshot(deps appDeps) (zerocommands.BackendLifecycleSnapshot, error) {
+func backendLifecycleSnapshot(deps appDeps) (runecommands.BackendLifecycleSnapshot, error) {
 	cwd, err := deps.getwd()
 	if err != nil {
-		return zerocommands.BackendLifecycleSnapshot{}, fmt.Errorf("failed to resolve workspace: %w", err)
+		return runecommands.BackendLifecycleSnapshot{}, fmt.Errorf("failed to resolve workspace: %w", err)
 	}
 
 	// Reporting/enumeration only, never spawns a server, so it is left ungated
 	// (excludeProject=false) to mirror the doctor/status hooks and plugins reports.
 	cfg, err := deps.resolveMCPConfig(cwd, false)
 	if err != nil {
-		return zerocommands.BackendLifecycleSnapshot{}, err
+		return runecommands.BackendLifecycleSnapshot{}, err
 	}
 	servers, err := mcp.NormalizeConfig(cfg)
 	if err != nil {
-		return zerocommands.BackendLifecycleSnapshot{}, err
+		return runecommands.BackendLifecycleSnapshot{}, err
 	}
 
 	hookResult, err := deps.loadHooks(hooks.LoadOptions{Cwd: cwd})
 	if err != nil {
-		return zerocommands.BackendLifecycleSnapshot{}, err
+		return runecommands.BackendLifecycleSnapshot{}, err
 	}
 	pluginResult, err := deps.loadPlugins(plugins.LoadOptions{Cwd: cwd})
 	if err != nil {
-		return zerocommands.BackendLifecycleSnapshot{}, err
+		return runecommands.BackendLifecycleSnapshot{}, err
 	}
 
-	return zerocommands.NewBackendLifecycleSnapshot(servers, hookResult.Config.Hooks, pluginResult.Plugins), nil
+	return runecommands.NewBackendLifecycleSnapshot(servers, hookResult.Config.Hooks, pluginResult.Plugins), nil
 }
 
-func backendDoctorReport(deps appDeps) (zerocommands.BackendDoctorReport, error) {
+func backendDoctorReport(deps appDeps) (runecommands.BackendDoctorReport, error) {
 	cwd, err := deps.getwd()
 	if err != nil {
-		return zerocommands.BackendDoctorReport{}, fmt.Errorf("failed to resolve workspace: %w", err)
+		return runecommands.BackendDoctorReport{}, fmt.Errorf("failed to resolve workspace: %w", err)
 	}
 
 	// Reporting/enumeration only, never spawns a server, so it is left ungated
 	// (excludeProject=false) to mirror the doctor/status hooks and plugins reports.
 	cfg, err := deps.resolveMCPConfig(cwd, false)
 	if err != nil {
-		return zerocommands.BackendDoctorReport{}, err
+		return runecommands.BackendDoctorReport{}, err
 	}
 	hookResult, err := deps.loadHooks(hooks.LoadOptions{Cwd: cwd})
 	if err != nil {
-		return zerocommands.BackendDoctorReport{}, err
+		return runecommands.BackendDoctorReport{}, err
 	}
 	pluginResult, err := deps.loadPlugins(plugins.LoadOptions{Cwd: cwd})
 	if err != nil {
-		return zerocommands.BackendDoctorReport{}, err
+		return runecommands.BackendDoctorReport{}, err
 	}
 
-	return zerocommands.NewBackendDoctorReport(zerocommands.BackendDoctorInput{
+	return runecommands.NewBackendDoctorReport(runecommands.BackendDoctorInput{
 		MCP:     cfg,
 		Hooks:   hookResult,
 		Plugins: pluginResult,
 	}), nil
 }
 
-func formatBackendLifecycleSnapshot(snapshot zerocommands.BackendLifecycleSnapshot) string {
+func formatBackendLifecycleSnapshot(snapshot runecommands.BackendLifecycleSnapshot) string {
 	lines := []string{"Rune Backends:"}
 	lines = append(lines, fmt.Sprintf("  MCP servers: %d", len(snapshot.MCPServers)))
 	for _, server := range snapshot.MCPServers {
@@ -225,7 +225,7 @@ func formatBackendLifecycleSnapshot(snapshot zerocommands.BackendLifecycleSnapsh
 	return strings.Join(lines, "\n")
 }
 
-func formatBackendDoctorReport(report zerocommands.BackendDoctorReport) string {
+func formatBackendDoctorReport(report runecommands.BackendDoctorReport) string {
 	lines := []string{
 		"Rune backend doctor",
 		"Overall: " + string(report.Status),

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"rune/internal/errhint"
+	"rune/internal/runeruntime"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 // Mid-stream reconnect: a long autonomous task (a big refactor, a swarm member,
@@ -74,7 +74,7 @@ func stallRetryNoticeFor(options Options) reconnectNotifier {
 // last error. A context-cancellation, a non-disconnect error, or a context
 // already past its deadline is returned immediately (no retry) — those have
 // their own handling (compaction for context-limit, image-rejection, etc.).
-func streamWithReconnect(ctx context.Context, provider Provider, request zeroruntime.CompletionRequest, notify reconnectNotifier) (<-chan zeroruntime.StreamEvent, error) {
+func streamWithReconnect(ctx context.Context, provider Provider, request runeruntime.CompletionRequest, notify reconnectNotifier) (<-chan runeruntime.StreamEvent, error) {
 	recorder := trace.FromContext(ctx)
 	stream, err := provider.StreamCompletion(ctx, request)
 	if err == nil {

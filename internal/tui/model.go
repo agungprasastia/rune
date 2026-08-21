@@ -31,6 +31,7 @@ import (
 	"rune/internal/providerhealth"
 	"rune/internal/providermodeldiscovery"
 	"rune/internal/providers/providerio"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/skills"
@@ -39,7 +40,6 @@ import (
 	"rune/internal/tools"
 	"rune/internal/usage"
 	"rune/internal/usercommands"
-	"rune/internal/zeroruntime"
 )
 
 const tuiToolOutputLimit = 240
@@ -83,8 +83,8 @@ type model struct {
 	modelCatalog                modelregistry.Registry
 	providerProfile             config.ProviderProfile
 	savedProviders              []config.ProviderProfile
-	provider                    zeroruntime.Provider
-	newProvider                 func(config.ProviderProfile) (zeroruntime.Provider, error)
+	provider                    runeruntime.Provider
+	newProvider                 func(config.ProviderProfile) (runeruntime.Provider, error)
 	probeProviderHealth         func(context.Context, providerhealth.Options) providerhealth.Result
 	discoverProviderModels      func(context.Context, config.ProviderProfile) ([]providermodeldiscovery.Model, error)
 	discoverOllamaContextWindow func(ctx context.Context, baseURL string, model string) (int, error)
@@ -397,7 +397,7 @@ type model struct {
 	// request — otherwise a vision/PDF-backed prompt would silently retry as
 	// text-only and answer a different task. They share the underlying image bytes
 	// with the sent turn (never mutated in place), so no deep copy is needed.
-	lastImages      []zeroruntime.ImageBlock
+	lastImages      []runeruntime.ImageBlock
 	lastImageLabels []string
 	lastDocuments   []pendingDocument
 	// historyIdx == len(inputHistory) means "not navigating"; historyDraft
@@ -559,7 +559,7 @@ type model struct {
 	// turn; pendingImageLabels are their display names (base(path)) for the chip
 	// row. Both are cleared after a prompt is submitted (or /image clear). nil =
 	// no attachments = today's text-only behavior exactly.
-	pendingImages      []zeroruntime.ImageBlock
+	pendingImages      []runeruntime.ImageBlock
 	pendingImageLabels []string
 	// pendingImageThumbnails are decoded previews for a bounded gallery of staged
 	// images. They are only rendered by terminals with an inline-image protocol;
@@ -574,7 +574,7 @@ type model struct {
 	// captureRunImages, when set, is invoked with the images a run is launched
 	// with. Nil in production; used by tests to assert image threading without a
 	// real provider round-trip.
-	captureRunImages func([]zeroruntime.ImageBlock)
+	captureRunImages func([]runeruntime.ImageBlock)
 }
 
 type agentTextMsg struct {
@@ -646,13 +646,13 @@ type agentReasoningMsg struct {
 type agentUsageMsg struct {
 	runID   int
 	modelID string
-	usage   zeroruntime.Usage
+	usage   runeruntime.Usage
 }
 
 type agentResponseMsg struct {
 	runID         int
 	rows          []transcriptRow
-	usageEvents   []zeroruntime.Usage
+	usageEvents   []runeruntime.Usage
 	usageModelID  string
 	sessionEvents []pendingSessionEvent
 	specReview    *pendingSpecReviewPrompt
@@ -5330,7 +5330,7 @@ func (m *model) cancelRun() {
 	m.resetStreamingFade()
 }
 
-func (m model) runAgent(runID int, runCtx context.Context, prompt string, images []zeroruntime.ImageBlock) tea.Cmd {
+func (m model) runAgent(runID int, runCtx context.Context, prompt string, images []runeruntime.ImageBlock) tea.Cmd {
 	return m.runAgentWithOptions(runID, runCtx, prompt, images, tuiAgentRunOptions{})
 }
 
@@ -5348,7 +5348,7 @@ func selfCorrectAutonomyForMode(mode agent.PermissionMode) string {
 	}
 }
 
-func (m model) runAgentWithOptions(runID int, runCtx context.Context, prompt string, images []zeroruntime.ImageBlock, runOptions tuiAgentRunOptions) tea.Cmd {
+func (m model) runAgentWithOptions(runID int, runCtx context.Context, prompt string, images []runeruntime.ImageBlock, runOptions tuiAgentRunOptions) tea.Cmd {
 	return func() tea.Msg {
 		started := m.now()
 		if m.turnTimer != nil {
@@ -5368,7 +5368,7 @@ func (m model) runAgentWithOptions(runID int, runCtx context.Context, prompt str
 		}
 		toolCalls := 0
 		rows := []transcriptRow{}
-		usageEvents := []zeroruntime.Usage{}
+		usageEvents := []runeruntime.Usage{}
 		sessionEvents := []pendingSessionEvent{}
 		usageModelID := m.modelName
 		var specReview *pendingSpecReviewPrompt
@@ -5785,7 +5785,7 @@ func (m model) runAgentWithOptions(runID int, runCtx context.Context, prompt str
 		}
 
 		onUsage := options.OnUsage
-		options.OnUsage = func(event zeroruntime.Usage) {
+		options.OnUsage = func(event runeruntime.Usage) {
 			usageEvents = append(usageEvents, event)
 			sessionEvents = append(sessionEvents, pendingSessionEvent{
 				Type:    sessions.EventUsage,
@@ -5933,7 +5933,7 @@ func (m model) sendAgentReasoning(runID int, delta string) {
 	m.runtimeMessageSink(agentReasoningMsg{runID: runID, delta: delta})
 }
 
-func (m model) sendAgentUsage(runID int, modelID string, event zeroruntime.Usage) {
+func (m model) sendAgentUsage(runID int, modelID string, event runeruntime.Usage) {
 	if m.runtimeMessageSink == nil {
 		return
 	}

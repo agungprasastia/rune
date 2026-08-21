@@ -10,15 +10,15 @@ import (
 	tea "charm.land/bubbletea/v2"
 
 	"rune/internal/agent"
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
 	"rune/internal/specmode"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 func TestSpecCommandCreatesDraftReview(t *testing.T) {
 	store := testSessionStore(t)
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		submitSpecScript("call-1", "Review Flow", "# Goal\n\nAdd review flow."),
 	}}
 	m := newSpecModeTestModel(t.TempDir(), provider, store)
@@ -52,7 +52,7 @@ func TestSpecCommandCreatesDraftReview(t *testing.T) {
 
 func TestSpecApproveStartsImplementationSession(t *testing.T) {
 	store := testSessionStore(t)
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		submitSpecScript("call-1", "Review Flow", "# Goal\n\nAdd review flow."),
 		textScript("implemented from approved spec"),
 	}}
@@ -117,8 +117,8 @@ func TestSpecReviewBlocksShiftTabModeCycle(t *testing.T) {
 }
 
 func TestSpecReviewCancelLaunchesQueuedPrompt(t *testing.T) {
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventDone},
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventDone},
 	}}}
 	m := newSpecModeTestModel(t.TempDir(), provider, testSessionStore(t))
 	m.pendingSpecReview = &pendingSpecReviewPrompt{SpecID: "spec", SpecFilePath: ".rune/specs/spec.md"}
@@ -151,7 +151,7 @@ func TestSpecReviewCancelLaunchesQueuedPrompt(t *testing.T) {
 
 func TestSpecReviewRejectLaunchesQueuedPrompt(t *testing.T) {
 	store := testSessionStore(t)
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		submitSpecScript("call-1", "Review Flow", "# Goal\n\nAdd review flow."),
 		textScript("queued after reject"),
 	}}
@@ -192,7 +192,7 @@ func TestSpecReviewRejectLaunchesQueuedPrompt(t *testing.T) {
 	}
 }
 
-func newSpecModeTestModel(root string, provider zeroruntime.Provider, store *sessions.Store) model {
+func newSpecModeTestModel(root string, provider runeruntime.Provider, store *sessions.Store) model {
 	registry := tools.NewRegistry()
 	for _, tool := range tools.CoreToolsScoped(root, nil) {
 		registry.Register(tool)
@@ -208,20 +208,20 @@ func newSpecModeTestModel(root string, provider zeroruntime.Provider, store *ses
 	})
 }
 
-func submitSpecScript(callID string, title string, plan string) []zeroruntime.StreamEvent {
+func submitSpecScript(callID string, title string, plan string) []runeruntime.StreamEvent {
 	args, _ := json.Marshal(map[string]string{
 		"title": title,
 		"plan":  plan,
 	})
-	return []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: specmode.SubmitToolName},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: string(args)},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: callID},
-		{Type: zeroruntime.StreamEventDone},
+	return []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: specmode.SubmitToolName},
+		{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: string(args)},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: callID},
+		{Type: runeruntime.StreamEventDone},
 	}
 }
 
-func providerRequestIncludesTool(request zeroruntime.CompletionRequest, name string) bool {
+func providerRequestIncludesTool(request runeruntime.CompletionRequest, name string) bool {
 	for _, tool := range request.Tools {
 		if tool.Name == name {
 			return true
@@ -230,7 +230,7 @@ func providerRequestIncludesTool(request zeroruntime.CompletionRequest, name str
 	return false
 }
 
-func providerRequestsContain(requests []zeroruntime.CompletionRequest, text string) bool {
+func providerRequestsContain(requests []runeruntime.CompletionRequest, text string) bool {
 	for _, request := range requests {
 		for _, message := range request.Messages {
 			if strings.Contains(message.Content, text) {
@@ -246,7 +246,7 @@ func providerRequestsContain(requests []zeroruntime.CompletionRequest, text stri
 // the normal prompt path set it. Both draft and impl now route through beginRun.
 func TestSpecLaunchesSeedElapsedClock(t *testing.T) {
 	store := testSessionStore(t)
-	provider := &scriptedProvider{scripts: [][]zeroruntime.StreamEvent{
+	provider := &scriptedProvider{scripts: [][]runeruntime.StreamEvent{
 		submitSpecScript("call-1", "Review Flow", "# Goal\n\nAdd review flow."),
 		textScript("implemented from approved spec"),
 	}}

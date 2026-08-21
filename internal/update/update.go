@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	DefaultRepository = "rune-ai/rune"
+	DefaultRepository = "agungprasastia/rune"
 	DefaultTimeout    = 5 * time.Second
 )
 
@@ -312,9 +312,7 @@ func upgradeGuidance(asset AssetCheck, sourceFlag string, installMethod InstallM
 		return guidance + " `rune upgrade` installs onto this machine (" + local + ") instead."
 	}
 	if sourceFlag != "" {
-		if installMethod == InstallMethodNpm {
-			return "This npm-managed installation can be updated with `npm install -g " + npmPackageName + "@latest`, which installs the official npm package. The custom `" + sourceFlag + "` source only affects the release check and update gating, not the npm install source."
-		}
+		_ = installMethod
 		return "Run `rune upgrade " + sourceFlag + "` to install from the source this check used; a bare `rune upgrade` does not repeat that explicit source flag."
 	}
 	return "Run `rune upgrade` to download, verify, and install the latest release."
@@ -441,12 +439,9 @@ func releasePlatform(goos string) (string, error) {
 		return "windows", nil
 	default:
 		// No prebuilt release archive is published for this GOOS (e.g.
-		// Android/Termux). This does not mean the platform is unsupported --
-		// Termux runs rune fine via the npm wrapper -- it just has no
-		// self-updating release asset. Point users at `npm update` rather
-		// than a source rebuild, since that's the documented Termux
-		// install/upgrade path and doesn't require a Go toolchain.
-		return "", fmt.Errorf("no published release for %q (release assets: linux, macos, windows). Your build is the current version of record. Upgrade with `npm update -g @rune-ai/rune` to get the latest.", goos) //nolint:staticcheck // Preserve established user-facing error text.
+		// Android/Termux). This does not mean the platform is unsupported; it
+		// simply has no self-updating release asset.
+		return "", fmt.Errorf("no published release for %q (release assets: linux, macos, windows). Your build is the current version of record. Build the latest Rune version from source.", goos)
 	}
 }
 

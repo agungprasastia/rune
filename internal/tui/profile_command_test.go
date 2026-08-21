@@ -8,7 +8,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/modelregistry"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // profileSwitchModel builds a session on a model whose catalog entry supports
@@ -26,7 +26,7 @@ func profileSwitchModel(t *testing.T) model {
 			{Name: "anthropic", CatalogID: "anthropic", Model: "claude-sonnet-4.5", APIKey: "k"},
 			{Name: "ollama", CatalogID: "ollama", ProviderKind: config.ProviderKindOpenAICompatible, BaseURL: "http://localhost:11434/v1", Model: "kimi-k2.7-code:cloud"},
 		},
-		NewProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return &fakeProvider{}, nil
 		},
 	})

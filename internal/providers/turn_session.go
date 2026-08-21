@@ -6,7 +6,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/providers/openai"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // openaiTurnSessionEnv gates the optimized OpenAI turn session (prewarm +
@@ -33,7 +33,7 @@ func openaiTurnSessionEnabled() bool {
 // No base-URL check on top of the kind: prewarm and fingerprint telemetry are
 // harmless against any host, and kind==openai mirrors the existing
 // official-OpenAI precedent used for prompt_cache_key.
-func OptimizedTurnSessions(profile config.ProviderProfile, provider zeroruntime.Provider, options Options) (zeroruntime.TurnSessionProvider, bool) {
+func OptimizedTurnSessions(profile config.ProviderProfile, provider runeruntime.Provider, options Options) (runeruntime.TurnSessionProvider, bool) {
 	if !openaiTurnSessionEnabled() {
 		return nil, false
 	}
@@ -63,10 +63,10 @@ func OptimizedTurnSessions(profile config.ProviderProfile, provider zeroruntime.
 // resolution failure degrades to an unknown (rune) projection rather than
 // failing the wrap: the default session has no behavior that depends on
 // capabilities, so a swap must never be blocked by a projection error.
-func DefaultTurnSessions(profile config.ProviderProfile, provider zeroruntime.Provider, options Options) zeroruntime.TurnSessionProvider {
+func DefaultTurnSessions(profile config.ProviderProfile, provider runeruntime.Provider, options Options) runeruntime.TurnSessionProvider {
 	caps, err := resolveCapabilities(profile, options)
 	if err != nil {
-		caps = zeroruntime.ProviderCapabilities{}
+		caps = runeruntime.ProviderCapabilities{}
 	}
-	return zeroruntime.NewProviderTurnSessionProvider(provider, caps)
+	return runeruntime.NewProviderTurnSessionProvider(provider, caps)
 }

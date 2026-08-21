@@ -13,8 +13,8 @@ import (
 	"rune/internal/config"
 	"rune/internal/oauth"
 	"rune/internal/providerhealth"
-	"rune/internal/zerocommands"
-	"rune/internal/zeroruntime"
+	"rune/internal/runecommands"
+	"rune/internal/runeruntime"
 )
 
 func TestRunConfigPrintsRedactedSummary(t *testing.T) {
@@ -239,7 +239,7 @@ func TestRunProvidersCatalogJSONIncludesDescriptors(t *testing.T) {
 		t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
 	var payload struct {
-		Providers []zerocommands.ProviderCatalogSnapshot `json:"providers"`
+		Providers []runecommands.ProviderCatalogSnapshot `json:"providers"`
 	}
 	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
 		t.Fatalf("decode providers catalog JSON: %v\n%s", err, stdout.String())
@@ -371,7 +371,7 @@ func TestRunProvidersAddAimlapiWritesDefaultHeaders(t *testing.T) {
 		t.Fatalf("unexpected provider profile: %#v", profile)
 	}
 	if profile.CustomHeaders["X-AIMLAPI-Partner-ID"] != "part_62yQoGYDq4Yqnrj2R1iGrDNJ" ||
-		profile.CustomHeaders["X-AIMLAPI-Integration-Repo"] != "rune-ai/rune" {
+		profile.CustomHeaders["X-AIMLAPI-Integration-Repo"] != "agungprasastia/rune" {
 		t.Fatalf("missing aimlapi.com default headers: %#v", profile.CustomHeaders)
 	}
 }
@@ -476,7 +476,7 @@ func TestRunProvidersCheckConstructsProvider(t *testing.T) {
 	var stderr bytes.Buffer
 	var checked config.ProviderProfile
 	deps := commandCenterDeps(t)
-	deps.newProvider = func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+	deps.newProvider = func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 		checked = profile
 		return commandCenterProvider{}, nil
 	}
@@ -520,7 +520,7 @@ func TestRunProvidersCheckConnectivityJSON(t *testing.T) {
 			},
 		}
 	}
-	deps.newProvider = func(config.ProviderProfile) (zeroruntime.Provider, error) {
+	deps.newProvider = func(config.ProviderProfile) (runeruntime.Provider, error) {
 		t.Fatal("newProvider should not run during connectivity health check")
 		return nil, nil
 	}
@@ -608,7 +608,7 @@ func TestRunProvidersCheckConnectivityJSONReturnsHealthFailure(t *testing.T) {
 		}
 		return config.ResolvedConfig{ActiveProvider: "local", Provider: profile, Providers: []config.ProviderProfile{profile}, MaxTurns: 7}, nil
 	}
-	deps.newProvider = func(config.ProviderProfile) (zeroruntime.Provider, error) {
+	deps.newProvider = func(config.ProviderProfile) (runeruntime.Provider, error) {
 		t.Fatal("newProvider should not run before emitting connectivity health")
 		return nil, nil
 	}
@@ -682,7 +682,7 @@ func TestRunProvidersCheckAcceptsAuthHeaderValueCredential(t *testing.T) {
 		}
 		return config.ResolvedConfig{ActiveProvider: "groq", Provider: profile, Providers: []config.ProviderProfile{profile}, MaxTurns: 7}, nil
 	}
-	deps.newProvider = func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+	deps.newProvider = func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 		checked = profile
 		return commandCenterProvider{}, nil
 	}
@@ -715,7 +715,7 @@ func TestRunProvidersCheckAcceptsOfficialAuthHeaderValueCredential(t *testing.T)
 		}
 		return config.ResolvedConfig{ActiveProvider: "manual-openai", Provider: profile, Providers: []config.ProviderProfile{profile}, MaxTurns: 7}, nil
 	}
-	deps.newProvider = func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+	deps.newProvider = func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 		checked = profile
 		return commandCenterProvider{}, nil
 	}
@@ -822,7 +822,7 @@ func commandCenterDeps(t *testing.T) appDeps {
 				MaxTurns:       7,
 			}, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return commandCenterProvider{}, nil
 		},
 	}
@@ -865,7 +865,7 @@ func providerCatalogDeps(t *testing.T) appDeps {
 			t.Fatalf("providers catalog should not resolve runtime config")
 			return config.ResolvedConfig{}, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			t.Fatalf("providers catalog should not construct runtime providers")
 			return nil, nil
 		},
@@ -894,7 +894,7 @@ func readFileConfig(t *testing.T, path string) config.FileConfig {
 	return cfg
 }
 
-func findProviderCatalogSnapshot(t *testing.T, snapshots []zerocommands.ProviderCatalogSnapshot, id string) zerocommands.ProviderCatalogSnapshot {
+func findProviderCatalogSnapshot(t *testing.T, snapshots []runecommands.ProviderCatalogSnapshot, id string) runecommands.ProviderCatalogSnapshot {
 	t.Helper()
 
 	for _, snapshot := range snapshots {
@@ -903,13 +903,13 @@ func findProviderCatalogSnapshot(t *testing.T, snapshots []zerocommands.Provider
 		}
 	}
 	t.Fatalf("catalog descriptor %q not found in %#v", id, snapshots)
-	return zerocommands.ProviderCatalogSnapshot{}
+	return runecommands.ProviderCatalogSnapshot{}
 }
 
 type commandCenterProvider struct{}
 
-func (commandCenterProvider) StreamCompletion(context.Context, zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
-	ch := make(chan zeroruntime.StreamEvent)
+func (commandCenterProvider) StreamCompletion(context.Context, runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
+	ch := make(chan runeruntime.StreamEvent)
 	close(ch)
 	return ch, nil
 }

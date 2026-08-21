@@ -5,8 +5,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 // stallProvider connects successfully (HTTP 200) but the stream emits a stall/idle
@@ -26,32 +26,32 @@ type stallProvider struct {
 	partialToolCall string
 }
 
-func (p *stallProvider) StreamCompletion(_ context.Context, _ zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (p *stallProvider) StreamCompletion(_ context.Context, _ runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	n := atomic.AddInt32(&p.calls, 1)
-	ch := make(chan zeroruntime.StreamEvent, 5)
+	ch := make(chan runeruntime.StreamEvent, 5)
 	if n <= p.stallBefore {
 		if p.partialText != "" {
-			ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventText, Content: p.partialText}
+			ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventText, Content: p.partialText}
 		}
 		if p.reasoningText != "" {
-			ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventReasoning, Content: p.reasoningText}
+			ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventReasoning, Content: p.reasoningText}
 		}
 		if p.partialToolCall != "" {
 			// A tool call that starts and streams a partial argument fragment but
 			// never gets StreamEventToolCallEnd, then the stream errors — exactly
 			// the gpt-5.x "began the big write_file then froze" shape.
-			ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "tc_1", ToolName: p.partialToolCall}
-			ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "tc_1", ArgumentsFragment: `{"path":"x.html","content":"<!doctype`}
+			ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "tc_1", ToolName: p.partialToolCall}
+			ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "tc_1", ArgumentsFragment: `{"path":"x.html","content":"<!doctype`}
 		}
-		ch <- zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		ch <- runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: "provider stream error: no output for 6m (the model produced nothing)",
 		}
 		close(ch)
 		return ch, nil
 	}
-	ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventText, Content: "done"}
-	ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone}
+	ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventText, Content: "done"}
+	ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventDone}
 	close(ch)
 	return ch, nil
 }

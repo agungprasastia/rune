@@ -48,7 +48,7 @@ import (
 	"strings"
 
 	"rune/internal/providers/providerio"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // Codex Responses API event type names. Only the ones the Codex backend
@@ -210,7 +210,7 @@ func newResponsesState() *responsesState {
 // Responses API wire format. System messages fold into a top-level
 // `instructions` field; everything else (user/assistant turns, tool
 // calls, tool results) becomes items in the `input` array.
-func (p *CodexProvider) buildResponsesRequest(request zeroruntime.CompletionRequest) (*responsesRequest, error) {
+func (p *CodexProvider) buildResponsesRequest(request runeruntime.CompletionRequest) (*responsesRequest, error) {
 	if p.inner == nil || strings.TrimSpace(p.inner.model) == "" {
 		return nil, errors.New("codex provider: model is required")
 	}
@@ -222,19 +222,19 @@ func (p *CodexProvider) buildResponsesRequest(request zeroruntime.CompletionRequ
 	instructions := []string{}
 	for _, msg := range request.Messages {
 		switch msg.Role {
-		case zeroruntime.MessageRoleSystem:
+		case runeruntime.MessageRoleSystem:
 			if content := strings.TrimSpace(msg.Content); content != "" {
 				instructions = append(instructions, content)
 			}
-		case zeroruntime.MessageRoleUser:
+		case runeruntime.MessageRoleUser:
 			req.Input = append(req.Input, p.userInputItem(msg))
-		case zeroruntime.MessageRoleAssistant:
+		case runeruntime.MessageRoleAssistant:
 			items, err := p.assistantInputItems(msg)
 			if err != nil {
 				return nil, err
 			}
 			req.Input = append(req.Input, items...)
-		case zeroruntime.MessageRoleTool:
+		case runeruntime.MessageRoleTool:
 			if msg.ToolCallID == "" {
 				return nil, fmt.Errorf("codex provider: tool message missing tool call id")
 			}
@@ -276,7 +276,7 @@ func (p *CodexProvider) buildResponsesRequest(request zeroruntime.CompletionRequ
 // one input_text part (and one input_image part per attached image, if
 // any). The image bytes are base64-encoded into a data: URI exactly like
 // the chat-completions transport does.
-func (p *CodexProvider) userInputItem(msg zeroruntime.Message) inputItem {
+func (p *CodexProvider) userInputItem(msg runeruntime.Message) inputItem {
 	parts := []contentItem{}
 	if msg.Content != "" {
 		parts = append(parts, contentItem{Type: "input_text", Text: msg.Content})
@@ -296,7 +296,7 @@ func (p *CodexProvider) userInputItem(msg zeroruntime.Message) inputItem {
 // per tool call. Tool-call IDs use ToolCall.ID directly — Responses
 // accepts `id` and `call_id` interchangeably, and the runtime already
 // guarantees non-empty IDs at construction time.
-func (p *CodexProvider) assistantInputItems(msg zeroruntime.Message) ([]inputItem, error) {
+func (p *CodexProvider) assistantInputItems(msg runeruntime.Message) ([]inputItem, error) {
 	items := []inputItem{}
 	if msg.Content != "" {
 		items = append(items, inputItem{
@@ -332,7 +332,7 @@ func (p *CodexProvider) assistantInputItems(msg zeroruntime.Message) ([]inputIte
 func (p *CodexProvider) streamResponses(
 	ctx context.Context,
 	body []byte,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) {
 	streamCtx, cancelStream := context.WithCancel(ctx)
 	defer cancelStream()
@@ -361,21 +361,21 @@ func (p *CodexProvider) streamResponses(
 		// mislabeled as upstream outages (same posture as the openai
 		// provider's stream()).
 		if ctxErr := ctx.Err(); ctxErr != nil {
-			providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-				Type:  zeroruntime.StreamEventError,
+			providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+				Type:  runeruntime.StreamEventError,
 				Error: p.redact("provider stream error: " + ctxErr.Error()),
 			})
 			return
 		}
 		if humanized, ok := providerio.UpstreamUnreachable(err.Error()); ok {
-			providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-				Type:  zeroruntime.StreamEventError,
+			providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+				Type:  runeruntime.StreamEventError,
 				Error: p.redact(humanized),
 			})
 			return
 		}
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact("provider stream error: " + err.Error()),
 		})
 		return
@@ -394,15 +394,15 @@ func (p *CodexProvider) streamResponses(
 		return p.emitResponsesEvent(ctx, data, state, events)
 	})
 	if errors.Is(err, providerio.ErrStreamIdle) || errors.Is(err, providerio.ErrStreamStalled) {
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact("provider stream error: " + providerio.StreamTimeoutMessage(err, inner.streamIdleTimeout)),
 		})
 		return
 	}
 	if err != nil && !errors.Is(err, context.Canceled) {
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact("provider stream error: " + err.Error()),
 		})
 		return
@@ -411,9 +411,9 @@ func (p *CodexProvider) streamResponses(
 		// The Codex backend closed the stream without emitting response.completed
 		// (e.g. it ran out of output tokens or hit an internal limit). Surface a
 		// length-truncation finish so the runtime can react.
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:         zeroruntime.StreamEventDone,
-			FinishReason: zeroruntime.FinishReasonLength,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:         runeruntime.StreamEventDone,
+			FinishReason: runeruntime.FinishReasonLength,
 		})
 	}
 }
@@ -425,7 +425,7 @@ func (p *CodexProvider) streamResponses(
 func (p *CodexProvider) emitResponsesHTTPError(
 	ctx context.Context,
 	response *http.Response,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) {
 	body, _ := io.ReadAll(io.LimitReader(response.Body, 64*1024))
 	// The Codex backend may return either the chat-completions error shape
@@ -449,14 +449,14 @@ func (p *CodexProvider) emitResponsesHTTPError(
 		message = response.Status
 	}
 	if humanized, ok := providerio.UpstreamUnreachable(message); ok {
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact(humanized),
 		})
 		return
 	}
-	providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-		Type:  zeroruntime.StreamEventError,
+	providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+		Type:  runeruntime.StreamEventError,
 		Error: p.classifiedError(response.StatusCode, message),
 	})
 }
@@ -468,12 +468,12 @@ func (p *CodexProvider) emitResponsesEvent(
 	ctx context.Context,
 	data string,
 	state *responsesState,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) bool {
 	var event responsesEvent
 	if err := json.Unmarshal([]byte(data), &event); err != nil {
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact("provider stream error: malformed Responses event: " + err.Error()),
 		})
 		state.done = true
@@ -485,8 +485,8 @@ func (p *CodexProvider) emitResponsesEvent(
 		// tells us how to interpret the rest of the payload. Surface it as
 		// a stream error so the runtime doesn't hang on a phantom
 		// completion that will never come.
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact("provider stream error: Responses event missing required `type` field"),
 		})
 		state.done = true
@@ -506,8 +506,8 @@ func (p *CodexProvider) emitResponsesEvent(
 		return true
 	case responsesEventOutputTextDelta:
 		if event.Delta != "" {
-			providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-				Type:    zeroruntime.StreamEventText,
+			providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+				Type:    runeruntime.StreamEventText,
 				Content: event.Delta,
 			})
 		}
@@ -517,8 +517,8 @@ func (p *CodexProvider) emitResponsesEvent(
 		// phase shows progress (and keeps the activity clock fresh) instead of
 		// looking like a hang. Requested via reasoning.summary="auto".
 		if event.Delta != "" {
-			providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-				Type:    zeroruntime.StreamEventReasoning,
+			providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+				Type:    runeruntime.StreamEventReasoning,
 				Content: event.Delta,
 			})
 		}
@@ -539,8 +539,8 @@ func (p *CodexProvider) emitResponsesEvent(
 		if message == "" {
 			message = "provider error"
 		}
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact(message),
 		})
 		state.done = true
@@ -564,7 +564,7 @@ func (p *CodexProvider) handleOutputItemAdded(
 	ctx context.Context,
 	event *responsesEvent,
 	state *responsesState,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) {
 	if event.Item == nil {
 		return
@@ -580,8 +580,8 @@ func (p *CodexProvider) handleOutputItemAdded(
 			Name: event.Item.Name,
 		}
 		state.toolCalls[key] = builder
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:       zeroruntime.StreamEventToolCallStart,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:       runeruntime.StreamEventToolCallStart,
 			ToolCallID: key,
 			ToolName:   event.Item.Name,
 		})
@@ -597,7 +597,7 @@ func (p *CodexProvider) handleFunctionArgsDelta(
 	ctx context.Context,
 	event *responsesEvent,
 	state *responsesState,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) {
 	key := p.toolCallKey(event)
 	if key == "" {
@@ -614,8 +614,8 @@ func (p *CodexProvider) handleFunctionArgsDelta(
 		state.toolCalls[key] = builder
 	}
 	builder.Arguments.WriteString(event.Delta)
-	providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-		Type:              zeroruntime.StreamEventToolCallDelta,
+	providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+		Type:              runeruntime.StreamEventToolCallDelta,
 		ToolCallID:        key,
 		ArgumentsFragment: event.Delta,
 	})
@@ -630,7 +630,7 @@ func (p *CodexProvider) handleOutputItemDone(
 	ctx context.Context,
 	event *responsesEvent,
 	state *responsesState,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) {
 	if event.Item == nil || event.Item.Type != "function_call" {
 		return
@@ -651,15 +651,15 @@ func (p *CodexProvider) handleOutputItemDone(
 		builder.Arguments.WriteString(event.Item.Arguments)
 	}
 	if !builder.started {
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:       zeroruntime.StreamEventToolCallStart,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:       runeruntime.StreamEventToolCallStart,
 			ToolCallID: key,
 			ToolName:   builder.Name,
 		})
 		builder.started = true
 	}
-	providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-		Type:       zeroruntime.StreamEventToolCallEnd,
+	providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+		Type:       runeruntime.StreamEventToolCallEnd,
 		ToolCallID: key,
 		ToolName:   builder.Name,
 	})
@@ -674,7 +674,7 @@ func (p *CodexProvider) handleTerminalResponse(
 	ctx context.Context,
 	event *responsesEvent,
 	state *responsesState,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) bool {
 	if event.Response == nil {
 		// A terminal event with no Response payload must still emit a terminal
@@ -682,19 +682,19 @@ func (p *CodexProvider) handleTerminalResponse(
 		// that masks a real failure (M2). A response.failed without a payload is an
 		// error; a response.completed without one is just an empty (but clean) turn.
 		if event.Type == responsesEventFailed {
-			providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-				Type:  zeroruntime.StreamEventError,
+			providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+				Type:  runeruntime.StreamEventError,
 				Error: "codex: response.failed with no error detail",
 			})
 		} else {
-			providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone})
+			providerio.SendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventDone})
 		}
 		state.done = true
 		return false
 	}
 	state.usage = event.Response.Usage
 	if event.Response.Usage != nil {
-		usage := zeroruntime.Usage{
+		usage := runeruntime.Usage{
 			InputTokens:  event.Response.Usage.InputTokens,
 			OutputTokens: event.Response.Usage.OutputTokens,
 		}
@@ -704,14 +704,14 @@ func (p *CodexProvider) handleTerminalResponse(
 		if event.Response.Usage.OutputTokensDetails != nil {
 			usage.ReasoningTokens = event.Response.Usage.OutputTokensDetails.ReasoningTokens
 		}
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventUsage,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventUsage,
 			Usage: usage,
 		})
 	}
 	if event.Response.Error != nil {
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: p.redact(event.Response.Error.Message),
 		})
 		state.done = true
@@ -728,14 +728,14 @@ func (p *CodexProvider) handleTerminalResponse(
 		if status := strings.TrimSpace(event.Response.Status); status != "" {
 			msg = fmt.Sprintf("codex: response.failed (status %q) with no error detail", status)
 		}
-		providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:  zeroruntime.StreamEventError,
+		providerio.SendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:  runeruntime.StreamEventError,
 			Error: msg,
 		})
 		state.done = true
 		return false
 	}
-	providerio.SendEvent(ctx, events, zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone})
+	providerio.SendEvent(ctx, events, runeruntime.StreamEvent{Type: runeruntime.StreamEventDone})
 	state.done = true
 	return false
 }

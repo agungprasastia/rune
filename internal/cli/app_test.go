@@ -17,11 +17,11 @@ import (
 	"rune/internal/agent"
 	"rune/internal/config"
 	"rune/internal/mcp"
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
 	"rune/internal/tui"
 	"rune/internal/update"
 	"rune/internal/workspacetrust"
-	"rune/internal/zeroruntime"
 )
 
 var errWriteFailed = errors.New("write failed")
@@ -135,7 +135,7 @@ func TestRunNoArgsLaunchesSetupTUIWithNilProviderWhenNoProviderConfigured(t *tes
 			}
 			return config.ResolvedConfig{MaxTurns: 12}, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			t.Fatal("newProvider should not be called without a resolved provider")
 			return nil, nil
 		},
@@ -284,7 +284,7 @@ func TestRunNoArgsEntersSetupWhenResolveReportsNoActiveProvider(t *testing.T) {
 		resolveConfig: func(workspaceRoot string, overrides config.Overrides) (config.ResolvedConfig, error) {
 			return config.ResolvedConfig{}, fmt.Errorf("%w: active provider %q not found", config.ErrNoActiveProvider, "ghost")
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			t.Fatal("newProvider should not be called without a resolved provider")
 			return nil, nil
 		},
@@ -345,7 +345,7 @@ func TestRunNoArgsFallsBackToUsableProviderWhenNoneMarkedActive(t *testing.T) {
 			return config.ResolvedConfig{Providers: []config.ProviderProfile{usable}},
 				fmt.Errorf("%w: active provider %q not found", config.ErrNoActiveProvider, "")
 		},
-		newProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			providerProfile = profile
 			return fake, nil
 		},
@@ -687,7 +687,7 @@ func TestRunNoArgsLaunchesTUIWithResolvedProviderMetadata(t *testing.T) {
 				MaxTurns:    5,
 			}, nil
 		},
-		newProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			providerProfile = profile
 			return fake, nil
 		},
@@ -1163,7 +1163,7 @@ func TestRunSetupNoArgsForcesSetupTUI(t *testing.T) {
 				MaxTurns: 3,
 			}, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return &cliFakeProvider{}, nil
 		},
 		registerMCPTools: func(context.Context, *tools.Registry, config.MCPConfig, mcp.RegisterOptions) (mcpToolRuntime, error) {
@@ -1229,7 +1229,7 @@ func TestRunUpdateCheckTextAndJSON(t *testing.T) {
 	result := update.Result{
 		CurrentVersion: "dev",
 		LatestVersion:  "0.2.0",
-		ReleaseURL:     "https://github.com/rune-ai/rune/releases/tag/v0.2.0",
+		ReleaseURL:     "https://github.com/agungprasastia/rune/releases/tag/v0.2.0",
 		TagName:        "v0.2.0",
 		ReleaseAsset: update.AssetCheck{
 			Platform:      "linux",
@@ -1480,7 +1480,7 @@ func TestRunUpdateReportsUpToDate(t *testing.T) {
 			return update.Result{
 				CurrentVersion:  "dev",
 				LatestVersion:   "dev",
-				ReleaseURL:      "https://github.com/rune-ai/rune/releases/tag/dev",
+				ReleaseURL:      "https://github.com/agungprasastia/rune/releases/tag/dev",
 				TagName:         "dev",
 				UpdateAvailable: false,
 			}, nil
@@ -1750,8 +1750,8 @@ func TestRunRejectsUnknownCommand(t *testing.T) {
 
 type cliFakeProvider struct{}
 
-func (cliFakeProvider) StreamCompletion(context.Context, zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
-	ch := make(chan zeroruntime.StreamEvent)
+func (cliFakeProvider) StreamCompletion(context.Context, runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
+	ch := make(chan runeruntime.StreamEvent)
 	close(ch)
 	return ch, nil
 }
@@ -1882,7 +1882,7 @@ func TestRunNoArgsEntersSetupWhenActiveProviderMissesModel(t *testing.T) {
 		resolveConfig: func(string, config.Overrides) (config.ResolvedConfig, error) {
 			return config.Resolve(config.ResolveOptions{UserConfigPath: brokenConfig, Env: map[string]string{}})
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			t.Fatal("newProvider must not be called without a resolved provider")
 			return nil, nil
 		},

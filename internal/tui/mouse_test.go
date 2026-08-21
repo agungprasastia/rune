@@ -9,9 +9,9 @@ import (
 	"charm.land/lipgloss/v2"
 
 	"rune/internal/config"
+	"rune/internal/runeruntime"
 	"rune/internal/terminalpet"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 func TestMouseClickSelectsThenAppliesCommandSuggestionRow(t *testing.T) {
@@ -256,7 +256,7 @@ func TestComposerMouseClickMovesCursor(t *testing.T) {
 func TestComposerMouseClickMovesCursorBelowImageThumbnail(t *testing.T) {
 	m := mouseTestModel()
 	m.attachmentRenderers = []*terminalpet.ImageRenderer{terminalpet.NewImageRenderer(terminalpet.ImageSupport{Protocol: terminalpet.ImageProtocolKitty})}
-	m.pendingImages = []zeroruntime.ImageBlock{previewImageBlock(t)}
+	m.pendingImages = []runeruntime.ImageBlock{previewImageBlock(t)}
 	m.refreshPendingImageThumbnail()
 	m.input.SetValue("hello world")
 

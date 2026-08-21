@@ -276,7 +276,7 @@ func aimlapi() Descriptor {
 	descriptor := openAICompat(AIMLAPIID, "aimlapi.com", "https://api.aimlapi.com/v1", "anthropic/claude-sonnet-5", []string{"AIMLAPI_API_KEY"}, "aimlapi", "aiml api", "ai/ml api", "ai ml api")
 	descriptor.CustomHeaders = map[string]string{
 		"X-AIMLAPI-Partner-ID":          "part_62yQoGYDq4Yqnrj2R1iGrDNJ",
-		"X-AIMLAPI-Integration-Repo":    "rune-ai/rune",
+		"X-AIMLAPI-Integration-Repo":    "agungprasastia/rune",
 		"X-AIMLAPI-Integration-Version": "rune",
 	}
 	// Onboarding is key-based only: the TUI sub-flow takes an existing key or an

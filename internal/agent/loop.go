@@ -14,11 +14,11 @@ import (
 	"rune/internal/execution"
 	"rune/internal/hooks"
 	"rune/internal/redaction"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/streamjson"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 const maxTurnsAnswer = "Agent reached maximum number of turns without a final answer."
@@ -153,7 +153,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 	// with no session hooks fired and nothing to unwind.
 	turnSessions := options.TurnSessionProvider
 	if turnSessions == nil {
-		turnSessions = zeroruntime.NewProviderTurnSessionProvider(provider, zeroruntime.ProviderCapabilities{})
+		turnSessions = runeruntime.NewProviderTurnSessionProvider(provider, runeruntime.ProviderCapabilities{})
 	}
 	session, sessionErr := turnSessions.OpenTurnSession(ctx)
 	if sessionErr != nil {
@@ -197,7 +197,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		serviceTier:    options.ServiceTier,
 		promptParts:    promptParts,
 	})
-	messages := zeroruntime.SeedMessagesWithImages(promptParts.prompt, prompt, options.Images)
+	messages := runeruntime.SeedMessagesWithImages(promptParts.prompt, prompt, options.Images)
 
 	guards := newGuardState()
 	task := newTaskState(prompt, options.Trace)
@@ -263,7 +263,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 	// toolDefCache memoizes each tool's rendered JSON-schema definition across
 	// turns (a tool's advertised schema is stable for the run), so partitionTools
 	// doesn't re-run the recursive schema→map conversion for every tool every turn.
-	toolDefCache := map[string]zeroruntime.ToolDefinition{}
+	toolDefCache := map[string]runeruntime.ToolDefinition{}
 
 	result = Result{Messages: copyMessages(messages)}
 	dispatchSessionStart(ctx, options)
@@ -282,8 +282,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		// A brief wait at most (asyncDiagnosticsDrainTimeout); an unfinished check
 		// simply delivers on a later turn.
 		if nudge := postEditDiagnostics.drain(ctx); nudge != "" {
-			messages = append(messages, zeroruntime.Message{
-				Role:    zeroruntime.MessageRoleUser,
+			messages = append(messages, runeruntime.Message{
+				Role:    runeruntime.MessageRoleUser,
 				Content: nudge,
 			})
 		}
@@ -354,7 +354,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		// before the append), so the retry re-sends clean context with no
 		// conversation-state duplication.
 		forwardedVisibleText := false
-		forwardingOpts := zeroruntime.CollectOptions{OnUsage: options.OnUsage}
+		forwardingOpts := runeruntime.CollectOptions{OnUsage: options.OnUsage}
 		// Install text/reasoning forwarding handlers whenever EITHER a user
 		// callback OR a trace recorder is set. A headless traced run (e.g. `rune
 		// exec --trace`) sets Trace but no OnText/OnReasoning; without these
@@ -401,7 +401,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		// gets one compaction + reactive reissue (omitting visible callbacks, since
 		// any pre-error output was already forwarded). It returns the possibly-updated
 		// collected and a non-nil stop error when the run must end now.
-		recoverStreamError := func(collected zeroruntime.CollectedStream) (zeroruntime.CollectedStream, error) {
+		recoverStreamError := func(collected runeruntime.CollectedStream) (runeruntime.CollectedStream, error) {
 			if isImageRejectionError(errors.New(collected.Error)) {
 				return collected, fmt.Errorf("model %s rejected the image: %s. The model may not support image input — try switching to a vision-capable model (claude, gpt-4o, gemini)", options.Model, collected.Error)
 			}
@@ -423,7 +423,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 					return collected, retryStreamErr
 				}
 				genSpan := options.Trace.Span(trace.SpanGeneration)
-				collected = zeroruntime.CollectStreamWithOptions(ctx, retryStream, zeroruntime.CollectOptions{
+				collected = runeruntime.CollectStreamWithOptions(ctx, retryStream, runeruntime.CollectOptions{
 					OnUsage: options.OnUsage,
 				})
 				genSpan.End()
@@ -432,7 +432,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		}
 
 		generationSpan := options.Trace.Span(trace.SpanGeneration)
-		collected := zeroruntime.CollectStreamWithOptions(ctx, stream, forwardingOpts)
+		collected := runeruntime.CollectStreamWithOptions(ctx, stream, forwardingOpts)
 		generationSpan.End()
 		if collected.Error != "" {
 			updated, stop := recoverStreamError(collected)
@@ -484,7 +484,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 				return result, retryErr
 			}
 			stallGenSpan := options.Trace.Span(trace.SpanGeneration)
-			collected = zeroruntime.CollectStreamWithOptions(ctx, retryStream, forwardingOpts)
+			collected = runeruntime.CollectStreamWithOptions(ctx, retryStream, forwardingOpts)
 			stallGenSpan.End()
 		}
 		if collected.Error != "" {
@@ -518,8 +518,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		// tool-call turn normalizes to "" and clears any prior reason.
 		result.FinishReason = collected.FinishReason
 
-		messages = append(messages, zeroruntime.Message{
-			Role:      zeroruntime.MessageRoleAssistant,
+		messages = append(messages, runeruntime.Message{
+			Role:      runeruntime.MessageRoleAssistant,
 			Content:   collected.Text,
 			ToolCalls: historySafeToolCalls(collected.ToolCalls),
 			// Preserve thinking blocks so the next turn can replay them; providers
@@ -533,8 +533,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 			// This path is handled before the no-output guard so a dropped-call
 			// turn is never counted as a runaway empty turn.
 			if collected.DroppedToolCalls > 0 {
-				messages = append(messages, zeroruntime.Message{
-					Role:    zeroruntime.MessageRoleUser,
+				messages = append(messages, runeruntime.Message{
+					Role:    runeruntime.MessageRoleUser,
 					Content: droppedToolCallNotice,
 				})
 				continue
@@ -550,8 +550,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 			if strings.TrimSpace(collected.Text) == "" {
 				// Empty-but-under-cap turn: nudge the model to make progress
 				// rather than treating the empty response as a final answer.
-				messages = append(messages, zeroruntime.Message{
-					Role: zeroruntime.MessageRoleUser,
+				messages = append(messages, runeruntime.Message{
+					Role: runeruntime.MessageRoleUser,
 					Content: "Your previous response had no visible output and no tool calls. " +
 						"Continue the task by using a tool or reply with your final answer.",
 				})
@@ -580,14 +580,14 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 					switch evaluation.Action {
 					case completionActionContinue:
 						options.Trace.Counter(trace.CounterCompletionNudges, 1)
-						messages = append(messages, zeroruntime.Message{
-							Role:    zeroruntime.MessageRoleUser,
+						messages = append(messages, runeruntime.Message{
+							Role:    runeruntime.MessageRoleUser,
 							Content: continueNudge(evaluation.Reason),
 						})
 					case completionActionSemanticCheck:
 						options.Trace.Counter(trace.CounterAcceptanceChecks, 1)
-						messages = append(messages, zeroruntime.Message{
-							Role:    zeroruntime.MessageRoleUser,
+						messages = append(messages, runeruntime.Message{
+							Role:    runeruntime.MessageRoleUser,
 							Content: acceptanceVerificationNudge(completionContext.Objective),
 						})
 					}
@@ -605,8 +605,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 			// the model one more turn to see (and fix) it instead of being lost.
 			// Free for runs that never edited: an idle collector returns "".
 			if nudge := postEditDiagnostics.drainFinal(ctx); nudge != "" {
-				messages = append(messages, zeroruntime.Message{
-					Role:    zeroruntime.MessageRoleUser,
+				messages = append(messages, runeruntime.Message{
+					Role:    runeruntime.MessageRoleUser,
 					Content: nudge,
 				})
 				continue
@@ -647,7 +647,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		// into one user block list and requires the tool_result blocks first, so
 		// interleaving yields [tool_result, text, image, tool_result] and a 400.
 		// Same reason the self-correction feedback below is deferred.
-		var toolImageMessages []zeroruntime.Message
+		var toolImageMessages []runeruntime.Message
 		// Parallel read-ahead state: results for calls[precomputedStart:precomputedEnd]
 		// executed concurrently, consumed strictly in order below.
 		var precomputed []precomputedToolResult
@@ -696,8 +696,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 			if turnRequestedModel == "" && toolResult.RequestedModel != "" {
 				turnRequestedModel = toolResult.RequestedModel
 			}
-			messages = append(messages, zeroruntime.Message{
-				Role:         zeroruntime.MessageRoleTool,
+			messages = append(messages, runeruntime.Message{
+				Role:         runeruntime.MessageRoleTool,
 				Content:      toolResult.ModelOutput(),
 				ToolCallID:   toolResult.ToolCallID,
 				IsError:      toolResult.Status == tools.StatusError,
@@ -786,8 +786,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 			posture.observeSelfCorrect(selfCorrectOutcome)
 			task.observe(taskStateEvent{kind: taskStateEventVerification, verification: selfCorrectOutcome})
 			if feedback != "" {
-				messages = append(messages, zeroruntime.Message{
-					Role:    zeroruntime.MessageRoleUser,
+				messages = append(messages, runeruntime.Message{
+					Role:    runeruntime.MessageRoleUser,
 					Content: feedback,
 				})
 			}
@@ -804,7 +804,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 			// optimized session (and capabilities) across the swap. The legacy
 			// ModelSwitcher fallback returns a bare Provider, wrapped in the
 			// default no-op session — identical to pre-seam behavior.
-			var newSessions zeroruntime.TurnSessionProvider
+			var newSessions runeruntime.TurnSessionProvider
 			var switchErr error
 			if options.ModelSessionSwitcher != nil {
 				newSessions, switchErr = options.ModelSessionSwitcher(ctx, turnRequestedModel)
@@ -812,12 +812,12 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 				var newProvider Provider
 				newProvider, switchErr = options.ModelSwitcher(ctx, turnRequestedModel)
 				if switchErr == nil && newProvider != nil {
-					newSessions = zeroruntime.NewProviderTurnSessionProvider(newProvider, zeroruntime.ProviderCapabilities{})
+					newSessions = runeruntime.NewProviderTurnSessionProvider(newProvider, runeruntime.ProviderCapabilities{})
 				}
 			}
 			if switchErr != nil {
-				messages = append(messages, zeroruntime.Message{
-					Role:    zeroruntime.MessageRoleUser,
+				messages = append(messages, runeruntime.Message{
+					Role:    runeruntime.MessageRoleUser,
 					Content: escalationFailedNoticePrefix + " (" + turnRequestedModel + "): " + switchErr.Error() + ". Continuing on " + options.Model + ".",
 				})
 			} else if newSessions != nil {
@@ -828,8 +828,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 				// and prewarm matter once a session holds real state.
 				newSession, openErr := newSessions.OpenTurnSession(ctx)
 				if openErr != nil {
-					messages = append(messages, zeroruntime.Message{
-						Role:    zeroruntime.MessageRoleUser,
+					messages = append(messages, runeruntime.Message{
+						Role:    runeruntime.MessageRoleUser,
 						Content: escalationFailedNoticePrefix + " (" + turnRequestedModel + "): " + openErr.Error() + ". Continuing on " + options.Model + ".",
 					})
 				} else {
@@ -858,8 +858,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		// silently ignored just because the turn also did real work. This is
 		// independent of (and additive to) the failure-hint / plan-reminder nudges.
 		if collected.DroppedToolCalls > 0 {
-			messages = append(messages, zeroruntime.Message{
-				Role:    zeroruntime.MessageRoleUser,
+			messages = append(messages, runeruntime.Message{
+				Role:    runeruntime.MessageRoleUser,
 				Content: droppedToolCallNotice,
 			})
 		}
@@ -868,18 +868,18 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		// planning reminders — fixing the failing call matters more than plan
 		// hygiene. Both are light, one-shot, user-role nudges.
 		if failureHint != "" {
-			messages = append(messages, zeroruntime.Message{
-				Role:    zeroruntime.MessageRoleUser,
+			messages = append(messages, runeruntime.Message{
+				Role:    runeruntime.MessageRoleUser,
 				Content: failureHint,
 			})
 		} else if reminder := guards.progressReminder(); reminder != "" {
-			messages = append(messages, zeroruntime.Message{
-				Role:    zeroruntime.MessageRoleUser,
+			messages = append(messages, runeruntime.Message{
+				Role:    runeruntime.MessageRoleUser,
 				Content: reminder,
 			})
 		} else if reminder := guards.planReminder(result.Turns); reminder != "" {
-			messages = append(messages, zeroruntime.Message{
-				Role:    zeroruntime.MessageRoleUser,
+			messages = append(messages, runeruntime.Message{
+				Role:    runeruntime.MessageRoleUser,
 				Content: reminder,
 			})
 		}
@@ -906,8 +906,8 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 	// there is no later turn to defer to — otherwise an error introduced by
 	// the final edit would go unreported in the summary.
 	if nudge := postEditDiagnostics.drainFinal(ctx); nudge != "" {
-		messages = append(messages, zeroruntime.Message{
-			Role:    zeroruntime.MessageRoleUser,
+		messages = append(messages, runeruntime.Message{
+			Role:    runeruntime.MessageRoleUser,
 			Content: nudge,
 		})
 	}
@@ -994,10 +994,10 @@ func recordContextPlanTrace(recorder *trace.Recorder, plan contextPlan) {
 	})
 }
 
-func finalAnswerAfterMaxTurns(ctx context.Context, provider Provider, planner *contextPlanner, messages []zeroruntime.Message, toolDefs []zeroruntime.ToolDefinition, options Options) (string, []zeroruntime.Message, string) {
+func finalAnswerAfterMaxTurns(ctx context.Context, provider Provider, planner *contextPlanner, messages []runeruntime.Message, toolDefs []runeruntime.ToolDefinition, options Options) (string, []runeruntime.Message, string) {
 	finalMessages := copyMessages(messages)
-	finalMessages = append(finalMessages, zeroruntime.Message{
-		Role:    zeroruntime.MessageRoleUser,
+	finalMessages = append(finalMessages, runeruntime.Message{
+		Role:    runeruntime.MessageRoleUser,
 		Content: maxTurnsFinalAnswerPrompt,
 	})
 	// The max-turns final-answer call is a pre-content connect, often after a long
@@ -1010,7 +1010,7 @@ func finalAnswerAfterMaxTurns(ctx context.Context, provider Provider, planner *c
 		return "", messages, ""
 	}
 	finalGenSpan := options.Trace.Span(trace.SpanGeneration)
-	collected := zeroruntime.CollectStreamWithOptions(ctx, stream, zeroruntime.CollectOptions{
+	collected := runeruntime.CollectStreamWithOptions(ctx, stream, runeruntime.CollectOptions{
 		OnText:          options.OnText,
 		OnReasoning:     options.OnReasoning,
 		OnUsage:         options.OnUsage,
@@ -1021,8 +1021,8 @@ func finalAnswerAfterMaxTurns(ctx context.Context, provider Provider, planner *c
 	if ctx.Err() != nil || collected.Error != "" || strings.TrimSpace(collected.Text) == "" {
 		return "", messages, ""
 	}
-	finalMessages = append(finalMessages, zeroruntime.Message{
-		Role:    zeroruntime.MessageRoleAssistant,
+	finalMessages = append(finalMessages, runeruntime.Message{
+		Role:    runeruntime.MessageRoleAssistant,
 		Content: collected.Text,
 	})
 	return collected.Text, finalMessages, collected.FinishReason
@@ -3072,7 +3072,7 @@ func permissionActionFromSandbox(action sandbox.Action) PermissionAction {
 // rendering each tool's JSON-schema parameters — is memoized by tool name, since a
 // tool's advertised name/description/schema is stable for the run. defCache nil
 // disables caching (used by tests and the plain partitionTools entrypoint).
-func partitionToolsCached(registry *tools.Registry, permissionMode PermissionMode, options Options, loaded map[string]bool, defCache map[string]zeroruntime.ToolDefinition) ([]zeroruntime.ToolDefinition, string) {
+func partitionToolsCached(registry *tools.Registry, permissionMode PermissionMode, options Options, loaded map[string]bool, defCache map[string]runeruntime.ToolDefinition) ([]runeruntime.ToolDefinition, string) {
 	registeredTools := registry.All()
 
 	visible := make([]tools.Tool, 0, len(registeredTools))
@@ -3113,7 +3113,7 @@ func partitionToolsCached(registry *tools.Registry, permissionMode PermissionMod
 	// deferral there is no mid-session loading, so this is byte-stable across turns
 	// and byte-identical to the pre-deferral output.
 	if !active {
-		definitions := make([]zeroruntime.ToolDefinition, 0, len(visible))
+		definitions := make([]runeruntime.ToolDefinition, 0, len(visible))
 		for _, tool := range visible {
 			if tool.Name() == tools.ToolSearchToolName {
 				continue
@@ -3139,8 +3139,8 @@ func partitionToolsCached(registry *tools.Registry, permissionMode PermissionMod
 	//      transition grows the tail instead of inserting into the eager block.
 	// tool_search's compact catalog also stays byte-stable as tools load, so only
 	// the appended full-schema tail changes.
-	eager := make([]zeroruntime.ToolDefinition, 0, len(visible))
-	loadedTail := make([]zeroruntime.ToolDefinition, 0)
+	eager := make([]runeruntime.ToolDefinition, 0, len(visible))
+	loadedTail := make([]runeruntime.ToolDefinition, 0)
 	var deferredCatalog []tools.Tool
 	for _, tool := range visible {
 		name := tool.Name()
@@ -3177,9 +3177,9 @@ func partitionToolsCached(registry *tools.Registry, permissionMode PermissionMod
 	if discovery != "" {
 		description = discovery
 	}
-	definitions := make([]zeroruntime.ToolDefinition, 0, len(eager)+1+len(loadedTail))
+	definitions := make([]runeruntime.ToolDefinition, 0, len(eager)+1+len(loadedTail))
 	definitions = append(definitions, eager...)
-	definitions = append(definitions, zeroruntime.ToolDefinition{
+	definitions = append(definitions, runeruntime.ToolDefinition{
 		Name:        loader.Name(),
 		Description: description,
 		Parameters:  schemaToRuntimeMap(loader.Parameters()),
@@ -3195,7 +3195,7 @@ func partitionToolsCached(registry *tools.Registry, permissionMode PermissionMod
 // conversion (schemaToRuntimeMap) that would otherwise run for every tool on every
 // turn. tool_search is excluded by its callers (its description is dynamic), so it
 // never poisons the cache. A nil cache computes fresh.
-func cachedRuntimeToolDefinition(defCache map[string]zeroruntime.ToolDefinition, tool tools.Tool) zeroruntime.ToolDefinition {
+func cachedRuntimeToolDefinition(defCache map[string]runeruntime.ToolDefinition, tool tools.Tool) runeruntime.ToolDefinition {
 	if defCache == nil {
 		return runtimeToolDefinition(tool)
 	}
@@ -3209,8 +3209,8 @@ func cachedRuntimeToolDefinition(defCache map[string]zeroruntime.ToolDefinition,
 
 // runtimeToolDefinition renders a tool's advertised definition (name, description,
 // JSON-schema parameters) as sent to the provider.
-func runtimeToolDefinition(tool tools.Tool) zeroruntime.ToolDefinition {
-	return zeroruntime.ToolDefinition{
+func runtimeToolDefinition(tool tools.Tool) runeruntime.ToolDefinition {
+	return runeruntime.ToolDefinition{
 		Name:        tool.Name(),
 		Description: tool.Description(),
 		Parameters:  schemaToRuntimeMap(tool.Parameters()),
@@ -3368,8 +3368,8 @@ func loadedToolsFromResult(meta map[string]string) []string {
 // matching tool_result when the loop halts a turn before all calls have run.
 func appendAbortedToolResults(messages []Message, remaining []ToolCall) []Message {
 	for _, call := range remaining {
-		messages = append(messages, zeroruntime.Message{
-			Role:       zeroruntime.MessageRoleTool,
+		messages = append(messages, runeruntime.Message{
+			Role:       runeruntime.MessageRoleTool,
 			Content:    abortedToolResultNotice,
 			ToolCallID: call.ID,
 			IsError:    true,
@@ -3401,14 +3401,14 @@ func copyMessages(messages []Message) []Message {
 			copied[index].ToolCalls = append([]ToolCall{}, message.ToolCalls...)
 		}
 		if message.Reasoning != nil {
-			copied[index].Reasoning = append([]zeroruntime.ReasoningBlock{}, message.Reasoning...)
+			copied[index].Reasoning = append([]runeruntime.ReasoningBlock{}, message.Reasoning...)
 		}
 		if message.ChangedFiles != nil {
 			copied[index].ChangedFiles = append([]string(nil), message.ChangedFiles...)
 		}
 		// Deep-copy image attachments (slice AND each Data byte slice) so the
 		// raw image bytes are never aliased across history/request/result copies.
-		copied[index].Images = zeroruntime.CloneImageBlocks(message.Images)
+		copied[index].Images = runeruntime.CloneImageBlocks(message.Images)
 	}
 	return copied
 }
@@ -3419,29 +3419,29 @@ func copyMessages(messages []Message) []Message {
 // The text names the tool so the model can tell which call an image came from
 // when several ran in one turn — the images arrive detached from their tool
 // result, so nothing else associates them.
-func toolResultImageMessage(result ToolResult) (zeroruntime.Message, bool) {
-	images := make([]zeroruntime.ImageBlock, 0, len(result.Images))
+func toolResultImageMessage(result ToolResult) (runeruntime.Message, bool) {
+	images := make([]runeruntime.ImageBlock, 0, len(result.Images))
 	for _, image := range result.Images {
 		if len(image.Data) == 0 {
 			continue
 		}
-		mediaType := zeroruntime.NormalizeImageMediaType(image.MediaType)
+		mediaType := runeruntime.NormalizeImageMediaType(image.MediaType)
 		if mediaType == "" {
 			// Outside the provider allow-list. Dropping it beats sending bytes a
 			// provider will reject and failing the whole turn.
 			continue
 		}
-		images = append(images, zeroruntime.ImageBlock{MediaType: mediaType, Data: image.Data})
+		images = append(images, runeruntime.ImageBlock{MediaType: mediaType, Data: image.Data})
 	}
 	if len(images) == 0 {
-		return zeroruntime.Message{}, false
+		return runeruntime.Message{}, false
 	}
 	label := result.Name
 	if label == "" {
 		label = "tool"
 	}
-	return zeroruntime.Message{
-		Role:    zeroruntime.MessageRoleUser,
+	return runeruntime.Message{
+		Role:    runeruntime.MessageRoleUser,
 		Content: "Image output from " + label + ":",
 		Images:  images,
 	}, true

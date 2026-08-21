@@ -15,9 +15,9 @@ import (
 	"rune/internal/modelregistry"
 	"rune/internal/providercatalog"
 	"rune/internal/providermodeldiscovery"
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
 	"rune/internal/usage"
-	"rune/internal/zeroruntime"
 )
 
 var responseStyles = []string{"balanced", "concise", "explanatory", "review"}
@@ -1036,18 +1036,18 @@ func sessionEventsForRefs(events []sessions.Event, refs []sessions.EventRef) ([]
 	return selected, nil
 }
 
-func (m model) summarizeCompactionPlan(plan sessions.CompactionPlan, messages []zeroruntime.Message) (agent.CompactionSummaryResult, error) {
-	return agent.SummarizeCompactionMessages(messages, func(projected []zeroruntime.Message) (string, error) {
+func (m model) summarizeCompactionPlan(plan sessions.CompactionPlan, messages []runeruntime.Message) (agent.CompactionSummaryResult, error) {
+	return agent.SummarizeCompactionMessages(messages, func(projected []runeruntime.Message) (string, error) {
 		if m.provider == nil {
 			return deterministicCompactionSummary(plan), nil
 		}
-		stream, streamErr := m.provider.StreamCompletion(m.ctx, zeroruntime.CompletionRequest{
-			Messages: append([]zeroruntime.Message{{Role: zeroruntime.MessageRoleSystem, Content: agent.CompactionSummaryInstructions}}, projected...),
+		stream, streamErr := m.provider.StreamCompletion(m.ctx, runeruntime.CompletionRequest{
+			Messages: append([]runeruntime.Message{{Role: runeruntime.MessageRoleSystem, Content: agent.CompactionSummaryInstructions}}, projected...),
 		})
 		if streamErr != nil {
 			return "", fmt.Errorf("summarize compacted session: %w", streamErr)
 		}
-		collected := zeroruntime.CollectStream(m.ctx, stream)
+		collected := runeruntime.CollectStream(m.ctx, stream)
 		if collected.Error != "" {
 			return "", fmt.Errorf("summarize compacted session: %s", collected.Error)
 		}
@@ -1135,7 +1135,7 @@ func (m model) setCompactStatusRow(text string) model {
 	return m
 }
 
-func (m model) recordUsageEvent(modelID string, event zeroruntime.Usage) (model, []transcriptRow) {
+func (m model) recordUsageEvent(modelID string, event runeruntime.Usage) (model, []transcriptRow) {
 	if m.usageTracker == nil || strings.TrimSpace(modelID) == "" {
 		return m, nil
 	}

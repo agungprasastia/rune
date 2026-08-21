@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestStreamCompletionPostsChatCompletionRequest(t *testing.T) {
@@ -41,22 +41,22 @@ func TestStreamCompletionPostsChatCompletionRequest(t *testing.T) {
 		t.Fatalf("New returned error: %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleSystem, Content: "system"},
-			{Role: zeroruntime.MessageRoleUser, Content: "user"},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleSystem, Content: "system"},
+			{Role: runeruntime.MessageRoleUser, Content: "user"},
 			{
-				Role:    zeroruntime.MessageRoleAssistant,
+				Role:    runeruntime.MessageRoleAssistant,
 				Content: "using a tool",
-				ToolCalls: []zeroruntime.ToolCall{{
+				ToolCalls: []runeruntime.ToolCall{{
 					ID:        "call_1",
 					Name:      "read_file",
 					Arguments: `{"path":"README.md"}`,
 				}},
 			},
-			{Role: zeroruntime.MessageRoleTool, Content: "contents", ToolCallID: "call_1"},
+			{Role: runeruntime.MessageRoleTool, Content: "contents", ToolCallID: "call_1"},
 		},
-		Tools: []zeroruntime.ToolDefinition{{
+		Tools: []runeruntime.ToolDefinition{{
 			Name:        "read_file",
 			Description: "Read a file",
 			Parameters:  map[string]any{"type": "object"},
@@ -145,9 +145,9 @@ func TestStreamCompletionSerializesTypedNilPropertiesAsEmptyObject(t *testing.T)
 		t.Fatalf("New returned error: %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
-		Tools: []zeroruntime.ToolDefinition{{
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
+		Tools: []runeruntime.ToolDefinition{{
 			Name:        "no_args",
 			Description: "Takes no arguments",
 			Parameters:  map[string]any{"type": "object", "properties": map[string]any(nil)},
@@ -199,8 +199,8 @@ func TestStreamCompletionOmitsAuthAndToolsWhenEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned error: %v", err)
@@ -238,8 +238,8 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned error: %v", err)
@@ -265,12 +265,12 @@ func TestStreamCompletionEmitsTextUsageAndDone(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	assertEvent(t, events[0], zeroruntime.StreamEventText, "hello ")
-	assertEvent(t, events[1], zeroruntime.StreamEventText, "rune")
-	if events[2].Type != zeroruntime.StreamEventUsage || events[2].Usage.PromptTokens != 12 || events[2].Usage.CompletionTokens != 5 || events[2].Usage.CachedInputTokens != 3 {
+	assertEvent(t, events[0], runeruntime.StreamEventText, "hello ")
+	assertEvent(t, events[1], runeruntime.StreamEventText, "rune")
+	if events[2].Type != runeruntime.StreamEventUsage || events[2].Usage.PromptTokens != 12 || events[2].Usage.CompletionTokens != 5 || events[2].Usage.CachedInputTokens != 3 {
 		t.Fatalf("unexpected usage event: %#v", events[2])
 	}
-	if events[3].Type != zeroruntime.StreamEventDone {
+	if events[3].Type != runeruntime.StreamEventDone {
 		t.Fatalf("last event = %#v, want done", events[3])
 	}
 }
@@ -283,14 +283,14 @@ func TestStreamCompletionEmitsReasoningContentDeltas(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	reasoning := eventsOfType(events, zeroruntime.StreamEventReasoning)
+	reasoning := eventsOfType(events, runeruntime.StreamEventReasoning)
 	if len(reasoning) != 2 {
 		t.Fatalf("reasoning events = %#v, want two reasoning deltas", reasoning)
 	}
 	if reasoning[0].Content != "Thinking. " || reasoning[1].Content != "Answering now." {
 		t.Fatalf("unexpected reasoning events: %#v", reasoning)
 	}
-	if text := eventsOfType(events, zeroruntime.StreamEventText); len(text) != 0 {
+	if text := eventsOfType(events, runeruntime.StreamEventText); len(text) != 0 {
 		t.Fatalf("reasoning_content must not emit text events, got %#v", text)
 	}
 }
@@ -303,14 +303,14 @@ func TestStreamCompletionEmitsReasoningAliasDeltas(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	reasoning := eventsOfType(events, zeroruntime.StreamEventReasoning)
+	reasoning := eventsOfType(events, runeruntime.StreamEventReasoning)
 	if len(reasoning) != 2 {
 		t.Fatalf("reasoning events = %#v, want two reasoning deltas", reasoning)
 	}
 	if reasoning[0].Content != "Thinking. " || reasoning[1].Content != "Answering now." {
 		t.Fatalf("unexpected reasoning events: %#v", reasoning)
 	}
-	if text := eventsOfType(events, zeroruntime.StreamEventText); len(text) != 0 {
+	if text := eventsOfType(events, runeruntime.StreamEventText); len(text) != 0 {
 		t.Fatalf("reasoning must not emit text events, got %#v", text)
 	}
 }
@@ -322,7 +322,7 @@ func TestStreamCompletionPrefersReasoningContentOverAlias(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	reasoning := eventsOfType(events, zeroruntime.StreamEventReasoning)
+	reasoning := eventsOfType(events, runeruntime.StreamEventReasoning)
 	if len(reasoning) != 1 || reasoning[0].Content != "standard" {
 		t.Fatalf("reasoning events = %#v, want standard reasoning_content", reasoning)
 	}
@@ -338,9 +338,9 @@ func TestStreamCompletionEmitsReasoningBeforeRegularContent(t *testing.T) {
 	if len(events) < 3 {
 		t.Fatalf("events = %#v, want reasoning, text, done", events)
 	}
-	assertEvent(t, events[0], zeroruntime.StreamEventReasoning, "Thinking. ")
-	assertEvent(t, events[1], zeroruntime.StreamEventText, "Answer.")
-	if events[2].Type != zeroruntime.StreamEventDone {
+	assertEvent(t, events[0], runeruntime.StreamEventReasoning, "Thinking. ")
+	assertEvent(t, events[1], runeruntime.StreamEventText, "Answer.")
+	if events[2].Type != runeruntime.StreamEventDone {
 		t.Fatalf("third event = %#v, want done", events[2])
 	}
 }
@@ -352,8 +352,8 @@ func TestStreamCompletionPreservesLiteralThinkTagsByDefault(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	assertEvent(t, events[0], zeroruntime.StreamEventText, "show <think>literal</think> markup")
-	if reasoning := eventsOfType(events, zeroruntime.StreamEventReasoning); len(reasoning) != 0 {
+	assertEvent(t, events[0], runeruntime.StreamEventText, "show <think>literal</think> markup")
+	if reasoning := eventsOfType(events, runeruntime.StreamEventReasoning); len(reasoning) != 0 {
 		t.Fatalf("literal think tags must not emit reasoning by default, got %#v", reasoning)
 	}
 }
@@ -365,9 +365,9 @@ func TestStreamCompletionSplitsInlineThinkTagsFromContent(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	assertEvent(t, events[0], zeroruntime.StreamEventReasoning, "private reasoning")
-	assertEvent(t, events[1], zeroruntime.StreamEventText, "public answer")
-	if events[2].Type != zeroruntime.StreamEventDone {
+	assertEvent(t, events[0], runeruntime.StreamEventReasoning, "private reasoning")
+	assertEvent(t, events[1], runeruntime.StreamEventText, "public answer")
+	if events[2].Type != runeruntime.StreamEventDone {
 		t.Fatalf("third event = %#v, want done", events[2])
 	}
 }
@@ -382,11 +382,11 @@ func TestStreamCompletionSplitsInlineThinkTagsAcrossChunks(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	reasoning := eventsOfType(events, zeroruntime.StreamEventReasoning)
+	reasoning := eventsOfType(events, runeruntime.StreamEventReasoning)
 	if len(reasoning) != 2 || reasoning[0].Content != "reason" || reasoning[1].Content != "ing" {
 		t.Fatalf("reasoning events = %#v, want split reasoning content", reasoning)
 	}
-	text := eventsOfType(events, zeroruntime.StreamEventText)
+	text := eventsOfType(events, runeruntime.StreamEventText)
 	if len(text) != 1 || text[0].Content != " answer" {
 		t.Fatalf("text events = %#v, want answer-only content", text)
 	}
@@ -403,16 +403,16 @@ func TestStreamCompletionBuffersToolArgsUntilIDAndNameArrive(t *testing.T) {
 	if len(events) != 4 {
 		t.Fatalf("events = %#v, want start, delta, end, done", events)
 	}
-	if events[0].Type != zeroruntime.StreamEventToolCallStart || events[0].ToolCallID != "call_1" || events[0].ToolName != "read_file" {
+	if events[0].Type != runeruntime.StreamEventToolCallStart || events[0].ToolCallID != "call_1" || events[0].ToolName != "read_file" {
 		t.Fatalf("unexpected start event: %#v", events[0])
 	}
-	if events[1].Type != zeroruntime.StreamEventToolCallDelta || events[1].ToolCallID != "call_1" || events[1].ArgumentsFragment != `{"path":"README.md"}` {
+	if events[1].Type != runeruntime.StreamEventToolCallDelta || events[1].ToolCallID != "call_1" || events[1].ArgumentsFragment != `{"path":"README.md"}` {
 		t.Fatalf("unexpected delta event: %#v", events[1])
 	}
-	if events[2].Type != zeroruntime.StreamEventToolCallEnd || events[2].ToolCallID != "call_1" {
+	if events[2].Type != runeruntime.StreamEventToolCallEnd || events[2].ToolCallID != "call_1" {
 		t.Fatalf("unexpected end event: %#v", events[2])
 	}
-	if events[3].Type != zeroruntime.StreamEventDone {
+	if events[3].Type != runeruntime.StreamEventDone {
 		t.Fatalf("unexpected done event: %#v", events[3])
 	}
 }
@@ -425,9 +425,9 @@ func TestStreamCompletionTracksMultipleToolCallsByIndex(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	starts := eventsOfType(events, zeroruntime.StreamEventToolCallStart)
-	deltas := eventsOfType(events, zeroruntime.StreamEventToolCallDelta)
-	ends := eventsOfType(events, zeroruntime.StreamEventToolCallEnd)
+	starts := eventsOfType(events, runeruntime.StreamEventToolCallStart)
+	deltas := eventsOfType(events, runeruntime.StreamEventToolCallDelta)
+	ends := eventsOfType(events, runeruntime.StreamEventToolCallEnd)
 	if len(starts) != 2 || len(deltas) != 2 || len(ends) != 2 {
 		t.Fatalf("events = %#v, want two starts/deltas/ends", events)
 	}
@@ -458,12 +458,12 @@ func TestStreamCompletionClassifiesHTTPErrorsAndRedactsToken(t *testing.T) {
 			provider := newTestProviderWithKey(t, "sk-secret", func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, tc.body, tc.status)
 			})
-			stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{})
+			stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{})
 			if err != nil {
 				t.Fatalf("StreamCompletion returned setup error: %v", err)
 			}
 			events := readAll(stream)
-			if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+			if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 				t.Fatalf("events = %#v, want one error", events)
 			}
 			if !strings.HasPrefix(events[0].Error, tc.wantPrefix) {
@@ -487,12 +487,12 @@ func TestStreamCompletionHumanizesUpstreamUnreachableGatewayError(t *testing.T) 
 	provider := newTestProviderWithKey(t, "sk-secret", func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Post \"https://ollama.com:443/v1/chat/completions?ts=1\": net/http: TLS handshake timeout"}`, http.StatusBadGateway)
 	})
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{})
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned setup error: %v", err)
 	}
 	events := readAll(stream)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want one error", events)
 	}
 	got := events[0].Error
@@ -512,7 +512,7 @@ func TestStreamCompletionEmitsStreamErrorObject(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want one error", events)
 	}
 	if !strings.HasPrefix(events[0].Error, "provider error:") {
@@ -550,7 +550,7 @@ func TestStreamCompletionClassifiesStreamErrorCode(t *testing.T) {
 			})
 
 			events := collectProviderEvents(t, provider)
-			if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+			if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 				t.Fatalf("events = %#v, want one error", events)
 			}
 			if !strings.HasPrefix(events[0].Error, tc.wantPrefix) {
@@ -566,7 +566,7 @@ func TestStreamCompletionEmitsErrorForMalformedJSON(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want one error", events)
 	}
 	if !strings.HasPrefix(events[0].Error, "provider stream error: malformed JSON") {
@@ -583,7 +583,7 @@ func TestStreamCompletionEmitsErrorWhenContextCancels(t *testing.T) {
 	})
 	ctx, cancel := context.WithCancel(context.Background())
 
-	stream, err := provider.StreamCompletion(ctx, zeroruntime.CompletionRequest{})
+	stream, err := provider.StreamCompletion(ctx, runeruntime.CompletionRequest{})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned setup error: %v", err)
 	}
@@ -592,7 +592,7 @@ func TestStreamCompletionEmitsErrorWhenContextCancels(t *testing.T) {
 	close(release)
 
 	events := readAll(stream)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want context error", events)
 	}
 	if !strings.Contains(events[0].Error, "context canceled") {
@@ -613,12 +613,12 @@ func TestStreamCompletionContextDeadlineNotHumanizedAsUpstream(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	stream, err := provider.StreamCompletion(ctx, zeroruntime.CompletionRequest{})
+	stream, err := provider.StreamCompletion(ctx, runeruntime.CompletionRequest{})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned setup error: %v", err)
 	}
 	events := readAll(stream)
-	if len(events) != 1 || events[0].Type != zeroruntime.StreamEventError {
+	if len(events) != 1 || events[0].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want one error", events)
 	}
 	got := events[0].Error
@@ -642,12 +642,12 @@ func TestStreamCompletionFlushesBufferedContentWhenContextCancels(t *testing.T) 
 	defer close(release)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	stream, err := provider.StreamCompletion(ctx, zeroruntime.CompletionRequest{})
+	stream, err := provider.StreamCompletion(ctx, runeruntime.CompletionRequest{})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned setup error: %v", err)
 	}
 
-	events := []zeroruntime.StreamEvent{}
+	events := []runeruntime.StreamEvent{}
 	select {
 	case event, ok := <-stream:
 		if !ok {
@@ -661,12 +661,12 @@ func TestStreamCompletionFlushesBufferedContentWhenContextCancels(t *testing.T) 
 	events = append(events, readAll(stream)...)
 
 	if len(events) != 3 ||
-		events[0].Type != zeroruntime.StreamEventText || events[0].Content != "visible " ||
-		events[1].Type != zeroruntime.StreamEventText || events[1].Content != "<thi" ||
-		events[2].Type != zeroruntime.StreamEventError {
+		events[0].Type != runeruntime.StreamEventText || events[0].Content != "visible " ||
+		events[1].Type != runeruntime.StreamEventText || events[1].Content != "<thi" ||
+		events[2].Type != runeruntime.StreamEventError {
 		t.Fatalf("events = %#v, want text, buffered text, then context error", events)
 	}
-	if done := eventsOfType(events, zeroruntime.StreamEventDone); len(done) != 0 {
+	if done := eventsOfType(events, runeruntime.StreamEventDone); len(done) != 0 {
 		t.Fatalf("events = %#v, want no done after context cancel", events)
 	}
 }
@@ -715,24 +715,24 @@ func newTestProviderWithOptions(t *testing.T, options Options, handler http.Hand
 	return provider
 }
 
-func collectProviderEvents(t *testing.T, provider *Provider) []zeroruntime.StreamEvent {
+func collectProviderEvents(t *testing.T, provider *Provider) []runeruntime.StreamEvent {
 	t.Helper()
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{})
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned setup error: %v", err)
 	}
 	return readAll(stream)
 }
 
-func readAll(stream <-chan zeroruntime.StreamEvent) []zeroruntime.StreamEvent {
-	events := []zeroruntime.StreamEvent{}
+func readAll(stream <-chan runeruntime.StreamEvent) []runeruntime.StreamEvent {
+	events := []runeruntime.StreamEvent{}
 	for event := range stream {
 		events = append(events, event)
 	}
 	return events
 }
 
-func drain(stream <-chan zeroruntime.StreamEvent) {
+func drain(stream <-chan runeruntime.StreamEvent) {
 	for range stream {
 	}
 }
@@ -745,15 +745,15 @@ func writeSSE(w http.ResponseWriter, payload string) {
 	}
 }
 
-func assertEvent(t *testing.T, event zeroruntime.StreamEvent, eventType zeroruntime.StreamEventType, content string) {
+func assertEvent(t *testing.T, event runeruntime.StreamEvent, eventType runeruntime.StreamEventType, content string) {
 	t.Helper()
 	if event.Type != eventType || event.Content != content {
 		t.Fatalf("event = %#v, want %s %q", event, eventType, content)
 	}
 }
 
-func eventsOfType(events []zeroruntime.StreamEvent, eventType zeroruntime.StreamEventType) []zeroruntime.StreamEvent {
-	matching := []zeroruntime.StreamEvent{}
+func eventsOfType(events []runeruntime.StreamEvent, eventType runeruntime.StreamEventType) []runeruntime.StreamEvent {
+	matching := []runeruntime.StreamEvent{}
 	for _, event := range events {
 		if event.Type == eventType {
 			matching = append(matching, event)
@@ -769,19 +769,19 @@ func TestStreamCompletionDoesNotHangOnEOFWithOpenToolCall(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	stream, err := provider.StreamCompletion(ctx, zeroruntime.CompletionRequest{})
+	stream, err := provider.StreamCompletion(ctx, runeruntime.CompletionRequest{})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned setup error: %v", err)
 	}
-	events := []zeroruntime.StreamEvent{}
+	events := []runeruntime.StreamEvent{}
 	for {
 		select {
 		case event, ok := <-stream:
 			if !ok {
-				if len(eventsOfType(events, zeroruntime.StreamEventToolCallEnd)) != 1 {
+				if len(eventsOfType(events, runeruntime.StreamEventToolCallEnd)) != 1 {
 					t.Fatalf("events = %#v, want one tool-call-end on EOF", events)
 				}
-				if len(eventsOfType(events, zeroruntime.StreamEventDone)) != 1 {
+				if len(eventsOfType(events, runeruntime.StreamEventDone)) != 1 {
 					t.Fatalf("events = %#v, want done on EOF", events)
 				}
 				return
@@ -799,16 +799,16 @@ func TestStreamCompletionSkipsNamelessToolCallOnEOF(t *testing.T) {
 	})
 
 	events := collectProviderEvents(t, provider)
-	if len(eventsOfType(events, zeroruntime.StreamEventToolCallStart)) != 0 {
+	if len(eventsOfType(events, runeruntime.StreamEventToolCallStart)) != 0 {
 		t.Fatalf("events = %#v, want no start for nameless tool call", events)
 	}
-	if len(eventsOfType(events, zeroruntime.StreamEventToolCallDelta)) != 0 {
+	if len(eventsOfType(events, runeruntime.StreamEventToolCallDelta)) != 0 {
 		t.Fatalf("events = %#v, want no delta for nameless tool call", events)
 	}
-	if len(eventsOfType(events, zeroruntime.StreamEventToolCallEnd)) != 0 {
+	if len(eventsOfType(events, runeruntime.StreamEventToolCallEnd)) != 0 {
 		t.Fatalf("events = %#v, want no end for nameless tool call", events)
 	}
-	if len(eventsOfType(events, zeroruntime.StreamEventDone)) != 1 {
+	if len(eventsOfType(events, runeruntime.StreamEventDone)) != 1 {
 		t.Fatalf("events = %#v, want done event", events)
 	}
 }
@@ -836,15 +836,15 @@ func TestStreamCompletionIdleTimeoutAbortsStalledStream(t *testing.T) {
 		t.Fatalf("New returned error: %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{})
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned error: %v", err)
 	}
 
 	// Must terminate (channel closes) rather than hang forever.
-	done := make(chan []zeroruntime.StreamEvent, 1)
+	done := make(chan []runeruntime.StreamEvent, 1)
 	go func() { done <- readAll(stream) }()
-	var events []zeroruntime.StreamEvent
+	var events []runeruntime.StreamEvent
 	select {
 	case events = <-done:
 	case <-time.After(3 * time.Second):
@@ -853,10 +853,10 @@ func TestStreamCompletionIdleTimeoutAbortsStalledStream(t *testing.T) {
 
 	var gotText, gotIdleError bool
 	for _, e := range events {
-		if e.Type == zeroruntime.StreamEventText && e.Content == "hi" {
+		if e.Type == runeruntime.StreamEventText && e.Content == "hi" {
 			gotText = true
 		}
-		if e.Type == zeroruntime.StreamEventError && strings.Contains(strings.ToLower(e.Error), "idle") {
+		if e.Type == runeruntime.StreamEventError && strings.Contains(strings.ToLower(e.Error), "idle") {
 			gotIdleError = true
 		}
 	}
@@ -882,8 +882,8 @@ func TestStreamCompletionSendsMaxCompletionTokens(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned error: %v", err)
@@ -913,8 +913,8 @@ func TestStreamCompletionSendsReasoningEffort(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages:        []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages:        []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 		ReasoningEffort: "high",
 	})
 	if err != nil {
@@ -951,8 +951,8 @@ func TestStreamCompletionNormalizesServiceTier(t *testing.T) {
 			if err != nil {
 				t.Fatalf("New: %v", err)
 			}
-			stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-				Messages:    []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+			stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+				Messages:    []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 				ServiceTier: test.input,
 			})
 			if err != nil {
@@ -987,8 +987,8 @@ func TestStreamCompletionOmitsReasoningEffortWhenUnsetOrInvalid(t *testing.T) {
 			server.Close()
 			t.Fatalf("New returned error: %v", err)
 		}
-		stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-			Messages:        []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+		stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+			Messages:        []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 			ReasoningEffort: effort,
 		})
 		if err != nil {
@@ -1018,8 +1018,8 @@ func TestStreamCompletionOmitsMaxCompletionTokensWhenUnset(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion returned error: %v", err)
@@ -1045,7 +1045,7 @@ func TestStreamCompletionSurfacesLengthFinishReason(t *testing.T) {
 	var doneReason string
 	var sawDone bool
 	for _, e := range events {
-		if e.Type == zeroruntime.StreamEventDone {
+		if e.Type == runeruntime.StreamEventDone {
 			sawDone = true
 			doneReason = e.FinishReason
 		}
@@ -1053,13 +1053,13 @@ func TestStreamCompletionSurfacesLengthFinishReason(t *testing.T) {
 	if !sawDone {
 		t.Fatalf("no done event; events: %+v", events)
 	}
-	if doneReason != zeroruntime.FinishReasonLength {
-		t.Fatalf("done FinishReason = %q, want %q", doneReason, zeroruntime.FinishReasonLength)
+	if doneReason != runeruntime.FinishReasonLength {
+		t.Fatalf("done FinishReason = %q, want %q", doneReason, runeruntime.FinishReasonLength)
 	}
 
 	// And it round-trips through the runtime collector's FinishReason.
-	collected := zeroruntime.CollectStream(context.Background(), replay(events))
-	if collected.FinishReason != zeroruntime.FinishReasonLength {
+	collected := runeruntime.CollectStream(context.Background(), replay(events))
+	if collected.FinishReason != runeruntime.FinishReasonLength {
 		t.Fatalf("collected = %+v, want truncated length", collected)
 	}
 }
@@ -1074,10 +1074,10 @@ func TestStreamCompletionSurfacesContentFilterFinishReason(t *testing.T) {
 	events := collectProviderEvents(t, provider)
 	var sawDone bool
 	for _, e := range events {
-		if e.Type == zeroruntime.StreamEventDone {
+		if e.Type == runeruntime.StreamEventDone {
 			sawDone = true
-			if e.FinishReason != zeroruntime.FinishReasonContentFilter {
-				t.Fatalf("done FinishReason = %q, want %q", e.FinishReason, zeroruntime.FinishReasonContentFilter)
+			if e.FinishReason != runeruntime.FinishReasonContentFilter {
+				t.Fatalf("done FinishReason = %q, want %q", e.FinishReason, runeruntime.FinishReasonContentFilter)
 			}
 		}
 	}
@@ -1096,7 +1096,7 @@ func TestStreamCompletionNormalFinishHasNoReason(t *testing.T) {
 	events := collectProviderEvents(t, provider)
 	var sawDone bool
 	for _, e := range events {
-		if e.Type == zeroruntime.StreamEventDone {
+		if e.Type == runeruntime.StreamEventDone {
 			sawDone = true
 			if e.FinishReason != "" {
 				t.Fatalf("normal finish leaked FinishReason %q", e.FinishReason)
@@ -1130,10 +1130,10 @@ func TestStreamCompletionJoinsMultiLineDataFields(t *testing.T) {
 	events := collectProviderEvents(t, provider)
 	var text string
 	for _, e := range events {
-		if e.Type == zeroruntime.StreamEventText {
+		if e.Type == runeruntime.StreamEventText {
 			text += e.Content
 		}
-		if e.Type == zeroruntime.StreamEventError {
+		if e.Type == runeruntime.StreamEventError {
 			t.Fatalf("multi-line data field produced an error: %q", e.Error)
 		}
 	}
@@ -1142,8 +1142,8 @@ func TestStreamCompletionJoinsMultiLineDataFields(t *testing.T) {
 	}
 }
 
-func replay(events []zeroruntime.StreamEvent) <-chan zeroruntime.StreamEvent {
-	ch := make(chan zeroruntime.StreamEvent, len(events))
+func replay(events []runeruntime.StreamEvent) <-chan runeruntime.StreamEvent {
+	ch := make(chan runeruntime.StreamEvent, len(events))
 	for _, e := range events {
 		ch <- e
 	}
@@ -1168,10 +1168,10 @@ func TestStreamCompletionEmitsDroppedOnNamelessToolCall(t *testing.T) {
 
 	var dropped, started bool
 	for _, e := range events {
-		if e.Type == zeroruntime.StreamEventToolCallDropped {
+		if e.Type == runeruntime.StreamEventToolCallDropped {
 			dropped = true
 		}
-		if e.Type == zeroruntime.StreamEventToolCallStart {
+		if e.Type == runeruntime.StreamEventToolCallStart {
 			started = true
 		}
 	}
@@ -1209,10 +1209,10 @@ func TestContentPartImageURLMarshalsDataURI(t *testing.T) {
 }
 
 func TestMapMessageBuildsImageURLContentParts(t *testing.T) {
-	msg := mapMessage(zeroruntime.Message{
-		Role:    zeroruntime.MessageRoleUser,
+	msg := mapMessage(runeruntime.Message{
+		Role:    runeruntime.MessageRoleUser,
 		Content: "describe these",
-		Images: []zeroruntime.ImageBlock{
+		Images: []runeruntime.ImageBlock{
 			{MediaType: "image/png", Data: []byte("ABC")},
 			{MediaType: "image/jpeg", Data: []byte{0xff, 0xd8, 0xff}},
 		},
@@ -1240,10 +1240,10 @@ func TestMapMessageBuildsImageURLContentParts(t *testing.T) {
 }
 
 func TestMapMessageImageOnlyOmitsTextPart(t *testing.T) {
-	msg := mapMessage(zeroruntime.Message{
-		Role:    zeroruntime.MessageRoleUser,
+	msg := mapMessage(runeruntime.Message{
+		Role:    runeruntime.MessageRoleUser,
 		Content: "",
-		Images:  []zeroruntime.ImageBlock{{MediaType: "image/png", Data: []byte("A")}},
+		Images:  []runeruntime.ImageBlock{{MediaType: "image/png", Data: []byte("A")}},
 	})
 	parts, ok := msg.Content.([]contentPart)
 	if !ok {
@@ -1260,11 +1260,11 @@ func TestMapMessageImageOnlyOmitsTextPart(t *testing.T) {
 }
 
 func TestMapMessageTextOnlyKeepsStringContent(t *testing.T) {
-	msg := mapMessage(zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: "hi"})
+	msg := mapMessage(runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: "hi"})
 	if got, ok := msg.Content.(string); !ok || got != "hi" {
 		t.Fatalf("Content = %#v, want string \"hi\"", msg.Content)
 	}
-	empty := mapMessage(zeroruntime.Message{Role: zeroruntime.MessageRoleAssistant, Content: ""})
+	empty := mapMessage(runeruntime.Message{Role: runeruntime.MessageRoleAssistant, Content: ""})
 	if got, ok := empty.Content.(string); !ok || got != "" {
 		t.Fatalf("empty text content = %#v, want \"\" so it serializes as content:\"\" (strict servers reject a missing/null content)", empty.Content)
 	}
@@ -1276,13 +1276,13 @@ func TestMapMessageTextOnlyKeepsStringContent(t *testing.T) {
 // assistant/tool/system message that happens to carry Images must still
 // serialize plain string content (never a content-parts array).
 func TestMapMessageNonUserRolesNeverCarryImages(t *testing.T) {
-	images := []zeroruntime.ImageBlock{{MediaType: "image/png", Data: []byte("ABC")}}
-	for _, role := range []zeroruntime.MessageRole{
-		zeroruntime.MessageRoleAssistant,
-		zeroruntime.MessageRoleTool,
-		zeroruntime.MessageRoleSystem,
+	images := []runeruntime.ImageBlock{{MediaType: "image/png", Data: []byte("ABC")}}
+	for _, role := range []runeruntime.MessageRole{
+		runeruntime.MessageRoleAssistant,
+		runeruntime.MessageRoleTool,
+		runeruntime.MessageRoleSystem,
 	} {
-		msg := mapMessage(zeroruntime.Message{Role: role, Content: "plain", Images: images})
+		msg := mapMessage(runeruntime.Message{Role: role, Content: "plain", Images: images})
 		if got, ok := msg.Content.(string); !ok || got != "plain" {
 			t.Fatalf("role %q content = %#v, want plain string (no content-parts)", role, msg.Content)
 		}
@@ -1312,11 +1312,11 @@ func TestStreamCompletionSerializesImageContentParts(t *testing.T) {
 		t.Fatalf("New returned error: %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{
-			Role:    zeroruntime.MessageRoleUser,
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{
+			Role:    runeruntime.MessageRoleUser,
 			Content: "what is this",
-			Images:  []zeroruntime.ImageBlock{{MediaType: "image/png", Data: []byte("ABC")}},
+			Images:  []runeruntime.ImageBlock{{MediaType: "image/png", Data: []byte("ABC")}},
 		}},
 	})
 	if err != nil {
@@ -1359,18 +1359,18 @@ func TestOpenAIRequestEmptyContentHandling(t *testing.T) {
 		t.Fatalf("New returned error: %v", err)
 	}
 
-	req := provider.openAIRequest(zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleUser, Content: "hi"},
+	req := provider.openAIRequest(runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleUser, Content: "hi"},
 			// Degenerate empty assistant turn (e.g. a sub-agent that failed with no
 			// output): must be dropped, not sent.
-			{Role: zeroruntime.MessageRoleAssistant, Content: "   "},
+			{Role: runeruntime.MessageRoleAssistant, Content: "   "},
 			// Assistant with tool calls but no text: kept, content present as "".
-			{Role: zeroruntime.MessageRoleAssistant, Content: "", ToolCalls: []zeroruntime.ToolCall{{
+			{Role: runeruntime.MessageRoleAssistant, Content: "", ToolCalls: []runeruntime.ToolCall{{
 				ID: "call_1", Name: "read_file", Arguments: "{}",
 			}}},
 			// Tool result with empty content: kept, content present as "".
-			{Role: zeroruntime.MessageRoleTool, Content: "", ToolCallID: "call_1"},
+			{Role: runeruntime.MessageRoleTool, Content: "", ToolCallID: "call_1"},
 		},
 	})
 
@@ -1421,9 +1421,9 @@ func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	messages := []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}}
+	messages := []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}}
 
-	req := provider.openAIRequest(zeroruntime.CompletionRequest{
+	req := provider.openAIRequest(runeruntime.CompletionRequest{
 		Messages:       messages,
 		PromptCacheKey: "sess_123",
 	})
@@ -1438,7 +1438,7 @@ func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 		t.Fatalf("prompt_cache_key not serialized: %s", data)
 	}
 
-	req = provider.openAIRequest(zeroruntime.CompletionRequest{Messages: messages})
+	req = provider.openAIRequest(runeruntime.CompletionRequest{Messages: messages})
 	if data, err = json.Marshal(req); err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -1452,7 +1452,7 @@ func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New(DisablePromptCacheKey) returned error: %v", err)
 	}
-	req = compat.openAIRequest(zeroruntime.CompletionRequest{
+	req = compat.openAIRequest(runeruntime.CompletionRequest{
 		Messages:       messages,
 		PromptCacheKey: "sess_123",
 	})
@@ -1467,7 +1467,7 @@ func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 	}
 
 	t.Setenv("RUNE_DISABLE_PROMPT_CACHE_KEY", "1")
-	req = provider.openAIRequest(zeroruntime.CompletionRequest{
+	req = provider.openAIRequest(runeruntime.CompletionRequest{
 		Messages:       messages,
 		PromptCacheKey: "sess_123",
 	})
@@ -1479,7 +1479,7 @@ func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 	// truthy values flip the toggle (same parsing as RUNE_FORMAT_ON_WRITE).
 	for _, value := range []string{"0", "false", "FALSE"} {
 		t.Setenv("RUNE_DISABLE_PROMPT_CACHE_KEY", value)
-		req = provider.openAIRequest(zeroruntime.CompletionRequest{
+		req = provider.openAIRequest(runeruntime.CompletionRequest{
 			Messages:       messages,
 			PromptCacheKey: "sess_123",
 		})
@@ -1494,7 +1494,7 @@ func TestOpenAIRequestPreservesCacheablePrefixAcrossTurns(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-	tools := []zeroruntime.ToolDefinition{{
+	tools := []runeruntime.ToolDefinition{{
 		Name:        "read_file",
 		Description: "Read a file.",
 		Parameters: map[string]any{
@@ -1504,19 +1504,19 @@ func TestOpenAIRequestPreservesCacheablePrefixAcrossTurns(t *testing.T) {
 			},
 		},
 	}}
-	firstMessages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "stable system prompt"},
-		{Role: zeroruntime.MessageRoleUser, Content: "first turn"},
+	firstMessages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "stable system prompt"},
+		{Role: runeruntime.MessageRoleUser, Content: "first turn"},
 	}
-	secondMessages := append([]zeroruntime.Message(nil), firstMessages...)
+	secondMessages := append([]runeruntime.Message(nil), firstMessages...)
 	secondMessages = append(secondMessages,
-		zeroruntime.Message{Role: zeroruntime.MessageRoleAssistant, Content: "first response"},
-		zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: "second turn"},
+		runeruntime.Message{Role: runeruntime.MessageRoleAssistant, Content: "first response"},
+		runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: "second turn"},
 	)
 
-	marshalBody := func(messages []zeroruntime.Message) map[string]any {
+	marshalBody := func(messages []runeruntime.Message) map[string]any {
 		t.Helper()
-		mapped := provider.openAIRequest(zeroruntime.CompletionRequest{
+		mapped := provider.openAIRequest(runeruntime.CompletionRequest{
 			Messages:       messages,
 			Tools:          tools,
 			PromptCacheKey: "session-stable-prefix",
@@ -1578,9 +1578,9 @@ func TestStreamCompletionSerializesNonMapPropertiesAsEmptyObject(t *testing.T) {
 		t.Fatalf("New returned error: %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
-		Tools: []zeroruntime.ToolDefinition{{
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
+		Tools: []runeruntime.ToolDefinition{{
 			Name:        "no_args",
 			Description: "Takes no arguments",
 			Parameters:  map[string]any{"type": "object", "properties": []any{}},

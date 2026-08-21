@@ -14,12 +14,12 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/redaction"
+	"rune/internal/runegit"
+	"rune/internal/runeruntime"
 	"rune/internal/selfverify"
 	"rune/internal/testrunner"
 	"rune/internal/verify"
 	"rune/internal/worktrees"
-	"rune/internal/zerogit"
-	"rune/internal/zeroruntime"
 )
 
 type worktreeCommandOptions struct {
@@ -276,7 +276,7 @@ func runChanges(args []string, stdout io.Writer, stderr io.Writer, deps appDeps)
 	}
 	switch command {
 	case "inspect", "status":
-		summary, err := deps.inspectChanges(context.Background(), zerogit.InspectOptions{
+		summary, err := deps.inspectChanges(context.Background(), runegit.InspectOptions{
 			Cwd:          workspaceRoot,
 			BaseRef:      options.baseRef,
 			MaxDiffBytes: options.maxDiffBytes,
@@ -286,7 +286,7 @@ func runChanges(args []string, stdout io.Writer, stderr io.Writer, deps appDeps)
 		}
 		safeSummary := redactChangeSummary(summary)
 		if options.json {
-			if err := writePrettyJSON(stdout, zerogit.SnapshotFromSummary(safeSummary)); err != nil {
+			if err := writePrettyJSON(stdout, runegit.SnapshotFromSummary(safeSummary)); err != nil {
 				return exitCrash
 			}
 			return exitSuccess
@@ -298,7 +298,7 @@ func runChanges(args []string, stdout io.Writer, stderr io.Writer, deps appDeps)
 	case "commit":
 		var message string
 		if options.auto {
-			summary, err := deps.inspectChanges(context.Background(), zerogit.InspectOptions{
+			summary, err := deps.inspectChanges(context.Background(), runegit.InspectOptions{
 				Cwd:          workspaceRoot,
 				MaxDiffBytes: options.maxDiffBytes,
 			})
@@ -339,7 +339,7 @@ func runChanges(args []string, stdout io.Writer, stderr io.Writer, deps appDeps)
 			message = options.message
 		}
 
-		result, err := deps.commitChanges(context.Background(), zerogit.CommitOptions{
+		result, err := deps.commitChanges(context.Background(), runegit.CommitOptions{
 			Cwd:          workspaceRoot,
 			Message:      message,
 			DryRun:       options.dryRun,
@@ -701,7 +701,7 @@ func redactVerifyLoopReport(report selfverify.Report) selfverify.Report {
 	return report
 }
 
-func redactChangeSummary(summary zerogit.ChangeSummary) zerogit.ChangeSummary {
+func redactChangeSummary(summary runegit.ChangeSummary) runegit.ChangeSummary {
 	summary.Root = redactCLIString(summary.Root)
 	summary.Base = redactCLIString(summary.Base)
 	summary.Branch = redactCLIString(summary.Branch)
@@ -715,7 +715,7 @@ func redactChangeSummary(summary zerogit.ChangeSummary) zerogit.ChangeSummary {
 	return summary
 }
 
-func redactCommitResult(result zerogit.CommitResult) zerogit.CommitResult {
+func redactCommitResult(result runegit.CommitResult) runegit.CommitResult {
 	result.Root = redactCLIString(result.Root)
 	result.Message = redactCLIString(result.Message)
 	result.CommitHash = redactCLIString(result.CommitHash)
@@ -831,7 +831,7 @@ func formatRemediation(remediation selfverify.Remediation) string {
 	return strings.Join(details, " - ")
 }
 
-func formatChangeSummary(summary zerogit.ChangeSummary) string {
+func formatChangeSummary(summary runegit.ChangeSummary) string {
 	lines := []string{
 		"Rune changes",
 		"root: " + summary.Root,
@@ -856,7 +856,7 @@ func formatChangeSummary(summary zerogit.ChangeSummary) string {
 	return strings.Join(lines, "\n")
 }
 
-func formatCommitResult(result zerogit.CommitResult) string {
+func formatCommitResult(result runegit.CommitResult) string {
 	lines := []string{
 		"Rune changes commit",
 		"root: " + result.Root,
@@ -980,7 +980,7 @@ func runChangesPush(args []string, stdout io.Writer, stderr io.Writer, deps appD
 	// feature-branch preflight (inspection, remote probes, branch creation).
 	// The push itself must not be cancelled mid-transfer just because the
 	// preflight budget elapsed; a large push can legitimately take longer.
-	result, err := deps.pushChanges(context.Background(), zerogit.PushOptions{
+	result, err := deps.pushChanges(context.Background(), runegit.PushOptions{
 		Cwd:                    workspaceRoot,
 		Remote:                 firstNonEmptyString(options.remote, remote),
 		Branch:                 branch,
@@ -1084,7 +1084,7 @@ func runChangesPR(args []string, stdout io.Writer, stderr io.Writer, deps appDep
 	// context.Background() is deliberate here too: runChangesPR reuses the
 	// 2-minute ctx for preflight (branch creation and remote probes), but the
 	// push must not be cancelled mid-transfer if that budget elapsed.
-	pushResult, err := deps.pushChanges(context.Background(), zerogit.PushOptions{
+	pushResult, err := deps.pushChanges(context.Background(), runegit.PushOptions{
 		Cwd:                    workspaceRoot,
 		Remote:                 firstNonEmptyString(options.remote, remote),
 		Branch:                 branch,
@@ -1101,7 +1101,7 @@ func runChangesPR(args []string, stdout io.Writer, stderr io.Writer, deps appDep
 		}
 	}
 
-	prResult, err := deps.createPR(context.Background(), zerogit.PROptions{
+	prResult, err := deps.createPR(context.Background(), runegit.PROptions{
 		Cwd:   workspaceRoot,
 		Fill:  options.fill,
 		Draft: options.draft,
@@ -1135,7 +1135,7 @@ func runChangesPR(args []string, stdout io.Writer, stderr io.Writer, deps appDep
 	return exitSuccess
 }
 
-func generateAutoCommitMessage(ctx context.Context, provider zeroruntime.Provider, model string, summary zerogit.ChangeSummary) (string, error) {
+func generateAutoCommitMessage(ctx context.Context, provider runeruntime.Provider, model string, summary runegit.ChangeSummary) (string, error) {
 	var promptBuilder strings.Builder
 	promptBuilder.WriteString("Analyze the following git diff and generate a concise, conventional commit message.\n")
 	promptBuilder.WriteString("The commit message subject line must be 72 characters or fewer, starting with a conventional commit type (e.g., feat, fix, docs, style, refactor, test, chore) followed by a colon and space, and a lowercase description.\n")
@@ -1144,16 +1144,16 @@ func generateAutoCommitMessage(ctx context.Context, provider zeroruntime.Provide
 	promptBuilder.WriteString("Git Diff:\n")
 	promptBuilder.WriteString(summary.Diff)
 
-	request := zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleUser, Content: promptBuilder.String()},
+	request := runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleUser, Content: promptBuilder.String()},
 		},
 	}
 	stream, err := provider.StreamCompletion(ctx, request)
 	if err != nil {
 		return "", err
 	}
-	collected := zeroruntime.CollectStream(ctx, stream)
+	collected := runeruntime.CollectStream(ctx, stream)
 	if collected.Error != "" {
 		return "", fmt.Errorf("%s", collected.Error)
 	}
@@ -1193,7 +1193,7 @@ type branchPushPlan struct {
 	TrackingBranch         string
 	RestoreTip             string
 	PublishabilityBase     string
-	Summary                zerogit.ChangeSummary
+	Summary                runegit.ChangeSummary
 	Slug                   string
 }
 
@@ -1213,7 +1213,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 	if deps.isDefaultBranch == nil {
 		return branchPushPlan{}, fmt.Errorf("isDefaultBranch dependency missing")
 	}
-	isDefault, currentBranch, remote, err := deps.isDefaultBranch(ctx, zerogit.DefaultBranchOptions{Cwd: workspaceRoot, Remote: requestedRemote})
+	isDefault, currentBranch, remote, err := deps.isDefaultBranch(ctx, runegit.DefaultBranchOptions{Cwd: workspaceRoot, Remote: requestedRemote})
 	if err != nil {
 		return branchPushPlan{}, err
 	}
@@ -1254,7 +1254,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 	// CreateBranch and Push publish commits only. A dirty working tree would
 	// leave uncommitted edits behind under a branch/PR that does not include
 	// them, so refuse until the tree is clean (commit or stash first).
-	workingTree, err := deps.inspectChanges(ctx, zerogit.InspectOptions{Cwd: workspaceRoot})
+	workingTree, err := deps.inspectChanges(ctx, runegit.InspectOptions{Cwd: workspaceRoot})
 	if err != nil {
 		return branchPushPlan{}, fmt.Errorf("failed to inspect working tree: %w", err)
 	}
@@ -1356,7 +1356,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 	// commitsAhead just checked. A working-tree snapshot can describe edits a
 	// commit-only push will never include.
 	baseRef := restoreTip
-	summary, err := deps.inspectChanges(ctx, zerogit.InspectOptions{Cwd: workspaceRoot, BaseRef: baseRef, MaxDiffBytes: opts.MaxDiffBytes})
+	summary, err := deps.inspectChanges(ctx, runegit.InspectOptions{Cwd: workspaceRoot, BaseRef: baseRef, MaxDiffBytes: opts.MaxDiffBytes})
 	if err != nil {
 		return branchPushPlan{}, fmt.Errorf("failed to inspect changes: %w", err)
 	}
@@ -1367,7 +1367,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 		// nothing to derive a slug from; name the branch from the commit
 		// subject instead.
 		if subject := deps.headCommitSubject(ctx, workspaceRoot); subject != "" {
-			slug = zerogit.SlugifyBranchComponent(subject)
+			slug = runegit.SlugifyBranchComponent(subject)
 		}
 	}
 	if opts.AutoNaming && strings.TrimSpace(summary.Diff) != "" {
@@ -1411,10 +1411,10 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 
 // ensureFeatureBranch is the branch-naming step `rune changes push`/`pr` run
 // before pushing: pushing straight to the default branch is refused deeper in
-// zerogit.Push, so rather than surface that as a dead end, create and switch
+// runegit.Push, so rather than surface that as a dead end, create and switch
 // to a conventionally named "<user>/<slug>" branch first. It returns the
 // branch push/pr should target, or "" to mean "current HEAD branch, unchanged"
-// (zerogit.Push already treats an empty Branch that way), plus the remote the
+// (runegit.Push already treats an empty Branch that way), plus the remote the
 // preflight resolved (requestedRemote, then the original branch's configured
 // upstream, then "origin"), plus whether Push should require that branch not
 // already exist on that remote. Callers must pass the remote to Push: a
@@ -1465,8 +1465,8 @@ func ensureFeatureBranch(ctx context.Context, stdout io.Writer, workspaceRoot st
 		expectedRestoreTip = deps.currentBranchTip(ctx, workspaceRoot)
 	}
 
-	name := zerogit.BuildBranchName(deps.currentGitUser(ctx, workspaceRoot), plan.Slug)
-	result, err := deps.createBranch(ctx, zerogit.BranchOptions{Cwd: workspaceRoot, Name: name, Remote: plan.PushRemote})
+	name := runegit.BuildBranchName(deps.currentGitUser(ctx, workspaceRoot), plan.Slug)
+	result, err := deps.createBranch(ctx, runegit.BranchOptions{Cwd: workspaceRoot, Name: name, Remote: plan.PushRemote})
 	if err != nil {
 		return "", "", false, fmt.Errorf("failed to create branch: %w", err)
 	}
@@ -1486,7 +1486,7 @@ func ensureFeatureBranch(ctx context.Context, stdout io.Writer, workspaceRoot st
 			// now exclusively owns the user's commits, which would destroy
 			// work to recover from a race we can simply report. Keep the
 			// branch and let the user reconcile the default branch.
-			if errors.Is(err, zerogit.ErrCompareAndSwapConflict) {
+			if errors.Is(err, runegit.ErrCompareAndSwapConflict) {
 				return "", "", false, fmt.Errorf("failed to restore default branch %s to %s after auto-branching: %w; generated branch %s was preserved because the default branch changed concurrently", plan.CurrentBranch, plan.RestoreTip, err, result.Branch)
 			}
 			var rollbackErr error
@@ -1508,14 +1508,14 @@ func ensureFeatureBranch(ctx context.Context, stdout io.Writer, workspaceRoot st
 // fallbackBranchSlug derives a deterministic branch-name slug from a change
 // summary without calling an LLM, so ensureFeatureBranch still works when no
 // provider is configured.
-func fallbackBranchSlug(summary zerogit.ChangeSummary) string {
+func fallbackBranchSlug(summary runegit.ChangeSummary) string {
 	switch len(summary.Files) {
 	case 0:
 		return "changes"
 	case 1:
 		// Git paths are always slash-separated regardless of platform, so
 		// path.Base (not filepath.Base) extracts the filename portably.
-		return zerogit.SlugifyBranchComponent(path.Base(summary.Files[0].Path))
+		return runegit.SlugifyBranchComponent(path.Base(summary.Files[0].Path))
 	default:
 		return fmt.Sprintf("update-%d-files", len(summary.Files))
 	}
@@ -1523,7 +1523,7 @@ func fallbackBranchSlug(summary zerogit.ChangeSummary) string {
 
 // generateAutoBranchSlug asks the model for a short kebab-case slug
 // describing the diff, mirroring generateAutoCommitMessage's prompt shape.
-func generateAutoBranchSlug(ctx context.Context, provider zeroruntime.Provider, model string, summary zerogit.ChangeSummary) (string, error) {
+func generateAutoBranchSlug(ctx context.Context, provider runeruntime.Provider, model string, summary runegit.ChangeSummary) (string, error) {
 	var promptBuilder strings.Builder
 	promptBuilder.WriteString("Analyze the following git diff and generate a short git branch name slug for it.\n")
 	promptBuilder.WriteString("The slug must be 2 to 5 lowercase words separated by hyphens (kebab-case), using only letters, digits, and hyphens, with no prefix like \"feature/\" or \"fix/\" and no surrounding quotes.\n")
@@ -1531,21 +1531,21 @@ func generateAutoBranchSlug(ctx context.Context, provider zeroruntime.Provider, 
 	promptBuilder.WriteString("Git Diff:\n")
 	promptBuilder.WriteString(summary.Diff)
 
-	request := zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleUser, Content: promptBuilder.String()},
+	request := runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{
+			{Role: runeruntime.MessageRoleUser, Content: promptBuilder.String()},
 		},
 	}
 	stream, err := provider.StreamCompletion(ctx, request)
 	if err != nil {
 		return "", err
 	}
-	collected := zeroruntime.CollectStream(ctx, stream)
+	collected := runeruntime.CollectStream(ctx, stream)
 	if collected.Error != "" {
 		return "", fmt.Errorf("%s", collected.Error)
 	}
 
-	slug := zerogit.SlugifyBranchComponent(extractBranchSlug(collected.Text))
+	slug := runegit.SlugifyBranchComponent(extractBranchSlug(collected.Text))
 	if slug == "" {
 		return "", fmt.Errorf("provider returned empty branch slug")
 	}

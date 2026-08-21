@@ -10,7 +10,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/modelregistry"
-	"rune/internal/zerocommands"
+	"rune/internal/runecommands"
 )
 
 type commandCenterOptions struct {
@@ -20,10 +20,10 @@ type commandCenterOptions struct {
 	includeDeprecated bool
 }
 
-type configSummary = zerocommands.ConfigSnapshot
-type providerSummary = zerocommands.ProviderSnapshot
-type modelSummary = zerocommands.ModelSnapshot
-type providerCatalogSummary = zerocommands.ProviderCatalogSnapshot
+type configSummary = runecommands.ConfigSnapshot
+type providerSummary = runecommands.ProviderSnapshot
+type modelSummary = runecommands.ModelSnapshot
+type providerCatalogSummary = runecommands.ProviderCatalogSnapshot
 
 func runConfig(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) int {
 	options, help, err := parseCommandCenterArgs(args, false, false)
@@ -251,7 +251,7 @@ func parseCommandCenterArgs(args []string, allowModelFilters bool, allowProvider
 }
 
 func summarizeConfig(resolved config.ResolvedConfig) configSummary {
-	summary := zerocommands.ConfigSnapshotFromResolved(resolved)
+	summary := runecommands.ConfigSnapshotFromResolved(resolved)
 	// Mark keyless profiles that authenticate via a stored OAuth login (e.g.
 	// ChatGPT) so the list shows "oauth login" instead of "api key: not set" —
 	// the same candidate matching the runtime resolver uses.
@@ -276,7 +276,7 @@ func summarizeConfig(resolved config.ResolvedConfig) configSummary {
 }
 
 func listModelSummaries(registry modelregistry.Registry, options commandCenterOptions) ([]modelSummary, error) {
-	summaries, err := zerocommands.ModelSnapshots(registry, zerocommands.ModelSnapshotOptions{
+	summaries, err := runecommands.ModelSnapshots(registry, runecommands.ModelSnapshotOptions{
 		Provider:          modelregistry.ProviderKind(strings.TrimSpace(strings.ToLower(options.provider))),
 		IncludeDeprecated: options.includeDeprecated,
 	})
@@ -293,7 +293,7 @@ func listModelSummaries(registry modelregistry.Registry, options commandCenterOp
 }
 
 func listProviderCatalogSummaries(options commandCenterOptions) ([]providerCatalogSummary, error) {
-	summaries, err := zerocommands.ProviderCatalogSnapshots(zerocommands.ProviderCatalogSnapshotOptions{
+	summaries, err := runecommands.ProviderCatalogSnapshots(runecommands.ProviderCatalogSnapshotOptions{
 		Transport: options.transport,
 	})
 	if err != nil {

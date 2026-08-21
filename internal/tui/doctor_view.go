@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"rune/internal/doctor"
-	"rune/internal/zerocommands"
+	"rune/internal/runecommands"
 )
 
-func doctorCommandOutput(report doctor.Report, backend *zerocommands.BackendLifecycleSnapshot) commandOutput {
+func doctorCommandOutput(report doctor.Report, backend *runecommands.BackendLifecycleSnapshot) commandOutput {
 	sections := []commandSection{{
 		Title: "Summary",
 		Lines: doctorSummaryLines(report.Checks),
@@ -144,7 +144,7 @@ func appendNonEmptyDoctorSection(sections []commandSection, title string, rows [
 	})
 }
 
-func doctorBackendSection(backend zerocommands.BackendLifecycleSnapshot) commandSection {
+func doctorBackendSection(backend runecommands.BackendLifecycleSnapshot) commandSection {
 	return commandSection{
 		Title: "Backend",
 		Fields: []commandField{
@@ -155,7 +155,7 @@ func doctorBackendSection(backend zerocommands.BackendLifecycleSnapshot) command
 	}
 }
 
-func doctorActions(checks []doctor.Check, backend *zerocommands.BackendLifecycleSnapshot) []string {
+func doctorActions(checks []doctor.Check, backend *runecommands.BackendLifecycleSnapshot) []string {
 	seen := map[string]bool{}
 	actions := []string{}
 	add := func(action string) {

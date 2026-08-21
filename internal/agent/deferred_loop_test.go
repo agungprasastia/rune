@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 func TestOptionsDeferThresholdFieldExists(t *testing.T) {
@@ -129,7 +129,7 @@ func (fakeToolSearchTool) Run(_ context.Context, _ map[string]any) tools.Result 
 	return tools.Result{Status: tools.StatusOK, Output: "ok"}
 }
 
-func toolDefinitionByName(definitions []zeroruntime.ToolDefinition, name string) *zeroruntime.ToolDefinition {
+func toolDefinitionByName(definitions []runeruntime.ToolDefinition, name string) *runeruntime.ToolDefinition {
 	for i := range definitions {
 		if definitions[i].Name == name {
 			return &definitions[i]
@@ -138,10 +138,10 @@ func toolDefinitionByName(definitions []zeroruntime.ToolDefinition, name string)
 	return nil
 }
 
-func assertNoDeferredDiscoveryMessage(t *testing.T, request zeroruntime.CompletionRequest) {
+func assertNoDeferredDiscoveryMessage(t *testing.T, request runeruntime.CompletionRequest) {
 	t.Helper()
 	for _, message := range request.Messages {
-		if message.Role == zeroruntime.MessageRoleUser && strings.Contains(message.Content, "Deferred tools:") {
+		if message.Role == runeruntime.MessageRoleUser && strings.Contains(message.Content, "Deferred tools:") {
 			t.Fatalf("deferred discovery must not be appended as a user message: %q", message.Content)
 		}
 	}
@@ -198,8 +198,8 @@ func TestPartitionToolsInactiveIsByteIdenticalAndDropsToolSearch(t *testing.T) {
 // tool that is visible (passes the operator filters) and advertised for the mode,
 // EXCEPT tool_search, rendered with its full schema and alpha-sorted by name. It
 // is the byte-identity reference for the inactive partition path.
-func legacyToolDefinitions(registry *tools.Registry, permissionMode PermissionMode, options Options) []zeroruntime.ToolDefinition {
-	definitions := make([]zeroruntime.ToolDefinition, 0)
+func legacyToolDefinitions(registry *tools.Registry, permissionMode PermissionMode, options Options) []runeruntime.ToolDefinition {
+	definitions := make([]runeruntime.ToolDefinition, 0)
 	for _, tool := range registry.All() {
 		if !ToolVisible(tool, permissionMode, options.EnabledTools, options.DisabledTools) {
 			continue
@@ -207,7 +207,7 @@ func legacyToolDefinitions(registry *tools.Registry, permissionMode PermissionMo
 		if tool.Name() == tools.ToolSearchToolName {
 			continue
 		}
-		definitions = append(definitions, zeroruntime.ToolDefinition{
+		definitions = append(definitions, runeruntime.ToolDefinition{
 			Name:        tool.Name(),
 			Description: tool.Description(),
 			Parameters:  schemaToRuntimeMap(tool.Parameters()),
@@ -383,15 +383,15 @@ func TestRunLoadsDeferredToolThenAdvertisesNextTurn(t *testing.T) {
 	// (otherwise the loop falls back to eager so it never strands the loader).
 	registry.Register(tools.NewToolSearchTool(registry))
 
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{ // turn 1: call load_signal
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "load_signal"},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "load_signal"},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{ // turn 2: final answer
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -438,7 +438,7 @@ func TestRunLoadsDeferredToolThenAdvertisesNextTurn(t *testing.T) {
 
 	// The discovery text must NOT persist into the returned message history.
 	for _, m := range result.Messages {
-		if m.Role == zeroruntime.MessageRoleUser && strings.Contains(m.Content, "Tool discovery") {
+		if m.Role == runeruntime.MessageRoleUser && strings.Contains(m.Content, "Tool discovery") {
 			t.Fatalf("deferred discovery must not be persisted in result.Messages")
 		}
 	}
@@ -464,22 +464,22 @@ func TestRunReactiveRetryKeepsLoadedDeferredToolAndDiscovery(t *testing.T) {
 	//   1: turn 2 — emits a context-limit error MID-stream -> reactive recover
 	//   2: the summarize call inside Compact (must return non-empty text)
 	//   3: the RETRY request rebuilt after compaction — asserted below
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{ // turn 1: call load_signal
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "load_signal"},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "load_signal"},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{ // turn 2: mid-stream context-limit error -> reactive compaction
-			{Type: zeroruntime.StreamEventError, Error: "prompt is too long: 250000 tokens > 200000 maximum"},
+			{Type: runeruntime.StreamEventError, Error: "prompt is too long: 250000 tokens > 200000 maximum"},
 		},
 		{ // summarize call inside Compact
-			{Type: zeroruntime.StreamEventText, Content: "SUMMARY"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "SUMMARY"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{ // retry of turn 2 after compaction: final answer
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -511,7 +511,7 @@ func TestRunReactiveRetryKeepsLoadedDeferredToolAndDiscovery(t *testing.T) {
 
 	// The retry must advertise the loaded deferred tool with its FULL schema —
 	// NOT re-hide it as the empty-loaded partition would.
-	var alpha *zeroruntime.ToolDefinition
+	var alpha *runeruntime.ToolDefinition
 	for i := range retry.Tools {
 		if retry.Tools[i].Name == "mcp__srv__alpha" {
 			alpha = &retry.Tools[i]
@@ -539,7 +539,7 @@ func TestRunReactiveRetryKeepsLoadedDeferredToolAndDiscovery(t *testing.T) {
 	// The discovery text must NOT persist into the returned message history, even on
 	// the reactive-retry path.
 	for _, m := range result.Messages {
-		if m.Role == zeroruntime.MessageRoleUser && strings.Contains(m.Content, "Tool discovery") {
+		if m.Role == runeruntime.MessageRoleUser && strings.Contains(m.Content, "Tool discovery") {
 			t.Fatalf("deferred discovery must not be persisted in result.Messages")
 		}
 	}
@@ -551,23 +551,23 @@ func TestRunReactiveRetryKeepsLoadedDeferredToolAndDiscovery(t *testing.T) {
 // streams the corresponding turn's events. It mirrors mockProvider's recording so
 // the rebuilt retry request can be asserted.
 type connectErrorProvider struct {
-	turns        [][]zeroruntime.StreamEvent
+	turns        [][]runeruntime.StreamEvent
 	errAtRequest int
 	errText      string
-	requests     []zeroruntime.CompletionRequest
+	requests     []runeruntime.CompletionRequest
 }
 
-func (provider *connectErrorProvider) StreamCompletion(_ context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *connectErrorProvider) StreamCompletion(_ context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	provider.requests = append(provider.requests, request)
 	index := len(provider.requests) - 1
 	if index == provider.errAtRequest {
 		return nil, errors.New(provider.errText)
 	}
-	events := []zeroruntime.StreamEvent{{Type: zeroruntime.StreamEventDone}}
+	events := []runeruntime.StreamEvent{{Type: runeruntime.StreamEventDone}}
 	if index < len(provider.turns) {
 		events = provider.turns[index]
 	}
-	ch := make(chan zeroruntime.StreamEvent, len(events))
+	ch := make(chan runeruntime.StreamEvent, len(events))
 	for _, event := range events {
 		ch <- event
 	}
@@ -600,20 +600,20 @@ func TestRunConnectTimeReactiveRetryKeepsLoadedDeferredToolAndDiscovery(t *testi
 	provider := &connectErrorProvider{
 		errAtRequest: 1,
 		errText:      "prompt is too long: 250000 tokens > 200000 maximum",
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{ // turn 1: call load_signal
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "load_signal"},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "load_signal"},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			nil, // index 1: replaced by the connect-time error
 			{ // index 2: summarize call inside Compact
-				{Type: zeroruntime.StreamEventText, Content: "SUMMARY"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "SUMMARY"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{ // index 3: retry of turn 2 after compaction: final answer
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -640,7 +640,7 @@ func TestRunConnectTimeReactiveRetryKeepsLoadedDeferredToolAndDiscovery(t *testi
 
 	// The retry must advertise the loaded deferred tool with its FULL schema and
 	// keep the never-loaded one hidden.
-	var alpha *zeroruntime.ToolDefinition
+	var alpha *runeruntime.ToolDefinition
 	for i := range retry.Tools {
 		if retry.Tools[i].Name == "mcp__srv__alpha" {
 			alpha = &retry.Tools[i]
@@ -667,7 +667,7 @@ func TestRunConnectTimeReactiveRetryKeepsLoadedDeferredToolAndDiscovery(t *testi
 
 	// The discovery text must NOT persist into the returned message history.
 	for _, m := range result.Messages {
-		if m.Role == zeroruntime.MessageRoleUser && strings.Contains(m.Content, "Tool discovery") {
+		if m.Role == runeruntime.MessageRoleUser && strings.Contains(m.Content, "Tool discovery") {
 			t.Fatalf("deferred discovery must not be persisted in result.Messages")
 		}
 	}
@@ -841,16 +841,16 @@ func TestPlanModeToolSearchNeverLeaksDeferredMutatorSchema(t *testing.T) {
 	registry.Register(fakeDeferredMutatorTool{name: "mcp__srv__mutate2"})
 	registry.Register(tools.NewToolSearchTool(registry))
 
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{ // turn 1: force a call to tool_search even though it should not be advertised.
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: tools.ToolSearchToolName},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "c1", ArgumentsFragment: `{"query":"select:mcp__srv__mutate"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: tools.ToolSearchToolName},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "c1", ArgumentsFragment: `{"query":"select:mcp__srv__mutate"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{ // turn 2: final answer.
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -880,7 +880,7 @@ func TestPlanModeToolSearchNeverLeaksDeferredMutatorSchema(t *testing.T) {
 	// load_tools signal.
 	var toolMessage string
 	for _, message := range result.Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			toolMessage = message.Content
 			break
 		}

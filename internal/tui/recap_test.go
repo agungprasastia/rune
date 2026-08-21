@@ -10,8 +10,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
-	"rune/internal/zeroruntime"
 )
 
 func TestHandleConfigCommandReportsPersistError(t *testing.T) {
@@ -52,9 +52,9 @@ func TestMaybeScheduleIdleRecapDefersProviderWork(t *testing.T) {
 }
 
 func TestHandleRecapIdleUsesGoalPlanAndRecentConversation(t *testing.T) {
-	provider := &fakeProvider{events: []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "The goal is to ship safer edits. Next, run the cross-platform checks."},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &fakeProvider{events: []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "The goal is to ship safer edits. Next, run the cross-platform checks."},
+		{Type: runeruntime.StreamEventDone},
 	}}
 	m := newModel(context.Background(), Options{Provider: provider})
 	m.recapsEnabled = true

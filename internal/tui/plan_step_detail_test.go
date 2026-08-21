@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // lastCardText returns the text of the most recently appended transcript row —
@@ -66,9 +66,9 @@ func TestPlanStepDetailByStatus(t *testing.T) {
 // returned message updates the card in place with the model's text and caches
 // it, so re-clicking the same step is instant with no second call.
 func TestPlanStepDetailAIExplanation(t *testing.T) {
-	provider := &fakeProvider{events: []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "We added the new button and wired up its click."},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &fakeProvider{events: []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "We added the new button and wired up its click."},
+		{Type: runeruntime.StreamEventDone},
 	}}
 	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	m := model{now: func() time.Time { return t0 }, provider: provider}
@@ -119,9 +119,9 @@ func TestPlanStepDetailAIExplanation(t *testing.T) {
 // detail card — even when the model write-up is still in flight, a late response
 // must NOT pop the card back open after the user closed it.
 func TestPlanStepDetailSecondClickHides(t *testing.T) {
-	provider := &fakeProvider{events: []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "late explanation"},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &fakeProvider{events: []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "late explanation"},
+		{Type: runeruntime.StreamEventDone},
 	}}
 	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	m := model{now: func() time.Time { return t0 }, provider: provider}

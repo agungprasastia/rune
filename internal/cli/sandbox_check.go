@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"rune/internal/config"
+	"rune/internal/runecommands"
 	zeroSandbox "rune/internal/sandbox"
-	"rune/internal/zerocommands"
 )
 
 type sandboxCheckOptions struct {
@@ -22,14 +22,14 @@ type sandboxCheckOptions struct {
 // sandboxCheckReport is the combined snapshot `rune sandbox check` emits: the
 // active plan (policy + backend + restrictions), the decision the engine would
 // make for the described tool action, and any persistent grant that matches the
-// tool. It is the production consumer of the zerocommands sandbox-snapshot
+// tool. It is the production consumer of the runecommands sandbox-snapshot
 // contract, giving operators and CI a stable, redacted JSON view of "what would
 // the sandbox do for this action?".
 type sandboxCheckReport struct {
 	Tool     string                                 `json:"tool"`
-	Plan     zerocommands.SandboxPlanSnapshot       `json:"plan"`
-	Decision zerocommands.SandboxDecisionSnapshot   `json:"decision"`
-	Grant    zerocommands.SandboxGrantMatchSnapshot `json:"grant"`
+	Plan     runecommands.SandboxPlanSnapshot       `json:"plan"`
+	Decision runecommands.SandboxDecisionSnapshot   `json:"decision"`
+	Grant    runecommands.SandboxGrantMatchSnapshot `json:"grant"`
 }
 
 func runSandboxCheck(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) int {
@@ -111,9 +111,9 @@ func runSandboxCheck(args []string, stdout io.Writer, stderr io.Writer, deps app
 
 	report := sandboxCheckReport{
 		Tool:     strings.TrimSpace(options.tool),
-		Plan:     zerocommands.SandboxPlanSnapshotFromPlan(plan),
-		Decision: zerocommands.SandboxDecisionSnapshotFromDecision(decision),
-		Grant:    zerocommands.SandboxGrantMatchSnapshotFromLookup(options.tool, lookup),
+		Plan:     runecommands.SandboxPlanSnapshotFromPlan(plan),
+		Decision: runecommands.SandboxDecisionSnapshotFromDecision(decision),
+		Grant:    runecommands.SandboxGrantMatchSnapshotFromLookup(options.tool, lookup),
 	}
 
 	if options.json {

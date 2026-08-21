@@ -15,16 +15,16 @@ import (
 
 	"rune/internal/execution"
 	"rune/internal/hooks"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/specmode"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 type mockProvider struct {
-	turns    [][]zeroruntime.StreamEvent
-	requests []zeroruntime.CompletionRequest
+	turns    [][]runeruntime.StreamEvent
+	requests []runeruntime.CompletionRequest
 }
 
 func TestTypedExecutionOutcomeOverridesLegacySandboxHeuristics(t *testing.T) {
@@ -96,15 +96,15 @@ func TestTypedExecutionOutcomeOverridesLegacySandboxHeuristics(t *testing.T) {
 	}
 }
 
-func (provider *mockProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *mockProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	provider.requests = append(provider.requests, request)
 
-	events := []zeroruntime.StreamEvent{{Type: zeroruntime.StreamEventDone}}
+	events := []runeruntime.StreamEvent{{Type: runeruntime.StreamEventDone}}
 	if len(provider.turns) >= len(provider.requests) {
 		events = provider.turns[len(provider.requests)-1]
 	}
 
-	ch := make(chan zeroruntime.StreamEvent, len(events))
+	ch := make(chan runeruntime.StreamEvent, len(events))
 	for _, event := range events {
 		ch <- event
 	}
@@ -127,9 +127,9 @@ func TestRunDispatchesSessionLifecycleHooks(t *testing.T) {
 		},
 		Audit: audit,
 	})
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventText, Content: "done"},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventText, Content: "done"},
+		{Type: runeruntime.StreamEventDone},
 	}}}
 
 	_, err = Run(context.Background(), "hi", provider, Options{
@@ -173,9 +173,9 @@ type cancelingProvider struct {
 	cancel context.CancelFunc
 }
 
-func (provider *cancelingProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *cancelingProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	provider.cancel()
-	ch := make(chan zeroruntime.StreamEvent)
+	ch := make(chan runeruntime.StreamEvent)
 	close(ch)
 	return ch, nil
 }
@@ -445,16 +445,16 @@ func TestRunRetriesShellUnsandboxedAfterSandboxNamespaceLimitedOutput(t *testing
 	registry := tools.NewRegistry()
 	registry.Register(retryTool)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -519,12 +519,12 @@ func TestRunUsesEscalatedJustificationForPermissionPrompt(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(&sandboxDeniedRetryTool{})
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux","sandbox_permissions":"require_escalated","justification":"Need host process visibility."}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux","sandbox_permissions":"require_escalated","justification":"Need host process visibility."}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -559,12 +559,12 @@ func TestRunUsesUserFacingEscalatedFallbackForPermissionPrompt(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(&sandboxDeniedExecCommandRetryTool{})
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "exec_command"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux","sandbox_permissions":"require_escalated"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "exec_command"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux","sandbox_permissions":"require_escalated"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -603,16 +603,16 @@ func TestRunRetriesNetworkDeniedShellWithNetworkGrant(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(retryTool)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"node server.js"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"node server.js"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -692,16 +692,16 @@ func TestRunRetriesShellUnsandboxedAfterSandboxDeniedExit(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(retryTool)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"npm install --save http-server"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"npm install --save http-server"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -764,16 +764,16 @@ func TestRunDoesNotRetryUnsandboxedWhenDeniedReadsActive(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(retryTool)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"touch cache-file"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"touch cache-file"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -827,10 +827,10 @@ func TestRunDoesNotRetryUnsandboxedWhenDeniedReadsActive(t *testing.T) {
 
 func TestRunReturnsProviderText(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "hello"},
-			{Type: zeroruntime.StreamEventText, Content: " rune"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "hello"},
+			{Type: runeruntime.StreamEventText, Content: " rune"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -847,16 +847,16 @@ func TestRunReturnsProviderText(t *testing.T) {
 	if len(provider.requests) != 1 {
 		t.Fatalf("expected one provider turn, got %d", len(provider.requests))
 	}
-	assertMessage(t, provider.requests[0].Messages[0], zeroruntime.MessageRoleSystem, "")
-	assertMessage(t, provider.requests[0].Messages[1], zeroruntime.MessageRoleUser, "say hi")
+	assertMessage(t, provider.requests[0].Messages[0], runeruntime.MessageRoleSystem, "")
+	assertMessage(t, provider.requests[0].Messages[1], runeruntime.MessageRoleUser, "say hi")
 }
 
 func TestRunDoesNotPersistReasoningAsAssistantText(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventReasoning, Content: "private reasoning"},
-			{Type: zeroruntime.StreamEventText, Content: "public answer"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventReasoning, Content: "private reasoning"},
+			{Type: runeruntime.StreamEventText, Content: "public answer"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 	var reasoning []string
@@ -876,7 +876,7 @@ func TestRunDoesNotPersistReasoningAsAssistantText(t *testing.T) {
 		t.Fatal("expected persisted messages")
 	}
 	last := result.Messages[len(result.Messages)-1]
-	if last.Role != zeroruntime.MessageRoleAssistant || last.Content != "public answer" {
+	if last.Role != runeruntime.MessageRoleAssistant || last.Content != "public answer" {
 		t.Fatalf("assistant message = %#v, want answer-only assistant content", last)
 	}
 	if len(reasoning) != 1 || reasoning[0] != "private reasoning" {
@@ -886,9 +886,9 @@ func TestRunDoesNotPersistReasoningAsAssistantText(t *testing.T) {
 
 func TestRunReportsTruncationFinishReason(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "partial answer"},
-			{Type: zeroruntime.StreamEventDone, FinishReason: zeroruntime.FinishReasonLength},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "partial answer"},
+			{Type: runeruntime.StreamEventDone, FinishReason: runeruntime.FinishReasonLength},
 		}},
 	}
 
@@ -901,8 +901,8 @@ func TestRunReportsTruncationFinishReason(t *testing.T) {
 	if result.FinalAnswer != "partial answer" {
 		t.Fatalf("final answer = %q", result.FinalAnswer)
 	}
-	if result.FinishReason != zeroruntime.FinishReasonLength {
-		t.Fatalf("FinishReason = %q, want %q", result.FinishReason, zeroruntime.FinishReasonLength)
+	if result.FinishReason != runeruntime.FinishReasonLength {
+		t.Fatalf("FinishReason = %q, want %q", result.FinishReason, runeruntime.FinishReasonLength)
 	}
 	if result.TruncationNotice() == "" {
 		t.Fatal("TruncationNotice() empty for a truncated response")
@@ -911,9 +911,9 @@ func TestRunReportsTruncationFinishReason(t *testing.T) {
 
 func TestRunNormalCompletionIsNotTruncated(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -931,8 +931,8 @@ func TestResultTruncationNotice(t *testing.T) {
 		reason     string
 		wantNotice bool
 	}{
-		"length":         {zeroruntime.FinishReasonLength, true},
-		"content_filter": {zeroruntime.FinishReasonContentFilter, true},
+		"length":         {runeruntime.FinishReasonLength, true},
+		"content_filter": {runeruntime.FinishReasonContentFilter, true},
 		"unknown":        {"weird_reason", true},
 		"normal":         {"", false},
 	}
@@ -948,10 +948,10 @@ func TestResultTruncationNotice(t *testing.T) {
 
 func TestRunEmitsTextDeltas(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "hello"},
-			{Type: zeroruntime.StreamEventText, Content: " rune"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "hello"},
+			{Type: runeruntime.StreamEventText, Content: " rune"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -971,17 +971,17 @@ func TestRunEmitsTextDeltas(t *testing.T) {
 
 func TestRunEmitsUsageEvents(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventUsage, Usage: zeroruntime.Usage{PromptTokens: 12, CompletionTokens: 5, CachedInputTokens: 2}},
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventUsage, Usage: runeruntime.Usage{PromptTokens: 12, CompletionTokens: 5, CachedInputTokens: 2}},
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
-	var usages []zeroruntime.Usage
+	var usages []runeruntime.Usage
 	_, err := Run(context.Background(), "track usage", provider, Options{
 		Registry: tools.NewRegistry(),
-		OnUsage:  func(usage zeroruntime.Usage) { usages = append(usages, usage) },
+		OnUsage:  func(usage runeruntime.Usage) { usages = append(usages, usage) },
 	})
 
 	if err != nil {
@@ -1000,9 +1000,9 @@ func TestRunAdvertisesRuntimeToolDefinitions(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -1052,9 +1052,9 @@ func TestRunAdvertisesWebFetchInAutoMode(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewWebFetchTool())
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -1078,16 +1078,16 @@ func TestRunRejectsLocalWebFetchBeforePermissionRequest(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewWebFetchTool())
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "web_fetch"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"url":"http://localhost:8000/index.html"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "web_fetch"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"url":"http://localhost:8000/index.html"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1134,9 +1134,9 @@ func TestRunAdvertisesPromptedWebSearchInAutoMode(t *testing.T) {
 		}
 	}
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -1161,16 +1161,16 @@ func TestRunRequestsPermissionBeforeWebSearchExecution(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(search)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "web_search"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"query":"private workspace detail"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "web_search"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"query":"private workspace detail"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1209,9 +1209,9 @@ func TestRunFiltersAdvertisedTools(t *testing.T) {
 	registry.Register(tools.NewScopedGrepTool(root, nil))
 	registry.Register(tools.NewScopedWriteFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -1237,16 +1237,16 @@ func TestRunRejectsFilteredToolCalls(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"README.md"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"README.md"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1274,16 +1274,16 @@ func TestRunRejectsToolCallsOutsideEnabledList(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"README.md"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call_1", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"README.md"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1312,16 +1312,16 @@ func TestRunExecutesToolCallThroughRegistry(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "read done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "read done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1342,7 +1342,7 @@ func TestRunExecutesToolCallThroughRegistry(t *testing.T) {
 		t.Fatalf("expected provider to be called twice, got %d", len(provider.requests))
 	}
 	lastMessage := provider.requests[1].Messages[len(provider.requests[1].Messages)-1]
-	assertMessage(t, lastMessage, zeroruntime.MessageRoleTool, "alpha")
+	assertMessage(t, lastMessage, runeruntime.MessageRoleTool, "alpha")
 	if lastMessage.ToolCallID != "call-1" {
 		t.Fatalf("expected tool_call_id call-1, got %q", lastMessage.ToolCallID)
 	}
@@ -1356,16 +1356,16 @@ func TestRunPreservesRequestPrefixAcrossTurns(t *testing.T) {
 	writeAgentTestFile(t, filepath.Join(root, "notes.txt"), "alpha\n")
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewReadFileTool(root))
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -1396,19 +1396,19 @@ func TestRunSanitizesMalformedToolCallArgumentsBeforeRetry(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
 				// Genuinely malformed (truncated) args: still error -> sanitize -> retry.
 				// (Concatenated multi-object args are now tolerated; see
 				// TestRunRecoversFirstObjectFromConcatenatedToolArgs.)
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"README.md"`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"README.md"`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "recovered"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "recovered"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1428,13 +1428,13 @@ func TestRunSanitizesMalformedToolCallArgumentsBeforeRetry(t *testing.T) {
 		t.Fatalf("expected retry request after malformed tool args, got %d requests", len(provider.requests))
 	}
 
-	var assistantCall *zeroruntime.ToolCall
+	var assistantCall *runeruntime.ToolCall
 	var toolParseError string
 	for _, message := range provider.requests[1].Messages {
-		if message.Role == zeroruntime.MessageRoleAssistant && len(message.ToolCalls) > 0 {
+		if message.Role == runeruntime.MessageRoleAssistant && len(message.ToolCalls) > 0 {
 			assistantCall = &message.ToolCalls[0]
 		}
-		if message.Role == zeroruntime.MessageRoleTool && strings.Contains(message.Content, "Failed to parse arguments for read_file") {
+		if message.Role == runeruntime.MessageRoleTool && strings.Contains(message.Content, "Failed to parse arguments for read_file") {
 			toolParseError = message.Content
 		}
 	}
@@ -1464,16 +1464,16 @@ func TestRunRecoversFirstObjectFromConcatenatedToolArgs(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"README.md"}{"path":"AGENTS.md"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"README.md"}{"path":"AGENTS.md"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1487,7 +1487,7 @@ func TestRunRecoversFirstObjectFromConcatenatedToolArgs(t *testing.T) {
 	}
 	var toolResult string
 	for _, message := range provider.requests[1].Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			toolResult = message.Content
 		}
 	}
@@ -1513,19 +1513,19 @@ func TestRunDefersSelfCorrectFeedbackUntilAfterToolBatch(t *testing.T) {
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt","content":"hello"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "read_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":"existing.txt"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt","content":"hello"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":"existing.txt"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1556,9 +1556,9 @@ func TestRunDefersSelfCorrectFeedbackUntilAfterToolBatch(t *testing.T) {
 	feedbackIdx := -1
 	for i, m := range msgs {
 		switch m.Role {
-		case zeroruntime.MessageRoleTool:
+		case runeruntime.MessageRoleTool:
 			toolIdx = append(toolIdx, i)
-		case zeroruntime.MessageRoleUser:
+		case runeruntime.MessageRoleUser:
 			if strings.Contains(m.Content, "Verification failed after your edit") {
 				feedbackIdx = i
 			}
@@ -1588,19 +1588,19 @@ func TestRunBatchesSelfCorrectOncePerTurn(t *testing.T) {
 	registry.Register(tools.NewScopedWriteFileTool(root, nil))
 
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"a.txt","content":"hello"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":"b.txt","content":"hello"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"a.txt","content":"hello"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":"b.txt","content":"hello"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -1630,7 +1630,7 @@ func TestRunBatchesSelfCorrectOncePerTurn(t *testing.T) {
 	}
 	feedbackCount := 0
 	for _, m := range provider.requests[1].Messages {
-		if m.Role == zeroruntime.MessageRoleUser && strings.Contains(m.Content, "Verification failed after your edit") {
+		if m.Role == runeruntime.MessageRoleUser && strings.Contains(m.Content, "Verification failed after your edit") {
 			feedbackCount++
 		}
 	}
@@ -2008,22 +2008,22 @@ func TestRunSessionAllowSkipsMatchingPromptWithoutPersistentGrant(t *testing.T) 
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedWriteFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt","content":"first","overwrite":true}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt","content":"first","overwrite":true}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":"notes.txt","content":"second","overwrite":true}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":"notes.txt","content":"second","overwrite":true}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2089,22 +2089,22 @@ func TestRunCommandPrefixApprovalSkipsLaterMatchingBashPrompt(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedBashTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo prefix-ok"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo prefix-ok"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"command":"echo prefix-ok again"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"command":"echo prefix-ok again"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2160,22 +2160,22 @@ func TestRunCommandPrefixApprovalBypassesSandboxForMatchingShellCalls(t *testing
 	registry := tools.NewRegistry()
 	registry.Register(retryTool)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo prefix-ok"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo prefix-ok"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"command":"echo prefix-ok again"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"command":"echo prefix-ok again"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2225,22 +2225,22 @@ func TestRunCommandPrefixApprovalCoversSegmentedShellWithSafeTail(t *testing.T) 
 	registry := tools.NewRegistry()
 	registry.Register(retryTool)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"ps aux"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: fmt.Sprintf(`{"command":%q}`, segmentedCommand)},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: fmt.Sprintf(`{"command":%q}`, segmentedCommand)},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2294,16 +2294,16 @@ func TestRunPersistentCommandPrefixApprovalSkipsFutureSessionPrompt(t *testing.T
 	policy.Network = sandbox.NetworkAllow
 
 	firstProvider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo persist-ok"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo persist-ok"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "first done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "first done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2347,16 +2347,16 @@ func TestRunPersistentCommandPrefixApprovalSkipsFutureSessionPrompt(t *testing.T
 	}
 
 	secondProvider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"command":"echo persist-ok again"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"command":"echo persist-ok again"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "second done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "second done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2398,16 +2398,16 @@ func TestRunPersistentCommandPrefixStillPromptsForNetwork(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedBashTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"curl https://example.com"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"curl https://example.com"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2463,16 +2463,16 @@ func TestRunApprovedNetworkBashPromptAppliesTurnNetworkGrant(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedBashTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":` + quoteJSONString(command) + `}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":` + quoteJSONString(command) + `}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2530,16 +2530,16 @@ func TestRunDoesNotOfferPrefixApprovalForUnsafeBashCommand(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedBashTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo hi && npm install","prefix_rule":["echo"]}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"echo hi && npm install","prefix_rule":["echo"]}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2577,16 +2577,16 @@ func TestRunPromptsForDestructiveShellInsteadOfSandboxDeny(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedBashTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":` + quoteJSONString(command) + `}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":` + quoteJSONString(command) + `}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2695,9 +2695,9 @@ func containsPermissionDecision(decisions []PermissionDecisionAction, want Permi
 // never sends a terminal event, so CollectStream returns via ctx.Done().
 type cancelMidStreamProvider struct{ cancel context.CancelFunc }
 
-func (p cancelMidStreamProvider) StreamCompletion(_ context.Context, _ zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (p cancelMidStreamProvider) StreamCompletion(_ context.Context, _ runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	p.cancel()
-	return make(chan zeroruntime.StreamEvent), nil
+	return make(chan runeruntime.StreamEvent), nil
 }
 
 func TestRunCancellationPreservesContextCanceledIdentity(t *testing.T) {
@@ -2881,19 +2881,19 @@ func TestRunSessionAllowsLaterOutsideWorkspaceWrite(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedWriteFileTool(root, engine.Scope()))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":` + quoteJSONString(outside) + `,"content":"first"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":` + quoteJSONString(outside) + `,"content":"second","overwrite":true}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":` + quoteJSONString(outside) + `,"content":"first"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-2", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-2", ArgumentsFragment: `{"path":` + quoteJSONString(outside) + `,"content":"second","overwrite":true}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-2"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -2996,11 +2996,11 @@ func TestRunStopsAfterMaxTurns(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -3026,16 +3026,16 @@ func TestRunRequestsFinalAnswerAfterMaxTurns(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "I read notes.txt and found alpha."},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "I read notes.txt and found alpha."},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -3059,7 +3059,7 @@ func TestRunRequestsFinalAnswerAfterMaxTurns(t *testing.T) {
 		t.Fatalf("finalization request must keep prior tools exposed for strict provider replay, got %#v", finalRequest.Tools)
 	}
 	lastMessage := finalRequest.Messages[len(finalRequest.Messages)-1]
-	if lastMessage.Role != zeroruntime.MessageRoleUser || !strings.Contains(lastMessage.Content, "tool-turn limit") {
+	if lastMessage.Role != runeruntime.MessageRoleUser || !strings.Contains(lastMessage.Content, "tool-turn limit") {
 		t.Fatalf("expected max-turns finalization prompt, got %#v", lastMessage)
 	}
 	if result.Turns != 1 {
@@ -3073,16 +3073,16 @@ func providerCallingWriteFileThenAnswer(answer string) *mockProvider {
 
 func providerCallingWritePathThenAnswer(path string, answer string) *mockProvider {
 	return &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":` + quoteJSONString(path) + `,"content":"hello"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":` + quoteJSONString(path) + `,"content":"hello"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: answer},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: answer},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -3107,9 +3107,9 @@ func equalPermissionDecisions(a, b []PermissionDecisionAction) bool {
 
 func TestRunAppendsConfirmationPolicyToSystemPrompt(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "ok"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "ok"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -3123,7 +3123,7 @@ func TestRunAppendsConfirmationPolicyToSystemPrompt(t *testing.T) {
 		t.Fatal("expected at least one provider request")
 	}
 	system := provider.requests[0].Messages[0]
-	if system.Role != zeroruntime.MessageRoleSystem {
+	if system.Role != runeruntime.MessageRoleSystem {
 		t.Fatalf("expected first message to be system, got %s", system.Role)
 	}
 	// The overhauled core prompt: identity + the mandatory testing gate.
@@ -3283,9 +3283,9 @@ func TestSpecDraftAdvertisesOnlySafeDraftTools(t *testing.T) {
 	}
 	specmode.RegisterDraftTools(registry, root, nil)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -3332,7 +3332,7 @@ func TestSpecDraftDeniesHiddenToolCalls(t *testing.T) {
 	}
 	var denied string
 	for _, message := range result.Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			denied = message.Content
 			break
 		}
@@ -3350,16 +3350,16 @@ func TestSpecDraftDeniesBashToolCalls(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedBashTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"printf ran > ran.txt"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"printf ran > ran.txt"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -3378,7 +3378,7 @@ func TestSpecDraftDeniesBashToolCalls(t *testing.T) {
 	}
 	var denied string
 	for _, message := range result.Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			denied = message.Content
 			break
 		}
@@ -3398,9 +3398,9 @@ func TestPlanModeAdvertisesOnlySafeTools(t *testing.T) {
 		registry.Register(tool)
 	}
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -3472,16 +3472,16 @@ func TestSpecDraftModeRejectsNameOnlySpoofedControlTools(t *testing.T) {
 				},
 			})
 			provider := &mockProvider{
-				turns: [][]zeroruntime.StreamEvent{
+				turns: [][]runeruntime.StreamEvent{
 					{
-						{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: tc.name},
-						{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{}`},
-						{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-						{Type: zeroruntime.StreamEventDone},
+						{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: tc.name},
+						{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{}`},
+						{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+						{Type: runeruntime.StreamEventDone},
 					},
 					{
-						{Type: zeroruntime.StreamEventText, Content: "done"},
-						{Type: zeroruntime.StreamEventDone},
+						{Type: runeruntime.StreamEventText, Content: "done"},
+						{Type: runeruntime.StreamEventDone},
 					},
 				},
 			}
@@ -3500,7 +3500,7 @@ func TestSpecDraftModeRejectsNameOnlySpoofedControlTools(t *testing.T) {
 			}
 			var denied string
 			for _, message := range result.Messages {
-				if message.Role == zeroruntime.MessageRoleTool {
+				if message.Role == runeruntime.MessageRoleTool {
 					denied = message.Content
 					break
 				}
@@ -3534,16 +3534,16 @@ func TestPlanModeRejectsNameOnlySpoofedControlTools(t *testing.T) {
 				},
 			})
 			provider := &mockProvider{
-				turns: [][]zeroruntime.StreamEvent{
+				turns: [][]runeruntime.StreamEvent{
 					{
-						{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: name},
-						{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{}`},
-						{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-						{Type: zeroruntime.StreamEventDone},
+						{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: name},
+						{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{}`},
+						{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+						{Type: runeruntime.StreamEventDone},
 					},
 					{
-						{Type: zeroruntime.StreamEventText, Content: "done"},
-						{Type: zeroruntime.StreamEventDone},
+						{Type: runeruntime.StreamEventText, Content: "done"},
+						{Type: runeruntime.StreamEventDone},
 					},
 				},
 			}
@@ -3563,7 +3563,7 @@ func TestPlanModeRejectsNameOnlySpoofedControlTools(t *testing.T) {
 			}
 			var denied string
 			for _, message := range result.Messages {
-				if message.Role == zeroruntime.MessageRoleTool {
+				if message.Role == runeruntime.MessageRoleTool {
 					denied = message.Content
 					break
 				}
@@ -3587,16 +3587,16 @@ func TestPlanModeDeniesLSPNavigateToolCalls(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedLSPNavigateTool(root, nil))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "lsp_navigate"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"op":"definition","path":"main.go","line":1,"character":1}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "lsp_navigate"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"op":"definition","path":"main.go","line":1,"character":1}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -3614,7 +3614,7 @@ func TestPlanModeDeniesLSPNavigateToolCalls(t *testing.T) {
 	}
 	var denied string
 	for _, message := range result.Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			denied = message.Content
 			break
 		}
@@ -3644,7 +3644,7 @@ func TestPlanModeDeniesHiddenToolCalls(t *testing.T) {
 	}
 	var denied string
 	for _, message := range result.Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			denied = message.Content
 			break
 		}
@@ -3662,16 +3662,16 @@ func TestPlanModeDeniesBashToolCalls(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewBashTool(root))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"printf ran > ran.txt"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "bash"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"command":"printf ran > ran.txt"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -3690,7 +3690,7 @@ func TestPlanModeDeniesBashToolCalls(t *testing.T) {
 	}
 	var denied string
 	for _, message := range result.Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			denied = message.Content
 			break
 		}
@@ -3715,16 +3715,16 @@ func TestReadOnlyModesDenyRequestPermissionsEvenWhenRegistryOmitsIt(t *testing.T
 			registry := tools.NewRegistry()
 			registry.Register(tools.NewReadFileTool(root))
 			provider := &mockProvider{
-				turns: [][]zeroruntime.StreamEvent{
+				turns: [][]runeruntime.StreamEvent{
 					{
-						{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "grant-1", ToolName: tools.RequestPermissionsToolName},
-						{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "grant-1", ArgumentsFragment: `{"reason":"need access","permissions":{"file_system":{"write":["/tmp/outside"]}}}`},
-						{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "grant-1"},
-						{Type: zeroruntime.StreamEventDone},
+						{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "grant-1", ToolName: tools.RequestPermissionsToolName},
+						{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "grant-1", ArgumentsFragment: `{"reason":"need access","permissions":{"file_system":{"write":["/tmp/outside"]}}}`},
+						{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "grant-1"},
+						{Type: runeruntime.StreamEventDone},
 					},
 					{
-						{Type: zeroruntime.StreamEventText, Content: "done"},
-						{Type: zeroruntime.StreamEventDone},
+						{Type: runeruntime.StreamEventText, Content: "done"},
+						{Type: runeruntime.StreamEventDone},
 					},
 				},
 			}
@@ -3751,7 +3751,7 @@ func TestReadOnlyModesDenyRequestPermissionsEvenWhenRegistryOmitsIt(t *testing.T
 			}
 			var denied string
 			for _, message := range result.Messages {
-				if message.Role == zeroruntime.MessageRoleTool {
+				if message.Role == runeruntime.MessageRoleTool {
 					denied = message.Content
 					break
 				}
@@ -3768,11 +3768,11 @@ func TestRunStopsWhenSubmitSpecReturnsReviewControl(t *testing.T) {
 	registry := tools.NewRegistry()
 	specmode.RegisterDraftTools(registry, root, nil)
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "exit-1", ToolName: specmode.SubmitToolName},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "exit-1", ArgumentsFragment: `{"title":"Implementation Plan","plan":"# Goal\n\nAdd implementation plan."}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "exit-1"},
-			{Type: zeroruntime.StreamEventDone},
+		turns: [][]runeruntime.StreamEvent{{
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "exit-1", ToolName: specmode.SubmitToolName},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "exit-1", ArgumentsFragment: `{"title":"Implementation Plan","plan":"# Goal\n\nAdd implementation plan."}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "exit-1"},
+			{Type: runeruntime.StreamEventDone},
 		}},
 	}
 
@@ -3796,7 +3796,7 @@ func TestRunStopsWhenSubmitSpecReturnsReviewControl(t *testing.T) {
 	}
 }
 
-func assertMessage(t *testing.T, message zeroruntime.Message, role zeroruntime.MessageRole, contentContains string) {
+func assertMessage(t *testing.T, message runeruntime.Message, role runeruntime.MessageRole, contentContains string) {
 	t.Helper()
 
 	if message.Role != role {
@@ -3820,15 +3820,15 @@ func writeAgentTestFile(t *testing.T, path string, content string) {
 
 func TestRunRetriesOnDroppedToolCall(t *testing.T) {
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventText, Content: "Let me write the files."},
-				{Type: zeroruntime.StreamEventToolCallDropped},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "Let me write the files."},
+				{Type: runeruntime.StreamEventToolCallDropped},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "All done."},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "All done."},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -3846,7 +3846,7 @@ func TestRunRetriesOnDroppedToolCall(t *testing.T) {
 	// The retry turn must carry synthetic feedback to the model.
 	var fedback bool
 	for _, m := range provider.requests[1].Messages {
-		if m.Role == zeroruntime.MessageRoleUser && strings.Contains(strings.ToLower(m.Content), "tool name") {
+		if m.Role == runeruntime.MessageRoleUser && strings.Contains(strings.ToLower(m.Content), "tool name") {
 			fedback = true
 		}
 	}
@@ -3864,18 +3864,18 @@ func TestRunSurfacesDroppedToolCallAlongsideValidCall(t *testing.T) {
 	registry.Register(tools.NewScopedReadFileTool(root, nil))
 
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
 				// One valid tool call AND a dropped (nameless) call in the same turn.
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-				{Type: zeroruntime.StreamEventToolCallDropped},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+				{Type: runeruntime.StreamEventToolCallDropped},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "All done."},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "All done."},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -3893,7 +3893,7 @@ func TestRunSurfacesDroppedToolCallAlongsideValidCall(t *testing.T) {
 	// The valid tool call must still have executed (a tool result for call-1).
 	var sawToolResult bool
 	for _, m := range provider.requests[1].Messages {
-		if m.Role == zeroruntime.MessageRoleTool && m.ToolCallID == "call-1" {
+		if m.Role == runeruntime.MessageRoleTool && m.ToolCallID == "call-1" {
 			sawToolResult = true
 		}
 	}
@@ -3903,7 +3903,7 @@ func TestRunSurfacesDroppedToolCallAlongsideValidCall(t *testing.T) {
 	// The dropped call must ALSO be surfaced via the malformed-call notice.
 	var sawDroppedNotice bool
 	for _, m := range provider.requests[1].Messages {
-		if m.Role == zeroruntime.MessageRoleUser && strings.Contains(strings.ToLower(m.Content), "malformed") {
+		if m.Role == runeruntime.MessageRoleUser && strings.Contains(strings.ToLower(m.Content), "malformed") {
 			sawDroppedNotice = true
 		}
 	}
@@ -3929,12 +3929,12 @@ func TestRunAppendsAbortedPlaceholderForUnexecutedToolCallsOnGuardStop(t *testin
 
 	// The halting turn carries TWO tool calls: the first (flaky-stop) trips the
 	// guard before the second (flaky-2) is executed.
-	haltingTurn := []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "flaky-stop", ToolName: "flaky"},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "flaky-stop"},
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "flaky-2", ToolName: "flaky"},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "flaky-2"},
-		{Type: zeroruntime.StreamEventDone},
+	haltingTurn := []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "flaky-stop", ToolName: "flaky"},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "flaky-stop"},
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "flaky-2", ToolName: "flaky"},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "flaky-2"},
+		{Type: runeruntime.StreamEventDone},
 	}
 
 	provider := &mockProvider{turns: append(primingTurns, haltingTurn)}
@@ -3950,7 +3950,7 @@ func TestRunAppendsAbortedPlaceholderForUnexecutedToolCallsOnGuardStop(t *testin
 	// Both tool calls must have a matching tool_result message.
 	toolResultIDs := map[string]string{}
 	for _, message := range result.Messages {
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			toolResultIDs[message.ToolCallID] = message.Content
 		}
 	}
@@ -3972,7 +3972,7 @@ func TestRunAppendsAbortedPlaceholderForUnexecutedToolCallsOnGuardStop(t *testin
 
 	// Every tool_use in the final assistant message must have a matching result.
 	for _, message := range result.Messages {
-		if message.Role != zeroruntime.MessageRoleAssistant {
+		if message.Role != runeruntime.MessageRoleAssistant {
 			continue
 		}
 		for _, call := range message.ToolCalls {
@@ -3986,13 +3986,13 @@ func TestRunAppendsAbortedPlaceholderForUnexecutedToolCallsOnGuardStop(t *testin
 func TestRunCarriesToolErrorStatusIntoMessageHistory(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(alwaysFailingTool{})
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "failed-call", ToolName: "flaky"},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "failed-call"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "failed-call", ToolName: "flaky"},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "failed-call"},
+			{Type: runeruntime.StreamEventDone},
 		},
-		{{Type: zeroruntime.StreamEventText, Content: "done"}, {Type: zeroruntime.StreamEventDone}},
+		{{Type: runeruntime.StreamEventText, Content: "done"}, {Type: runeruntime.StreamEventDone}},
 	}}
 
 	result, err := Run(context.Background(), "go", provider, Options{Registry: registry})
@@ -4029,15 +4029,15 @@ func TestRunScrubsSecretsFromToolOutput(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(secretEmittingTool{output: "the token is " + secret + " ok"})
 
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "leak"},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "leak"},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -4071,13 +4071,13 @@ func TestRunScrubsSecretsFromToolOutput(t *testing.T) {
 func TestRunDoesNotFlagCleanToolOutput(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(secretEmittingTool{output: "perfectly ordinary output"})
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "leak"},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: "leak"},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"},
+			{Type: runeruntime.StreamEventDone},
 		},
-		{{Type: zeroruntime.StreamEventText, Content: "done"}, {Type: zeroruntime.StreamEventDone}},
+		{{Type: runeruntime.StreamEventText, Content: "done"}, {Type: runeruntime.StreamEventDone}},
 	}}
 	var captured ToolResult
 	if _, err := Run(context.Background(), "go", provider, Options{Registry: registry, OnToolResult: func(r ToolResult) { captured = r }}); err != nil {
@@ -4095,10 +4095,10 @@ func TestRunDoesNotFlagCleanToolOutput(t *testing.T) {
 // a wired recorder is Started, OnUsage is wrapped so it still forwards to the
 // caller's callback AND stamps token counters, and the run completes.
 func TestRunTracingWrapperStampsUsage(t *testing.T) {
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventUsage, Usage: zeroruntime.Usage{InputTokens: 100, CachedInputTokens: 20, OutputTokens: 40}},
-		{Type: zeroruntime.StreamEventText, Content: "done"},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventUsage, Usage: runeruntime.Usage{InputTokens: 100, CachedInputTokens: 20, OutputTokens: 40}},
+		{Type: runeruntime.StreamEventText, Content: "done"},
+		{Type: runeruntime.StreamEventDone},
 	}}}
 	onUsageCalls := 0
 	onContextCalls := 0
@@ -4153,10 +4153,10 @@ func TestRunTracingWrapperStampsUsage(t *testing.T) {
 // byte-identical: OnUsage is not wrapped, so the caller's callback still fires
 // and nothing panics.
 func TestRunNilTraceForwardsUsage(t *testing.T) {
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventUsage, Usage: zeroruntime.Usage{InputTokens: 7}},
-		{Type: zeroruntime.StreamEventText, Content: "done"},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventUsage, Usage: runeruntime.Usage{InputTokens: 7}},
+		{Type: runeruntime.StreamEventText, Content: "done"},
+		{Type: runeruntime.StreamEventDone},
 	}}}
 	onUsageCalls := 0
 	if _, err := Run(context.Background(), "hi", provider, Options{
@@ -4216,16 +4216,16 @@ func TestRunSuppressesAdvisoryHooksInPlanMode(t *testing.T) {
 	}
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewReadFileTool(root))
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"notes.txt"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "plan drafted"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "plan drafted"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 
@@ -4301,16 +4301,16 @@ func TestPlanModeHonorsBeforeToolVeto(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewReadFileTool(root))
 	var toolOutputs []string
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"secret.txt"}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: "read_file"},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: `{"path":"secret.txt"}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "blocked"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "blocked"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 func TestRequestPermissionsTurnGrantAllowsLaterToolAndCleansUp(t *testing.T) {
@@ -30,19 +30,19 @@ func TestRequestPermissionsTurnGrantAllowsLaterToolAndCleansUp(t *testing.T) {
 	registry.Register(tools.NewRequestPermissionsTool())
 	registry.Register(tools.NewScopedWriteFileTool(workspace, scope))
 	provider := &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "grant-1", ToolName: tools.RequestPermissionsToolName},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "grant-1", ArgumentsFragment: `{"reason":"Need to write outside the workspace.","permissions":{"file_system":{"write":[` + quoteJSONString(target) + `]}}}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "grant-1"},
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "write-1", ToolName: "write_file"},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "write-1", ArgumentsFragment: `{"path":` + quoteJSONString(target) + `,"content":"carrot\n","overwrite":true}`},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "write-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "grant-1", ToolName: tools.RequestPermissionsToolName},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "grant-1", ArgumentsFragment: `{"reason":"Need to write outside the workspace.","permissions":{"file_system":{"write":[` + quoteJSONString(target) + `]}}}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "grant-1"},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "write-1", ToolName: "write_file"},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "write-1", ArgumentsFragment: `{"path":` + quoteJSONString(target) + `,"content":"carrot\n","overwrite":true}`},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "write-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: "done"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: "done"},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}
@@ -259,16 +259,16 @@ func requestPermissionsOnlyProvider(arguments string, finalAnswer string) *mockP
 		arguments = "{}"
 	}
 	return &mockProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			{
-				{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "grant-1", ToolName: tools.RequestPermissionsToolName},
-				{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "grant-1", ArgumentsFragment: arguments},
-				{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "grant-1"},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "grant-1", ToolName: tools.RequestPermissionsToolName},
+				{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "grant-1", ArgumentsFragment: arguments},
+				{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "grant-1"},
+				{Type: runeruntime.StreamEventDone},
 			},
 			{
-				{Type: zeroruntime.StreamEventText, Content: finalAnswer},
-				{Type: zeroruntime.StreamEventDone},
+				{Type: runeruntime.StreamEventText, Content: finalAnswer},
+				{Type: runeruntime.StreamEventDone},
 			},
 		},
 	}

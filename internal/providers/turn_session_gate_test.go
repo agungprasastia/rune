@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"rune/internal/config"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func openaiEligibleProfile() config.ProviderProfile {
@@ -18,7 +18,7 @@ func openaiEligibleProfile() config.ProviderProfile {
 	}
 }
 
-func buildGateProvider(t *testing.T, profile config.ProviderProfile) zeroruntime.Provider {
+func buildGateProvider(t *testing.T, profile config.ProviderProfile) runeruntime.Provider {
 	t.Helper()
 	provider, err := New(profile, Options{UserAgent: "rune-gate-test"})
 	if err != nil {
@@ -29,7 +29,7 @@ func buildGateProvider(t *testing.T, profile config.ProviderProfile) zeroruntime
 
 type fakeGateProvider struct{}
 
-func (fakeGateProvider) StreamCompletion(context.Context, zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (fakeGateProvider) StreamCompletion(context.Context, runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	return nil, nil
 }
 

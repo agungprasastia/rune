@@ -62,7 +62,7 @@ func TestSearchOrdersTiedScoresByPath(t *testing.T) {
 
 func TestSearchRanksCompleteMultiTermMatchesAheadOfPartialMatches(t *testing.T) {
 	snapshot := Snapshot{Files: []File{
-		{Path: "internal/zeroruntime/runtime.go"},
+		{Path: "internal/runeruntime/runtime.go"},
 		{Path: "internal/agent/runtime.go"},
 		{Path: "internal/agent/loop.go"},
 	}}

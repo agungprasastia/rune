@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   review:
-    name: Zero Review
+    name: Rune Review
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
 
@@ -75,8 +75,8 @@ jobs:
           RUNE_REVIEW_SMOKE: ${{ steps.smoke.outcome }}
           RUNE_CHANGED_FILES: ${{ steps.changed-files.outputs.files }}
         run: |
-          go run ./cmd/rune-pr-review > "$RUNNER_TEMP/zero-review.md"
-          echo "path=$RUNNER_TEMP/zero-review.md" >> "$GITHUB_OUTPUT"
+          go run ./cmd/rune-pr-review > "$RUNNER_TEMP/rune-review.md"
+          echo "path=$RUNNER_TEMP/rune-review.md" >> "$GITHUB_OUTPUT"
 
       - name: Post review summary
         if: always()
@@ -87,7 +87,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const marker = '<!-- zero-auto-review -->';
+            const marker = '<!-- rune-auto-review -->';
             let body;
             try {
               body = fs.readFileSync(process.env.RUNE_REVIEW_BODY_PATH, 'utf8');
@@ -95,7 +95,7 @@ jobs:
               core.warning(`Unable to read generated review summary: ${error.message}`);
               body = [
                 marker,
-                '## Zero automated PR review',
+                '## Rune automated PR review',
                 '',
                 'Verdict: **Changes requested**',
                 '',

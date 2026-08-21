@@ -10,7 +10,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/providerhealth"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // seedStoredProviderKey writes key into a credential store rooted beside the
@@ -60,7 +60,7 @@ func TestFillAppDepsWrapsNewProviderWithStoredKey(t *testing.T) {
 	var captured config.ProviderProfile
 	deps := fillAppDeps(appDeps{
 		userConfigPath: func() (string, error) { return configPath, nil },
-		newProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			captured = profile
 			return nil, nil // only the captured profile matters here
 		},
@@ -112,7 +112,7 @@ func TestBuildProviderExportsActiveProviderEnv(t *testing.T) {
 	// process env). Inject the real one here to assert the actual env effect.
 	deps := appDeps{
 		exportActiveProvider: config.SetActiveProviderEnv,
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return nil, nil
 		},
 	}
@@ -130,7 +130,7 @@ func TestBuildProviderExportsActiveProviderEnv(t *testing.T) {
 	t.Setenv(config.ActiveProviderEnv, "still-current")
 	failing := appDeps{
 		exportActiveProvider: config.SetActiveProviderEnv,
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return nil, errors.New("boom")
 		},
 	}
@@ -189,7 +189,7 @@ func TestRunExecEscalationSwitchKeepsStoredKey(t *testing.T) {
 			cfg.MaxTurns = 3
 			return cfg, nil
 		},
-		newProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			builtProfiles = append(builtProfiles, profile)
 			return &usageEmittingEscalatingProvider{escalate: len(builtProfiles) == 1}, nil
 		},

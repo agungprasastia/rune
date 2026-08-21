@@ -11,9 +11,9 @@ import (
 
 	"rune/internal/agent"
 	"rune/internal/peermsg"
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
 	"rune/internal/tools"
-	"rune/internal/zeroruntime"
 )
 
 func TestPeerMessagePreservesUserDraftStateAndPersistsProvenance(t *testing.T) {
@@ -269,9 +269,9 @@ func TestPeerTurnPromptExplainsExplicitReplyProtocol(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	provider := &fakeProvider{events: []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "done"},
-		{Type: zeroruntime.StreamEventDone},
+	provider := &fakeProvider{events: []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "done"},
+		{Type: runeruntime.StreamEventDone},
 	}}
 	peerService, err := peermsg.New(peermsg.Options{RootDir: t.TempDir()})
 	if err != nil {
@@ -333,7 +333,7 @@ func TestResumedPeerProvenanceKeepsPeerSafetyGuidanceEnabled(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	provider := &fakeProvider{events: []zeroruntime.StreamEvent{{Type: zeroruntime.StreamEventDone}}}
+	provider := &fakeProvider{events: []runeruntime.StreamEvent{{Type: runeruntime.StreamEventDone}}}
 	m := newModel(context.Background(), Options{
 		Provider: provider, ProviderName: "test", ModelName: "test-model", Registry: tools.NewRegistry(),
 	})

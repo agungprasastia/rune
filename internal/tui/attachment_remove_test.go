@@ -3,12 +3,12 @@ package tui
 import (
 	"testing"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestRemoveLastAttachment(t *testing.T) {
 	m := model{
-		pendingImages:      []zeroruntime.ImageBlock{{MediaType: "image/png"}, {MediaType: "image/png"}},
+		pendingImages:      []runeruntime.ImageBlock{{MediaType: "image/png"}, {MediaType: "image/png"}},
 		pendingImageLabels: []string{"a.png", "b.png"},
 		pendingDocuments:   []pendingDocument{{label: "spec.pdf"}},
 	}

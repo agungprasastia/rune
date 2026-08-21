@@ -6,28 +6,28 @@ import (
 	"strings"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 // --- Pure Compact() tests -------------------------------------------------
 
 func TestCompactKeepsSystemAndPreservedSuffix(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "system prompt"},
-		{Role: zeroruntime.MessageRoleUser, Content: "first question"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "first answer"},
-		{Role: zeroruntime.MessageRoleUser, Content: "second question"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "second answer"},
-		{Role: zeroruntime.MessageRoleUser, Content: "most recent question"},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "system prompt"},
+		{Role: runeruntime.MessageRoleUser, Content: "first question"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "first answer"},
+		{Role: runeruntime.MessageRoleUser, Content: "second question"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "second answer"},
+		{Role: runeruntime.MessageRoleUser, Content: "most recent question"},
 	}
 
-	var captured []zeroruntime.Message
+	var captured []runeruntime.Message
 	summarizeCalls := 0
 	result, err := Compact(messages, CompactionOptions{
 		PreserveLast: 2,
-		Summarize: func(toSummarize []zeroruntime.Message) (string, error) {
+		Summarize: func(toSummarize []runeruntime.Message) (string, error) {
 			summarizeCalls++
 			captured = toSummarize
 			return "DENSE SUMMARY", nil
@@ -41,11 +41,11 @@ func TestCompactKeepsSystemAndPreservedSuffix(t *testing.T) {
 	}
 
 	// Head is the original system message.
-	if result[0].Role != zeroruntime.MessageRoleSystem || result[0].Content != "system prompt" {
+	if result[0].Role != runeruntime.MessageRoleSystem || result[0].Content != "system prompt" {
 		t.Fatalf("expected system message preserved at head, got %#v", result[0])
 	}
 	// Next is the injected summary as a single user message.
-	if result[1].Role != zeroruntime.MessageRoleUser {
+	if result[1].Role != runeruntime.MessageRoleUser {
 		t.Fatalf("expected summary injected as user role, got %#v", result[1])
 	}
 	if !strings.Contains(result[1].Content, "[Summary of earlier conversation]") {
@@ -61,7 +61,7 @@ func TestCompactKeepsSystemAndPreservedSuffix(t *testing.T) {
 	}
 	// The summarizer receives a compact semantic projection of the middle rather
 	// than reconstructible raw tool output.
-	if len(captured) != 1 || captured[0].Role != zeroruntime.MessageRoleUser {
+	if len(captured) != 1 || captured[0].Role != runeruntime.MessageRoleUser {
 		t.Fatalf("expected one projected summary input, got %#v", captured)
 	}
 	for _, want := range []string{"[user #0]", "first question", "[assistant #1]", "first answer", "second question"} {
@@ -79,19 +79,19 @@ func TestCompactSuffixNeverStartsWithToolResult(t *testing.T) {
 	// An assistant tool-call followed by its tool result sits exactly on the
 	// naive preserve boundary. Compact must walk back so the suffix begins at a
 	// safe user/assistant boundary, never a dangling tool result.
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "system prompt"},
-		{Role: zeroruntime.MessageRoleUser, Content: "do the thing"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "ok", ToolCalls: []zeroruntime.ToolCall{{ID: "1", Name: "read_file"}}},
-		{Role: zeroruntime.MessageRoleTool, Content: "file contents", ToolCallID: "1"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "here is the result", ToolCalls: []zeroruntime.ToolCall{{ID: "2", Name: "read_file"}}},
-		{Role: zeroruntime.MessageRoleTool, Content: "more contents", ToolCallID: "2"},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "system prompt"},
+		{Role: runeruntime.MessageRoleUser, Content: "do the thing"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "ok", ToolCalls: []runeruntime.ToolCall{{ID: "1", Name: "read_file"}}},
+		{Role: runeruntime.MessageRoleTool, Content: "file contents", ToolCallID: "1"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "here is the result", ToolCalls: []runeruntime.ToolCall{{ID: "2", Name: "read_file"}}},
+		{Role: runeruntime.MessageRoleTool, Content: "more contents", ToolCallID: "2"},
 	}
 
 	// PreserveLast=1 would naively keep only the trailing tool result — illegal.
 	result, err := Compact(messages, CompactionOptions{
 		PreserveLast: 1,
-		Summarize: func(toSummarize []zeroruntime.Message) (string, error) {
+		Summarize: func(toSummarize []runeruntime.Message) (string, error) {
 			return "SUMMARY", nil
 		},
 	})
@@ -105,7 +105,7 @@ func TestCompactSuffixNeverStartsWithToolResult(t *testing.T) {
 		if index <= 1 {
 			continue // system + summary
 		}
-		if message.Role == zeroruntime.MessageRoleTool {
+		if message.Role == runeruntime.MessageRoleTool {
 			t.Fatalf("preserved suffix begins with a tool result at index %d: %#v", index, result)
 		}
 		break
@@ -113,14 +113,14 @@ func TestCompactSuffixNeverStartsWithToolResult(t *testing.T) {
 }
 
 func TestCompactNoopWhenTooFewMessages(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "system"},
-		{Role: zeroruntime.MessageRoleUser, Content: "hi"},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "system"},
+		{Role: runeruntime.MessageRoleUser, Content: "hi"},
 	}
 	called := false
 	result, err := Compact(messages, CompactionOptions{
 		PreserveLast: 8,
-		Summarize: func([]zeroruntime.Message) (string, error) {
+		Summarize: func([]runeruntime.Message) (string, error) {
 			called = true
 			return "x", nil
 		},
@@ -137,17 +137,17 @@ func TestCompactNoopWhenTooFewMessages(t *testing.T) {
 }
 
 func TestCompactPropagatesSummarizeError(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "system"},
-		{Role: zeroruntime.MessageRoleUser, Content: "a"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "b"},
-		{Role: zeroruntime.MessageRoleUser, Content: "c"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "d"},
-		{Role: zeroruntime.MessageRoleUser, Content: "e"},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "system"},
+		{Role: runeruntime.MessageRoleUser, Content: "a"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "b"},
+		{Role: runeruntime.MessageRoleUser, Content: "c"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "d"},
+		{Role: runeruntime.MessageRoleUser, Content: "e"},
 	}
 	_, err := Compact(messages, CompactionOptions{
 		PreserveLast: 2,
-		Summarize: func([]zeroruntime.Message) (string, error) {
+		Summarize: func([]runeruntime.Message) (string, error) {
 			return "", errors.New("summarizer down")
 		},
 	})
@@ -164,22 +164,22 @@ type scriptedSummaryProvider struct {
 	scripts []string
 }
 
-func (p *scriptedSummaryProvider) StreamCompletion(_ context.Context, _ zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (p *scriptedSummaryProvider) StreamCompletion(_ context.Context, _ runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	i := p.calls
 	p.calls++
 	if i < len(p.scripts) && p.scripts[i] != "" {
-		return streamEvents([]zeroruntime.StreamEvent{{Type: zeroruntime.StreamEventError, Error: p.scripts[i]}}), nil
+		return streamEvents([]runeruntime.StreamEvent{{Type: runeruntime.StreamEventError, Error: p.scripts[i]}}), nil
 	}
-	return streamEvents([]zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: "PARTIAL"},
-		{Type: zeroruntime.StreamEventDone},
+	return streamEvents([]runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: "PARTIAL"},
+		{Type: runeruntime.StreamEventDone},
 	}), nil
 }
 
 func TestSummarizeWithFallbackPropagatesNonContextReduceError(t *testing.T) {
-	msgs := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleUser, Content: "a"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "b"},
+	msgs := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleUser, Content: "a"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "b"},
 	}
 	ctxLimit := "This model's maximum context length is 1000 tokens. Please reduce the length of the messages."
 	// call 1 (full slice): context-limit → split; calls 2,3 (halves): succeed;
@@ -192,9 +192,9 @@ func TestSummarizeWithFallbackPropagatesNonContextReduceError(t *testing.T) {
 }
 
 func TestSummarizeWithFallbackUsesJoinedTextOnContextLimitReduce(t *testing.T) {
-	msgs := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleUser, Content: "a"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "b"},
+	msgs := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleUser, Content: "a"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "b"},
 	}
 	ctxLimit := "This model's maximum context length is 1000 tokens. Please reduce the length of the messages."
 	// Same split, but the reduce also hits a context-limit: fall back to the joined
@@ -212,25 +212,25 @@ func TestSummarizeWithFallbackUsesJoinedTextOnContextLimitReduce(t *testing.T) {
 // --- estimateTokens tests -------------------------------------------------
 
 func TestEstimateTokensMonotonic(t *testing.T) {
-	small := []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "short"}}
-	large := []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: strings.Repeat("x", 4000)}}
+	small := []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "short"}}
+	large := []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: strings.Repeat("x", 4000)}}
 	if estimateTokens(large) <= estimateTokens(small) {
 		t.Fatalf("expected larger content to estimate more tokens: small=%d large=%d", estimateTokens(small), estimateTokens(large))
 	}
 	// Adding a message must not decrease the estimate.
-	grown := append([]zeroruntime.Message{}, large...)
-	grown = append(grown, zeroruntime.Message{Role: zeroruntime.MessageRoleAssistant, Content: "more"})
+	grown := append([]runeruntime.Message{}, large...)
+	grown = append(grown, runeruntime.Message{Role: runeruntime.MessageRoleAssistant, Content: "more"})
 	if estimateTokens(grown) < estimateTokens(large) {
 		t.Fatal("expected estimate to be monotonic when appending messages")
 	}
 }
 
 func TestEstimateTokensCountsToolCallsAndResults(t *testing.T) {
-	plain := []zeroruntime.Message{{Role: zeroruntime.MessageRoleAssistant, Content: "hi"}}
-	withCall := []zeroruntime.Message{{
-		Role:      zeroruntime.MessageRoleAssistant,
+	plain := []runeruntime.Message{{Role: runeruntime.MessageRoleAssistant, Content: "hi"}}
+	withCall := []runeruntime.Message{{
+		Role:      runeruntime.MessageRoleAssistant,
 		Content:   "hi",
-		ToolCalls: []zeroruntime.ToolCall{{ID: "1", Name: "read_file", Arguments: strings.Repeat("a", 400)}},
+		ToolCalls: []runeruntime.ToolCall{{ID: "1", Name: "read_file", Arguments: strings.Repeat("a", 400)}},
 	}}
 	if estimateTokens(withCall) <= estimateTokens(plain) {
 		t.Fatal("expected tool-call arguments to increase the token estimate")
@@ -241,16 +241,16 @@ func TestEstimateTokensCountsImages(t *testing.T) {
 	// A tiny image carries far more model tokens than its text content suggests;
 	// the estimate must rise with each image so an image-heavy context still
 	// trends toward compaction instead of reading as ~0.
-	plain := []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "look"}}
-	withImage := []zeroruntime.Message{{
-		Role:    zeroruntime.MessageRoleUser,
+	plain := []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "look"}}
+	withImage := []runeruntime.Message{{
+		Role:    runeruntime.MessageRoleUser,
 		Content: "look",
-		Images:  []zeroruntime.ImageBlock{{MediaType: "image/png", Data: []byte("tiny")}},
+		Images:  []runeruntime.ImageBlock{{MediaType: "image/png", Data: []byte("tiny")}},
 	}}
-	twoImages := []zeroruntime.Message{{
-		Role:    zeroruntime.MessageRoleUser,
+	twoImages := []runeruntime.Message{{
+		Role:    runeruntime.MessageRoleUser,
 		Content: "look",
-		Images: []zeroruntime.ImageBlock{
+		Images: []runeruntime.ImageBlock{
 			{MediaType: "image/png", Data: []byte("tiny")},
 			{MediaType: "image/png", Data: []byte("tiny")},
 		},
@@ -267,7 +267,7 @@ func TestEstimateToolDefTokensCountsDefinitions(t *testing.T) {
 	if got := estimateToolDefTokens(nil); got != 0 {
 		t.Fatalf("no tools should estimate 0 tokens, got %d", got)
 	}
-	one := []zeroruntime.ToolDefinition{{
+	one := []runeruntime.ToolDefinition{{
 		Name:        "read_file",
 		Description: "Read a file from the workspace and return its contents.",
 		Parameters:  map[string]any{"type": "object", "properties": map[string]any{"path": map[string]any{"type": "string"}}},
@@ -275,7 +275,7 @@ func TestEstimateToolDefTokensCountsDefinitions(t *testing.T) {
 	if estimateToolDefTokens(one) <= 0 {
 		t.Fatal("a tool definition (name + description + schema) should estimate > 0 tokens")
 	}
-	two := append(append([]zeroruntime.ToolDefinition{}, one...), zeroruntime.ToolDefinition{
+	two := append(append([]runeruntime.ToolDefinition{}, one...), runeruntime.ToolDefinition{
 		Name:        "write_file",
 		Description: "Write contents to a file in the workspace.",
 		Parameters:  map[string]any{"type": "object"},
@@ -291,34 +291,34 @@ func TestEstimateToolDefTokensCountsDefinitions(t *testing.T) {
 // and records the message count of any request that carries no tools (the
 // summary request issued by the compaction Summarize closure).
 type summarizeRecordingProvider struct {
-	turns          [][]zeroruntime.StreamEvent
-	requests       []zeroruntime.CompletionRequest
+	turns          [][]runeruntime.StreamEvent
+	requests       []runeruntime.CompletionRequest
 	summarizeCalls int
 }
 
-func (provider *summarizeRecordingProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *summarizeRecordingProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	provider.requests = append(provider.requests, request)
 
 	// A summary request advertises no tools and is issued out-of-band by the
 	// compaction closure; respond with summary text and don't consume a turn.
 	if len(request.Tools) == 0 {
 		provider.summarizeCalls++
-		return streamEvents([]zeroruntime.StreamEvent{
-			{Type: zeroruntime.StreamEventText, Content: "COMPACTED SUMMARY"},
-			{Type: zeroruntime.StreamEventDone},
+		return streamEvents([]runeruntime.StreamEvent{
+			{Type: runeruntime.StreamEventText, Content: "COMPACTED SUMMARY"},
+			{Type: runeruntime.StreamEventDone},
 		}), nil
 	}
 
 	turnIndex := len(provider.requests) - 1 - provider.summarizeCalls
-	events := []zeroruntime.StreamEvent{{Type: zeroruntime.StreamEventDone}}
+	events := []runeruntime.StreamEvent{{Type: runeruntime.StreamEventDone}}
 	if turnIndex >= 0 && turnIndex < len(provider.turns) {
 		events = provider.turns[turnIndex]
 	}
 	return streamEvents(events), nil
 }
 
-func streamEvents(events []zeroruntime.StreamEvent) <-chan zeroruntime.StreamEvent {
-	ch := make(chan zeroruntime.StreamEvent, len(events))
+func streamEvents(events []runeruntime.StreamEvent) <-chan runeruntime.StreamEvent {
+	ch := make(chan runeruntime.StreamEvent, len(events))
 	for _, event := range events {
 		ch <- event
 	}
@@ -333,7 +333,7 @@ func TestRunProactiveCompactionTriggers(t *testing.T) {
 	// turn with tool calls is never final). The bloated history then trips the
 	// proactive top-of-turn check before turn 2 builds its request.
 	provider := &summarizeRecordingProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			toolTurnWithText(bigText, "1", "read_file", `{"path":"x"}`),
 			textTurn("done"),
 		},
@@ -362,7 +362,7 @@ func TestRunProactiveCompactionTriggers(t *testing.T) {
 func TestRunNoCompactionWhenContextWindowZero(t *testing.T) {
 	bigText := strings.Repeat("x", 8000)
 	provider := &summarizeRecordingProvider{
-		turns: [][]zeroruntime.StreamEvent{
+		turns: [][]runeruntime.StreamEvent{
 			toolTurnWithText(bigText, "1", "read_file", `{"path":"x"}`),
 			textTurn("done"),
 		},
@@ -385,12 +385,12 @@ func TestRunNoCompactionWhenContextWindowZero(t *testing.T) {
 
 func TestMaybeCompactStopsAfterSupersededReadsReachThreshold(t *testing.T) {
 	body := strings.Repeat("same source line\n", 1000)
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "system"},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "system"},
 		toolCallWithArgs("old", "read_file", `{"path":"a.go"}`),
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "old", Content: body},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "old", Content: body},
 		toolCallWithArgs("new", "read_file", `{"path":"a.go"}`),
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "new", Content: body},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "new", Content: body},
 	}
 	pruned, reclaimed := pruneSupersededReadResults(messages)
 	if reclaimed <= 0 {
@@ -425,7 +425,7 @@ func TestMaybeCompactStopsAfterSupersededReadsReachThreshold(t *testing.T) {
 // compaction can shrink it), then succeeds on the same-turn retry. Summary
 // requests (no tools) always succeed and are counted.
 type reactiveProvider struct {
-	requests       []zeroruntime.CompletionRequest
+	requests       []runeruntime.CompletionRequest
 	summarizeCalls int
 	turnRequests   int
 	failedOnce     bool
@@ -434,13 +434,13 @@ type reactiveProvider struct {
 	finalText      string
 }
 
-func (provider *reactiveProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *reactiveProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	provider.requests = append(provider.requests, request)
 	if len(request.Tools) == 0 {
 		provider.summarizeCalls++
-		return streamEvents([]zeroruntime.StreamEvent{
-			{Type: zeroruntime.StreamEventText, Content: "SUMMARY"},
-			{Type: zeroruntime.StreamEventDone},
+		return streamEvents([]runeruntime.StreamEvent{
+			{Type: runeruntime.StreamEventText, Content: "SUMMARY"},
+			{Type: runeruntime.StreamEventDone},
 		}), nil
 	}
 	provider.turnRequests++
@@ -454,8 +454,8 @@ func (provider *reactiveProvider) StreamCompletion(ctx context.Context, request 
 		if provider.connectError {
 			return nil, errors.New("context_length_exceeded")
 		}
-		return streamEvents([]zeroruntime.StreamEvent{
-			{Type: zeroruntime.StreamEventError, Error: "This model's maximum context length is 1000 tokens. Please reduce the length of the messages."},
+		return streamEvents([]runeruntime.StreamEvent{
+			{Type: runeruntime.StreamEventError, Error: "This model's maximum context length is 1000 tokens. Please reduce the length of the messages."},
 		}), nil
 	default:
 		return streamEvents(textTurn(provider.finalText)), nil
@@ -563,12 +563,12 @@ type midStreamReactiveProvider struct {
 	finalText      string
 }
 
-func (provider *midStreamReactiveProvider) StreamCompletion(_ context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *midStreamReactiveProvider) StreamCompletion(_ context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	if len(request.Tools) == 0 {
 		provider.summarizeCalls++
-		return streamEvents([]zeroruntime.StreamEvent{
-			{Type: zeroruntime.StreamEventText, Content: "SUMMARY"},
-			{Type: zeroruntime.StreamEventDone},
+		return streamEvents([]runeruntime.StreamEvent{
+			{Type: runeruntime.StreamEventText, Content: "SUMMARY"},
+			{Type: runeruntime.StreamEventDone},
 		}), nil
 	}
 	provider.turnRequests++
@@ -578,9 +578,9 @@ func (provider *midStreamReactiveProvider) StreamCompletion(_ context.Context, r
 	case provider.turnRequests == 2 && !provider.failedOnce:
 		provider.failedOnce = true
 		// Some text is forwarded to OnText BEFORE the mid-stream error.
-		return streamEvents([]zeroruntime.StreamEvent{
-			{Type: zeroruntime.StreamEventText, Content: provider.partialText},
-			{Type: zeroruntime.StreamEventError, Error: "This model's maximum context length is 1000 tokens. Please reduce the length of the messages."},
+		return streamEvents([]runeruntime.StreamEvent{
+			{Type: runeruntime.StreamEventText, Content: provider.partialText},
+			{Type: runeruntime.StreamEventError, Error: "This model's maximum context length is 1000 tokens. Please reduce the length of the messages."},
 		}), nil
 	default:
 		return streamEvents(textTurn(provider.finalText)), nil
@@ -650,34 +650,34 @@ func TestIsContextLimitError(t *testing.T) {
 
 // toolTurnWithText produces a turn that emits visible text AND a tool call so
 // the loop keeps going (a turn with tool calls is not final).
-func toolTurnWithText(text string, callID string, toolName string, args string) []zeroruntime.StreamEvent {
-	return []zeroruntime.StreamEvent{
-		{Type: zeroruntime.StreamEventText, Content: text},
-		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: toolName},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: args},
-		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: callID},
-		{Type: zeroruntime.StreamEventDone},
+func toolTurnWithText(text string, callID string, toolName string, args string) []runeruntime.StreamEvent {
+	return []runeruntime.StreamEvent{
+		{Type: runeruntime.StreamEventText, Content: text},
+		{Type: runeruntime.StreamEventToolCallStart, ToolCallID: callID, ToolName: toolName},
+		{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: callID, ArgumentsFragment: args},
+		{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: callID},
+		{Type: runeruntime.StreamEventDone},
 	}
 }
 
 func TestCompactNeverProducesConsecutiveUserMessages(t *testing.T) {
-	msgs := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "sys"},
-		{Role: zeroruntime.MessageRoleUser, Content: "u1"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "a1"},
-		{Role: zeroruntime.MessageRoleUser, Content: "u2"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "a2"},
-		{Role: zeroruntime.MessageRoleUser, Content: "u3-latest"},
+	msgs := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "sys"},
+		{Role: runeruntime.MessageRoleUser, Content: "u1"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "a1"},
+		{Role: runeruntime.MessageRoleUser, Content: "u2"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "a2"},
+		{Role: runeruntime.MessageRoleUser, Content: "u3-latest"},
 	}
 	out, err := Compact(msgs, CompactionOptions{
 		PreserveLast: 1, // suffix would naively start at u3-latest (user)
-		Summarize:    func([]zeroruntime.Message) (string, error) { return "summary", nil },
+		Summarize:    func([]runeruntime.Message) (string, error) { return "summary", nil },
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i := 1; i < len(out); i++ {
-		if out[i].Role == zeroruntime.MessageRoleUser && out[i-1].Role == zeroruntime.MessageRoleUser {
+		if out[i].Role == runeruntime.MessageRoleUser && out[i-1].Role == runeruntime.MessageRoleUser {
 			t.Fatalf("consecutive user messages at %d in %+v", i, out)
 		}
 	}
@@ -685,15 +685,15 @@ func TestCompactNeverProducesConsecutiveUserMessages(t *testing.T) {
 
 func TestRecoverNoopDoesNotConsumeReactiveBudget(t *testing.T) {
 	st := newCompactionState(Options{ContextWindow: 1000, CompactionPreserveLast: 2}, nil)
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventText, Content: "SUMMARY"}, {Type: zeroruntime.StreamEventDone},
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventText, Content: "SUMMARY"}, {Type: runeruntime.StreamEventDone},
 	}}}
 
 	// First recover: history is too small to compact, so it is a no-op (not
 	// retried). This must NOT consume the one-shot reactive budget.
-	tiny := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "sys"},
-		{Role: zeroruntime.MessageRoleUser, Content: "hi"},
+	tiny := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "sys"},
+		{Role: runeruntime.MessageRoleUser, Content: "hi"},
 	}
 	_, retried, err := st.recover(context.Background(), provider, tiny, nil, "context length exceeded")
 	if err != nil {
@@ -707,13 +707,13 @@ func TestRecoverNoopDoesNotConsumeReactiveBudget(t *testing.T) {
 	}
 
 	// Second recover: now there is a compactible middle, so it must still fire.
-	big := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "sys"},
-		{Role: zeroruntime.MessageRoleUser, Content: strings.Repeat("u", 4000)},
-		{Role: zeroruntime.MessageRoleAssistant, Content: strings.Repeat("a", 4000)},
-		{Role: zeroruntime.MessageRoleUser, Content: "u2"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "a2"},
-		{Role: zeroruntime.MessageRoleUser, Content: "u3"},
+	big := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "sys"},
+		{Role: runeruntime.MessageRoleUser, Content: strings.Repeat("u", 4000)},
+		{Role: runeruntime.MessageRoleAssistant, Content: strings.Repeat("a", 4000)},
+		{Role: runeruntime.MessageRoleUser, Content: "u2"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "a2"},
+		{Role: runeruntime.MessageRoleUser, Content: "u3"},
 	}
 	compacted, retried, err := st.recover(context.Background(), provider, big, nil, "context length exceeded")
 	if err != nil {
@@ -732,12 +732,12 @@ func TestRecoverNoopDoesNotConsumeReactiveBudget(t *testing.T) {
 
 func TestRecoverDisabledIsNoop(t *testing.T) {
 	st := newCompactionState(Options{ContextWindow: 0}, nil)
-	msgs := []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "x"}}
+	msgs := []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "x"}}
 	called := false
 	// recover must not invoke the provider/summarize when disabled, even on a
 	// context-limit error string.
-	got, retried, err := st.recover(context.Background(), &mockProvider{turns: [][]zeroruntime.StreamEvent{{
-		{Type: zeroruntime.StreamEventText, Content: "should not be called"}, {Type: zeroruntime.StreamEventDone},
+	got, retried, err := st.recover(context.Background(), &mockProvider{turns: [][]runeruntime.StreamEvent{{
+		{Type: runeruntime.StreamEventText, Content: "should not be called"}, {Type: runeruntime.StreamEventDone},
 	}}}, msgs, nil, "context length exceeded")
 	_ = called
 	if retried || err != nil || len(got) != 1 {

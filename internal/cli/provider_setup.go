@@ -10,7 +10,7 @@ import (
 	"rune/internal/config"
 	"rune/internal/providercatalog"
 	"rune/internal/providerhealth"
-	"rune/internal/zerocommands"
+	"rune/internal/runecommands"
 )
 
 type providerAddOptions struct {
@@ -64,7 +64,7 @@ func runProvidersAdd(args []string, stdout io.Writer, stderr io.Writer, deps app
 		if err := writePrettyJSON(stdout, map[string]any{
 			"configPath":     configPath,
 			"activeProvider": cfg.ActiveProvider,
-			"provider":       zerocommands.ProviderSnapshotFromProfile(profile, cfg.ActiveProvider == profile.Name),
+			"provider":       runecommands.ProviderSnapshotFromProfile(profile, cfg.ActiveProvider == profile.Name),
 		}); err != nil {
 			return exitCrash
 		}
@@ -114,7 +114,7 @@ func runProvidersCheck(args []string, stdout io.Writer, stderr io.Writer, deps a
 		}
 	}
 
-	snapshot := zerocommands.ProviderSnapshotFromProfile(profile, profile.Name == resolved.ActiveProvider)
+	snapshot := runecommands.ProviderSnapshotFromProfile(profile, profile.Name == resolved.ActiveProvider)
 	if options.json {
 		payload := map[string]any{"provider": snapshot, "status": "ok"}
 		if options.connectivity {

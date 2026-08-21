@@ -17,8 +17,8 @@ import (
 	"rune/internal/hooks"
 	"rune/internal/mcp"
 	"rune/internal/plugins"
+	"rune/internal/runecommands"
 	"rune/internal/tools"
-	"rune/internal/zerocommands"
 )
 
 func TestRunBackendsJSONUsesLifecycleSnapshotWithoutConnectingMCP(t *testing.T) {
@@ -99,7 +99,7 @@ func TestRunBackendsJSONUsesLifecycleSnapshotWithoutConnectingMCP(t *testing.T) 
 		t.Fatalf("backend JSON leaked secret material:\n%s", stdout.String())
 	}
 
-	var snapshot zerocommands.BackendLifecycleSnapshot
+	var snapshot runecommands.BackendLifecycleSnapshot
 	if err := json.Unmarshal(stdout.Bytes(), &snapshot); err != nil {
 		t.Fatalf("backend JSON failed to decode: %v\n%s", err, stdout.String())
 	}
@@ -213,15 +213,15 @@ func TestRunBackendsDoctorJSONAndTextWithoutConnectingMCP(t *testing.T) {
 	if strings.Contains(stdout.String(), secret) || strings.Contains(stdout.String(), "sk-proj-") {
 		t.Fatalf("backend doctor JSON leaked secret material:\n%s", stdout.String())
 	}
-	var payload zerocommands.BackendDoctorReport
+	var payload runecommands.BackendDoctorReport
 	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
 		t.Fatalf("backend doctor JSON failed to decode: %v\n%s", err, stdout.String())
 	}
 	if payload.OK {
 		t.Fatalf("payload.OK = true, want false for invalid MCP/hook diagnostic: %#v", payload.Checks)
 	}
-	if payload.Status != zerocommands.BackendDoctorStatusFail {
-		t.Fatalf("payload.Status = %q, want %q", payload.Status, zerocommands.BackendDoctorStatusFail)
+	if payload.Status != runecommands.BackendDoctorStatusFail {
+		t.Fatalf("payload.Status = %q, want %q", payload.Status, runecommands.BackendDoctorStatusFail)
 	}
 	assertBackendDoctorPayloadCheck(t, payload, "backend.mcp.invalid", "broken")
 	assertBackendDoctorPayloadCheck(t, payload, "backend.hooks.diagnostic", "rune.bad")
@@ -340,7 +340,7 @@ func TestRunBackendsDoctorDoesNotConnectOrExecuteConfiguredBackends(t *testing.T
 	}
 }
 
-func assertBackendDoctorPayloadCheck(t *testing.T, report zerocommands.BackendDoctorReport, id string, target string) {
+func assertBackendDoctorPayloadCheck(t *testing.T, report runecommands.BackendDoctorReport, id string, target string) {
 	t.Helper()
 	for _, check := range report.Checks {
 		if check.ID == id && check.Target == target {

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"rune/internal/modelregistry"
+	"rune/internal/runeruntime"
 	"rune/internal/sessions"
-	"rune/internal/zeroruntime"
 )
 
 // usageEventPayload mirrors the persisted EventUsage payload written by the exec
@@ -35,7 +35,7 @@ type usageEventPayload struct {
 // back to price a turn exactly (cache discount + cache-write premium + reasoning)
 // rather than estimating from prompt/completion alone. Callers add "model"
 // afterward on escalation runs.
-func EventUsagePayload(u zeroruntime.Usage) map[string]any {
+func EventUsagePayload(u runeruntime.Usage) map[string]any {
 	payload := map[string]any{
 		"promptTokens":     u.EffectiveInputTokens(),
 		"completionTokens": u.EffectiveOutputTokens(),
@@ -146,7 +146,7 @@ func BuildReport(events []sessions.Event, meta []sessions.Metadata, registry *mo
 		if err != nil {
 			continue
 		}
-		cost, err := modelregistry.CalculateCost(model, zeroruntime.Usage{
+		cost, err := modelregistry.CalculateCost(model, runeruntime.Usage{
 			InputTokens:       payload.PromptTokens,
 			OutputTokens:      payload.CompletionTokens,
 			CachedInputTokens: payload.CachedInputTokens,

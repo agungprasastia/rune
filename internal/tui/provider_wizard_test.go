@@ -20,7 +20,7 @@ import (
 	"rune/internal/config"
 	"rune/internal/providercatalog"
 	"rune/internal/providermodeldiscovery"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestProviderCommandOpensOnboardingWizard(t *testing.T) {
@@ -343,7 +343,7 @@ func TestProviderWizardRightAllowsExistingCredentialEnv(t *testing.T) {
 func TestProviderWizardCustomCompatibleProviderCollectsEndpointAndModel(t *testing.T) {
 	var captured config.ProviderProfile
 	m := newModel(context.Background(), Options{
-		NewProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			captured = profile
 			return &fakeProvider{}, nil
 		},
@@ -515,7 +515,7 @@ func TestProviderWizardCustomCompatibleProviderRejectsRemoteHTTP(t *testing.T) {
 func TestProviderWizardCustomCompatibleProviderDerivesIPName(t *testing.T) {
 	var captured config.ProviderProfile
 	m := newModel(context.Background(), Options{
-		NewProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			captured = profile
 			return &fakeProvider{}, nil
 		},
@@ -616,7 +616,7 @@ func TestProviderWizardAppliesPastedKeyToCurrentSession(t *testing.T) {
 	const secret = "AIza-secret-123"
 	var captured config.ProviderProfile
 	m := newModel(context.Background(), Options{
-		NewProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			captured = profile
 			return &fakeProvider{}, nil
 		},
@@ -667,7 +667,7 @@ func TestProviderWizardPersistsPastedKeyToUserConfig(t *testing.T) {
 	var captured config.ProviderProfile
 	m := newModel(context.Background(), Options{
 		UserConfigPath: configPath,
-		NewProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			captured = profile
 			return &fakeProvider{}, nil
 		},
@@ -726,7 +726,7 @@ func TestProviderWizardUsesAPIKeyEnvForCurrentSessionWithoutPersistingSecret(t *
 	var captured config.ProviderProfile
 	m := newModel(context.Background(), Options{
 		UserConfigPath: configPath,
-		NewProvider: func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 			captured = profile
 			return &fakeProvider{}, nil
 		},
@@ -1567,7 +1567,7 @@ func TestApplyProviderWizardExportsActiveProviderEnv(t *testing.T) {
 	// path would skip persist; a future default must never reach the real user
 	// config), and stub the build so the full commit sequence runs.
 	m.userConfigPath = filepath.Join(t.TempDir(), "config.json")
-	m.newProvider = func(config.ProviderProfile) (zeroruntime.Provider, error) {
+	m.newProvider = func(config.ProviderProfile) (runeruntime.Provider, error) {
 		return &fakeProvider{}, nil
 	}
 	m.providerWizard = &providerWizardState{
@@ -1621,7 +1621,7 @@ func TestApplyProviderWizardPersistFailureLeavesLiveStateUnchanged(t *testing.T)
 	m.providerProfile = config.ProviderProfile{Name: "old-provider"}
 	m.providerName = "old-provider"
 	m.userConfigPath = brokenConfigPath
-	m.newProvider = func(config.ProviderProfile) (zeroruntime.Provider, error) { return newProvider, nil }
+	m.newProvider = func(config.ProviderProfile) (runeruntime.Provider, error) { return newProvider, nil }
 	m.providerWizard = &providerWizardState{
 		step:        providerWizardStepModel,
 		profileName: "acme-new",

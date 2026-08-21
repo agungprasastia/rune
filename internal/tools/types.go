@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"rune/internal/execution"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
-	"rune/internal/zeroruntime"
 )
 
 type SideEffect string
@@ -112,7 +112,7 @@ type Result struct {
 	// guards its image content-parts to the user role. The agent loop therefore
 	// emits them as a following user message, which is also the only shape that
 	// keeps one tool result per tool call.
-	Images []zeroruntime.ImageBlock `json:"-"`
+	Images []runeruntime.ImageBlock `json:"-"`
 	// Redacted is set when secret scrubbing altered Output before it left the
 	// tool-execution boundary.
 	Redacted bool

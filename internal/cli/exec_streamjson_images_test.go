@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"rune/internal/config"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // capturingImageProvider records the images carried on the last user turn of the
@@ -17,22 +17,22 @@ import (
 // end-to-end (the agent seeds Options.Images onto the initial user message).
 type capturingImageProvider struct {
 	mu     sync.Mutex
-	images []zeroruntime.ImageBlock
+	images []runeruntime.ImageBlock
 }
 
-func (provider *capturingImageProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *capturingImageProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	provider.mu.Lock()
 	for index := len(request.Messages) - 1; index >= 0; index-- {
-		if request.Messages[index].Role == zeroruntime.MessageRoleUser {
-			provider.images = append([]zeroruntime.ImageBlock(nil), request.Messages[index].Images...)
+		if request.Messages[index].Role == runeruntime.MessageRoleUser {
+			provider.images = append([]runeruntime.ImageBlock(nil), request.Messages[index].Images...)
 			break
 		}
 	}
 	provider.mu.Unlock()
 
-	ch := make(chan zeroruntime.StreamEvent, 2)
-	ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventText, Content: "ok"}
-	ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone}
+	ch := make(chan runeruntime.StreamEvent, 2)
+	ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventText, Content: "ok"}
+	ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventDone}
 	close(ch)
 	return ch, nil
 }
@@ -84,7 +84,7 @@ func TestRunExecStreamJSONImageReachesAgent(t *testing.T) {
 				MaxTurns: 3,
 			}, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return provider, nil
 		},
 	})
@@ -152,7 +152,7 @@ func TestRunExecStreamJSONImageOnlyMessageProceeds(t *testing.T) {
 				MaxTurns: 3,
 			}, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return provider, nil
 		},
 	})

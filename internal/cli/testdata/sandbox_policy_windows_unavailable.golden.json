@@ -46,7 +46,6 @@
             ],
             "protectedMetadataNames": [
               ".rune",
-              ".zero",
               ".agents"
             ]
           }

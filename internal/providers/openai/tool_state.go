@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 const (
@@ -17,7 +17,7 @@ type toolState struct {
 	calls          map[int]*pendingToolCall
 	think          thinkTagSplitter
 	parseThinkTags bool
-	// finishReason holds the normalized terminal stop reason (zeroruntime
+	// finishReason holds the normalized terminal stop reason (runeruntime
 	// FinishReason*) when the response ended abnormally (length/content_filter),
 	// so the provider can attach it to the done event. Empty for a normal finish.
 	finishReason string
@@ -38,38 +38,38 @@ func newToolState(parseThinkTags bool) *toolState {
 	return &toolState{calls: make(map[int]*pendingToolCall), parseThinkTags: parseThinkTags}
 }
 
-type streamEventEmitter func(zeroruntime.StreamEvent)
+type streamEventEmitter func(runeruntime.StreamEvent)
 
 type thinkTagSplitter struct {
 	pending    string
 	inThinking bool
 }
 
-func (state *toolState) emitContent(ctx context.Context, events chan<- zeroruntime.StreamEvent, content string) {
-	state.emitContentWith(content, func(event zeroruntime.StreamEvent) {
+func (state *toolState) emitContent(ctx context.Context, events chan<- runeruntime.StreamEvent, content string) {
+	state.emitContentWith(content, func(event runeruntime.StreamEvent) {
 		sendEvent(ctx, events, event)
 	})
 }
 
-func (state *toolState) flushContent(ctx context.Context, events chan<- zeroruntime.StreamEvent) {
-	state.flushContentWith(func(event zeroruntime.StreamEvent) {
+func (state *toolState) flushContent(ctx context.Context, events chan<- runeruntime.StreamEvent) {
+	state.flushContentWith(func(event runeruntime.StreamEvent) {
 		sendEvent(ctx, events, event)
 	})
 }
 
-func (state *toolState) flushBufferedContent(events chan<- zeroruntime.StreamEvent) {
-	state.flushContentWith(func(event zeroruntime.StreamEvent) {
+func (state *toolState) flushBufferedContent(events chan<- runeruntime.StreamEvent) {
+	state.flushContentWith(func(event runeruntime.StreamEvent) {
 		sendBufferedEvent(events, event)
 	})
 }
 
 func (state *toolState) emitContentWith(content string, emit streamEventEmitter) {
 	if !state.parseThinkTags {
-		emit(zeroruntime.StreamEvent{Type: zeroruntime.StreamEventText, Content: content})
+		emit(runeruntime.StreamEvent{Type: runeruntime.StreamEventText, Content: content})
 		return
 	}
-	state.think.push(content, func(eventType zeroruntime.StreamEventType, text string) {
-		emit(zeroruntime.StreamEvent{Type: eventType, Content: text})
+	state.think.push(content, func(eventType runeruntime.StreamEventType, text string) {
+		emit(runeruntime.StreamEvent{Type: eventType, Content: text})
 	})
 }
 
@@ -77,12 +77,12 @@ func (state *toolState) flushContentWith(emit streamEventEmitter) {
 	if !state.parseThinkTags {
 		return
 	}
-	state.think.flush(func(eventType zeroruntime.StreamEventType, text string) {
-		emit(zeroruntime.StreamEvent{Type: eventType, Content: text})
+	state.think.flush(func(eventType runeruntime.StreamEventType, text string) {
+		emit(runeruntime.StreamEvent{Type: eventType, Content: text})
 	})
 }
 
-func (splitter *thinkTagSplitter) push(content string, emit func(zeroruntime.StreamEventType, string)) {
+func (splitter *thinkTagSplitter) push(content string, emit func(runeruntime.StreamEventType, string)) {
 	if content == "" {
 		return
 	}
@@ -90,11 +90,11 @@ func (splitter *thinkTagSplitter) push(content string, emit func(zeroruntime.Str
 	splitter.drain(false, emit)
 }
 
-func (splitter *thinkTagSplitter) flush(emit func(zeroruntime.StreamEventType, string)) {
+func (splitter *thinkTagSplitter) flush(emit func(runeruntime.StreamEventType, string)) {
 	splitter.drain(true, emit)
 }
 
-func (splitter *thinkTagSplitter) drain(final bool, emit func(zeroruntime.StreamEventType, string)) {
+func (splitter *thinkTagSplitter) drain(final bool, emit func(runeruntime.StreamEventType, string)) {
 	for {
 		tag := thinkOpenTag
 		if splitter.inThinking {
@@ -122,13 +122,13 @@ func (splitter *thinkTagSplitter) drain(final bool, emit func(zeroruntime.Stream
 	}
 }
 
-func (splitter *thinkTagSplitter) emitCurrent(emit func(zeroruntime.StreamEventType, string), text string) {
+func (splitter *thinkTagSplitter) emitCurrent(emit func(runeruntime.StreamEventType, string), text string) {
 	if text == "" {
 		return
 	}
-	eventType := zeroruntime.StreamEventText
+	eventType := runeruntime.StreamEventText
 	if splitter.inThinking {
-		eventType = zeroruntime.StreamEventReasoning
+		eventType = runeruntime.StreamEventReasoning
 	}
 	emit(eventType, text)
 }
@@ -161,7 +161,7 @@ func indexFold(text string, needle string) int {
 func (state *toolState) applyDelta(
 	ctx context.Context,
 	delta streamToolCallDelta,
-	events chan<- zeroruntime.StreamEvent,
+	events chan<- runeruntime.StreamEvent,
 ) {
 	call := state.calls[delta.Index]
 	if call == nil {
@@ -189,15 +189,15 @@ func (state *toolState) applyDelta(
 
 	if !call.started {
 		call.started = true
-		sendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:       zeroruntime.StreamEventToolCallStart,
+		sendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:       runeruntime.StreamEventToolCallStart,
 			ToolCallID: call.id,
 			ToolName:   call.name,
 		})
 	}
 	if call.arguments != "" {
-		sendEvent(ctx, events, zeroruntime.StreamEvent{
-			Type:              zeroruntime.StreamEventToolCallDelta,
+		sendEvent(ctx, events, runeruntime.StreamEvent{
+			Type:              runeruntime.StreamEventToolCallDelta,
 			ToolCallID:        call.id,
 			ArgumentsFragment: call.arguments,
 		})
@@ -205,14 +205,14 @@ func (state *toolState) applyDelta(
 	}
 }
 
-func (state *toolState) closeOpen(ctx context.Context, events chan<- zeroruntime.StreamEvent) {
-	state.closeOpenWith(func(event zeroruntime.StreamEvent) {
+func (state *toolState) closeOpen(ctx context.Context, events chan<- runeruntime.StreamEvent) {
+	state.closeOpenWith(func(event runeruntime.StreamEvent) {
 		sendEvent(ctx, events, event)
 	})
 }
 
-func (state *toolState) closeBufferedOpen(events chan<- zeroruntime.StreamEvent) {
-	state.closeOpenWith(func(event zeroruntime.StreamEvent) {
+func (state *toolState) closeBufferedOpen(events chan<- runeruntime.StreamEvent) {
+	state.closeOpenWith(func(event runeruntime.StreamEvent) {
 		sendBufferedEvent(events, event)
 	})
 }
@@ -235,29 +235,29 @@ func (state *toolState) closeOpenWith(emit streamEventEmitter) {
 		if call.id == "" || call.name == "" {
 			if call.id != "" || call.name != "" || call.arguments != "" {
 				call.ended = true
-				emit(zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallDropped})
+				emit(runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallDropped})
 			}
 			continue
 		}
 		if !call.started {
 			call.started = true
-			emit(zeroruntime.StreamEvent{
-				Type:       zeroruntime.StreamEventToolCallStart,
+			emit(runeruntime.StreamEvent{
+				Type:       runeruntime.StreamEventToolCallStart,
 				ToolCallID: call.id,
 				ToolName:   call.name,
 			})
 		}
 		if call.arguments != "" {
-			emit(zeroruntime.StreamEvent{
-				Type:              zeroruntime.StreamEventToolCallDelta,
+			emit(runeruntime.StreamEvent{
+				Type:              runeruntime.StreamEventToolCallDelta,
 				ToolCallID:        call.id,
 				ArgumentsFragment: call.arguments,
 			})
 			call.arguments = ""
 		}
 		call.ended = true
-		emit(zeroruntime.StreamEvent{
-			Type:       zeroruntime.StreamEventToolCallEnd,
+		emit(runeruntime.StreamEvent{
+			Type:       runeruntime.StreamEventToolCallEnd,
 			ToolCallID: call.id,
 		})
 	}

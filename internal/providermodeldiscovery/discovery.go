@@ -92,7 +92,7 @@ func publicLiveCatalogProvider(provider providercatalog.Descriptor, profile conf
 // discoveryHasCredential reports whether the profile carries a usable credential
 // for an authenticated /models probe. A profile may authenticate via a raw
 // auth-header value instead of APIKey, so treat either as present — consistent
-// with config credential checks and zerocommands ProviderSnapshot.APIKeySet.
+// with config credential checks and runecommands ProviderSnapshot.APIKeySet.
 func discoveryHasCredential(profile config.ProviderProfile) bool {
 	return strings.TrimSpace(profile.APIKey) != "" || strings.TrimSpace(profile.AuthHeaderValue) != ""
 }

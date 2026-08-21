@@ -334,9 +334,9 @@ func writeHelp(w io.Writer) error {
   rune-release <command>
 
 Commands:
-  build      Build the Go-native zero binary
+  build      Build the Go-native Rune binary
   package    Build and package the current platform release archive
-  smoke      Verify the built zero binary prints the package version
+  smoke      Verify the built Rune binary prints its version
   verify     Verify release archive checksums
 `)
 	return err
@@ -346,14 +346,14 @@ func writeBuildHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
   rune-release build [flags]
 
-Builds the Go-native zero binary.
+Builds the Go-native Rune binary.
 
 Flags:
       --root <path>       Repository root (default: current directory)
       --goos <goos>       Target GOOS (default: current platform)
       --goarch <goarch>   Target GOARCH (default: current architecture)
   -o, --output <path>     Write binary to path
-      --version <version> Build version (default: package.json version)
+      --version <version> Build version (default: dev)
   -h, --help              Show this help
 
 Environment overrides:
@@ -366,14 +366,14 @@ func writePackageHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
   rune-release package [flags]
 
-Builds the Go-native zero binary, stages npm wrapper files, writes a release
-archive, and writes the matching SHA-256 checksum file.
+Builds the Go-native Rune binary, writes a release archive, and writes the
+matching SHA-256 checksum file.
 
 Flags:
       --root <path>         Repository root (default: current directory)
       --release-dir <path>  Release output directory (default: dist/release)
       --staging-dir <path>  Package staging root (default: dist/package)
-      --version <version>   Release version (default: package.json version)
+      --version <version>   Release version (default: dev)
   -h, --help                Show this help
 `)
 	return err
@@ -383,15 +383,14 @@ func writeSmokeHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
   rune-release smoke [flags]
 
-Runs the built zero binary with --version and verifies it prints the package
-version.
+Runs the built Rune binary with --version and verifies its version.
 
 Flags:
       --root <path>     Repository root (default: current directory)
-      --path <path>     Binary path (default: ./zero or ./zero.exe)
+      --path <path>     Binary path (default: ./rune or ./rune.exe)
       --binary <path>   Alias for --path
       --goos <goos>     Binary target GOOS for default path selection
-      --version <ver>   Expected version (default: package.json version)
+      --version <ver>   Expected version (default: dev)
   -h, --help            Show this help
 `)
 	return err

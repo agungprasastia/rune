@@ -5,25 +5,25 @@ import (
 	"strings"
 	"testing"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // recentEdits extracts each mutated file's path and a one-line note from the
 // matching tool result, latest note per path in last-seen order.
 func TestRecentEditsExtractsPathsAndNotes(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{
 			{ID: "e1", Name: "write_file", Arguments: `{"path":"internal/foo.go","content":"package foo"}`},
 		}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "e1", Content: "Wrote internal/foo.go (12 lines)"},
-		{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "e1", Content: "Wrote internal/foo.go (12 lines)"},
+		{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{
 			{ID: "e2", Name: "edit_file", Arguments: `{"path":"internal/bar.go","old_string":"a","new_string":"b"}`},
 		}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "e2", Content: "Applied edit to internal/bar.go"},
-		{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "e2", Content: "Applied edit to internal/bar.go"},
+		{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{
 			{ID: "e3", Name: "apply_patch", Arguments: `{"patch":"*** Update File: internal/baz.go"}`},
 		}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "e3", Content: "Done!", ChangedFiles: []string{"internal/baz.go"}},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "e3", Content: "Done!", ChangedFiles: []string{"internal/baz.go"}},
 	}
 
 	edits := recentEdits(messages)
@@ -44,16 +44,16 @@ func TestRecentEditsExtractsPathsAndNotes(t *testing.T) {
 // After compaction elides the editing turns, the preserved-state block still
 // names the edited files and what changed, so the model needn't re-read them.
 func TestCompactionPreservesRecentEdits(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "system"},
-		{Role: zeroruntime.MessageRoleUser, Content: "add a flag"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "editing", ToolCalls: []zeroruntime.ToolCall{
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "system"},
+		{Role: runeruntime.MessageRoleUser, Content: "add a flag"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "editing", ToolCalls: []runeruntime.ToolCall{
 			{ID: "e1", Name: "write_file", Arguments: `{"path":"cmd/main.go","content":"..."}`},
 		}},
-		{Role: zeroruntime.MessageRoleTool, ToolCallID: "e1", Content: "Wrote cmd/main.go (adds --version flag)"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "done"},
-		{Role: zeroruntime.MessageRoleUser, Content: "continue"},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "continuing"},
+		{Role: runeruntime.MessageRoleTool, ToolCallID: "e1", Content: "Wrote cmd/main.go (adds --version flag)"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "done"},
+		{Role: runeruntime.MessageRoleUser, Content: "continue"},
+		{Role: runeruntime.MessageRoleAssistant, Content: "continuing"},
 	}
 	summary := compactStateConversation(t, messages)
 

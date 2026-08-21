@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestTrackerNormalizesUsageAndComputesModelCost(t *testing.T) {
@@ -13,7 +13,7 @@ func TestTrackerNormalizesUsageAndComputesModelCost(t *testing.T) {
 	record, err := tracker.Record(RecordInput{
 		ModelID: "gpt-4.1",
 		Source:  "exec",
-		Usage: zeroruntime.Usage{
+		Usage: runeruntime.Usage{
 			PromptTokens:      1_000,
 			CompletionTokens:  250,
 			CachedInputTokens: 200,
@@ -43,10 +43,10 @@ func TestTrackerNormalizesUsageAndComputesModelCost(t *testing.T) {
 
 func TestTrackerRejectsInvalidUsageAndUnknownModels(t *testing.T) {
 	tracker := NewTracker(TrackerOptions{})
-	if _, err := tracker.Record(RecordInput{ModelID: "missing", Usage: zeroruntime.Usage{InputTokens: 1}}); err == nil {
+	if _, err := tracker.Record(RecordInput{ModelID: "missing", Usage: runeruntime.Usage{InputTokens: 1}}); err == nil {
 		t.Fatal("expected unknown model error")
 	}
-	if _, err := tracker.Record(RecordInput{ModelID: "gpt-4.1", Usage: zeroruntime.Usage{InputTokens: -1}}); err == nil {
+	if _, err := tracker.Record(RecordInput{ModelID: "gpt-4.1", Usage: runeruntime.Usage{InputTokens: -1}}); err == nil {
 		t.Fatal("expected invalid usage error")
 	}
 }
@@ -55,7 +55,7 @@ func TestTrackerTreatsReasoningAsOutputBreakdown(t *testing.T) {
 	tracker := NewTracker(TrackerOptions{})
 	record, err := tracker.Record(RecordInput{
 		ModelID: "gpt-4.1",
-		Usage: zeroruntime.Usage{
+		Usage: runeruntime.Usage{
 			InputTokens:     100,
 			OutputTokens:    40,
 			ReasoningTokens: 10,
@@ -71,7 +71,7 @@ func TestTrackerTreatsReasoningAsOutputBreakdown(t *testing.T) {
 
 func TestTrackerResetClearsRecords(t *testing.T) {
 	tracker := NewTracker(TrackerOptions{})
-	if _, err := tracker.Record(RecordInput{ModelID: "gpt-4.1", Usage: zeroruntime.Usage{InputTokens: 1, OutputTokens: 1}}); err != nil {
+	if _, err := tracker.Record(RecordInput{ModelID: "gpt-4.1", Usage: runeruntime.Usage{InputTokens: 1, OutputTokens: 1}}); err != nil {
 		t.Fatalf("Record returned error: %v", err)
 	}
 	tracker.Reset()

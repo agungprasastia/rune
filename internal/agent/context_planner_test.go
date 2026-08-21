@@ -4,16 +4,16 @@ import (
 	"reflect"
 	"testing"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestContextPlannerPreservesProviderRequest(t *testing.T) {
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "system"},
-		{Role: zeroruntime.MessageRoleUser, Content: "inspect this", Images: []zeroruntime.ImageBlock{{MediaType: "image/png", Data: []byte{1, 2, 3}}}},
-		{Role: zeroruntime.MessageRoleAssistant, Content: "working", ToolCalls: []zeroruntime.ToolCall{{ID: "call-1", Name: "read_file", Arguments: `{"path":"main.go"}`}}, Reasoning: []zeroruntime.ReasoningBlock{{Provider: "test", Type: "thinking", Signature: "sig"}}},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "system"},
+		{Role: runeruntime.MessageRoleUser, Content: "inspect this", Images: []runeruntime.ImageBlock{{MediaType: "image/png", Data: []byte{1, 2, 3}}}},
+		{Role: runeruntime.MessageRoleAssistant, Content: "working", ToolCalls: []runeruntime.ToolCall{{ID: "call-1", Name: "read_file", Arguments: `{"path":"main.go"}`}}, Reasoning: []runeruntime.ReasoningBlock{{Provider: "test", Type: "thinking", Signature: "sig"}}},
 	}
-	toolDefs := []zeroruntime.ToolDefinition{{
+	toolDefs := []runeruntime.ToolDefinition{{
 		Name: "read_file", Description: "Read a file",
 		Parameters: map[string]any{
 			"type":       "object",
@@ -30,7 +30,7 @@ func TestContextPlannerPreservesProviderRequest(t *testing.T) {
 	})
 
 	plan := planner.Plan(messages, toolDefs, "medium")
-	want := zeroruntime.CompletionRequest{
+	want := runeruntime.CompletionRequest{
 		Messages:        copyMessages(messages),
 		Tools:           toolDefs,
 		ReasoningEffort: "medium",
@@ -74,10 +74,10 @@ func TestContextPlannerPreservesProviderRequest(t *testing.T) {
 
 func TestContextPlannerReportsInspectableBlocks(t *testing.T) {
 	planner := newContextPlanner(contextPlannerConfig{contextWindow: 100_000})
-	plan := planner.Plan([]zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: filler(400)},
-		{Role: zeroruntime.MessageRoleUser, Content: filler(200)},
-	}, []zeroruntime.ToolDefinition{{Name: "read_file", Description: "Read a file"}}, "")
+	plan := planner.Plan([]runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: filler(400)},
+		{Role: runeruntime.MessageRoleUser, Content: filler(200)},
+	}, []runeruntime.ToolDefinition{{Name: "read_file", Description: "Read a file"}}, "")
 
 	if plan.Breakdown.PrefixInvalidationReason != "initial" || plan.Breakdown.CompletePrefixHash == "" {
 		t.Fatalf("prefix evidence = %#v", plan.Breakdown)
@@ -102,9 +102,9 @@ func TestContextPlannerFingerprintsActualRequestSystemPrompt(t *testing.T) {
 	planner := newContextPlanner(contextPlannerConfig{promptParts: systemPromptParts{
 		prompt: "configured system", baseInstructions: "configured system",
 	}})
-	messages := []zeroruntime.Message{
-		{Role: zeroruntime.MessageRoleSystem, Content: "request-specific system"},
-		{Role: zeroruntime.MessageRoleUser, Content: "task"},
+	messages := []runeruntime.Message{
+		{Role: runeruntime.MessageRoleSystem, Content: "request-specific system"},
+		{Role: runeruntime.MessageRoleUser, Content: "task"},
 	}
 
 	plan := planner.Plan(messages, nil, "")
@@ -120,8 +120,8 @@ func TestContextPlannerExplainsPrefixInvalidation(t *testing.T) {
 	planner := newContextPlanner(contextPlannerConfig{promptParts: systemPromptParts{
 		prompt: "system", baseInstructions: "base", projectContext: "project",
 	}})
-	messages := []zeroruntime.Message{{Role: zeroruntime.MessageRoleSystem, Content: "system"}, {Role: zeroruntime.MessageRoleUser, Content: "task"}}
-	tools := []zeroruntime.ToolDefinition{{Name: "read_file", Description: "Read", Parameters: map[string]any{"type": "object"}}}
+	messages := []runeruntime.Message{{Role: runeruntime.MessageRoleSystem, Content: "system"}, {Role: runeruntime.MessageRoleUser, Content: "task"}}
+	tools := []runeruntime.ToolDefinition{{Name: "read_file", Description: "Read", Parameters: map[string]any{"type": "object"}}}
 
 	if got := planner.Plan(messages, tools, "").Breakdown.PrefixInvalidationReason; got != "initial" {
 		t.Fatalf("first reason = %q, want initial", got)

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"rune/internal/imageinput"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 	"strconv"
 	"strings"
 	"time"
@@ -351,9 +351,9 @@ func captureOKResult(driver string, request captureArtifactRequest, path string,
 	// exists and cannot look at it, which is the whole point of asking for one.
 	// A PDF or an unreadable file simply yields no image and the text stands on
 	// its own, so a capture is never failed over the attachment.
-	var images []zeroruntime.ImageBlock
+	var images []runeruntime.ImageBlock
 	if image, err := imageinput.LoadFile(path, ""); err == nil {
-		images = []zeroruntime.ImageBlock{image}
+		images = []runeruntime.ImageBlock{image}
 	}
 	return Result{
 		Status: StatusOK,

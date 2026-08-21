@@ -146,7 +146,7 @@ func snapshotWorkspace(root string) (map[string]fileFingerprint, bool) {
 
 func protectedObservationDirectory(name string) bool {
 	switch name {
-	case ".git", ".rune", ".zero", ".agents":
+	case ".git", ".rune", ".agents":
 		return true
 	default:
 		return false

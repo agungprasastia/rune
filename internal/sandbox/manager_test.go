@@ -739,7 +739,7 @@ func TestCredentialCarveoutsUseNormalizedParentForMissingChildren(t *testing.T) 
 	if _, err := os.Stat(wantZeroDir); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("test requires the Rune dir to remain absent, got %v", err)
 	}
-	for _, name := range zeroConfigReadCarveoutNames {
+	for _, name := range runeConfigReadCarveoutNames {
 		want := filepath.Join(wantZeroDir, name)
 		if !stringSliceContains(credentials.Carveouts, want) {
 			t.Errorf("credential carveouts = %#v, want lexical child of canonical root %q", credentials.Carveouts, want)

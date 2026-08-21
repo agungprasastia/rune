@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"rune/internal/doctor"
-	"rune/internal/zerocommands"
+	"rune/internal/runecommands"
 )
 
 func TestDoctorCommandOutputMapsOverallStatus(t *testing.T) {
@@ -192,10 +192,10 @@ func TestDoctorCommandOutputIsNilBackendSafe(t *testing.T) {
 }
 
 func TestDoctorCommandOutputIncludesBackendCountsAndHints(t *testing.T) {
-	backend := zerocommands.BackendLifecycleSnapshot{
-		MCPServers: []zerocommands.MCPServerSnapshot{{Name: "filesystem"}, {Name: "github"}},
-		Hooks:      []zerocommands.HookSnapshot{{ID: "lint", Enabled: true}},
-		Plugins:    []zerocommands.PluginSnapshot{{ID: "browser"}, {ID: "github"}, {ID: "linear"}},
+	backend := runecommands.BackendLifecycleSnapshot{
+		MCPServers: []runecommands.MCPServerSnapshot{{Name: "filesystem"}, {Name: "github"}},
+		Hooks:      []runecommands.HookSnapshot{{ID: "lint", Enabled: true}},
+		Plugins:    []runecommands.PluginSnapshot{{ID: "browser"}, {ID: "github"}, {ID: "linear"}},
 	}
 
 	output := doctorCommandOutput(doctor.Report{Checks: []doctor.Check{

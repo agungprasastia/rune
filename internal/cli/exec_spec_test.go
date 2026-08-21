@@ -10,10 +10,10 @@ import (
 
 	"rune/internal/agent"
 	"rune/internal/config"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/specmode"
-	"rune/internal/zeroruntime"
 )
 
 func TestRunExecUseSpecCreatesDraftSession(t *testing.T) {
@@ -54,7 +54,7 @@ func TestRunExecUseSpecCreatesDraftSession(t *testing.T) {
 		resolveMCPConfig: func(string, bool) (config.MCPConfig, error) {
 			return config.MCPConfig{}, nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return provider, nil
 		},
 		newSessionStore: func() *sessions.Store {
@@ -159,25 +159,25 @@ func TestRunExecUseSpecRejectsFiltersThatHideSubmitSpec(t *testing.T) {
 }
 
 type submitSpecExecProvider struct {
-	requests []zeroruntime.CompletionRequest
+	requests []runeruntime.CompletionRequest
 }
 
-func (provider *submitSpecExecProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (provider *submitSpecExecProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	provider.requests = append(provider.requests, request)
 	arguments, _ := json.Marshal(map[string]string{
 		"title": "Review Flow",
 		"plan":  "# Goal\n\nAdd the review flow.",
 	})
-	ch := make(chan zeroruntime.StreamEvent, 4)
+	ch := make(chan runeruntime.StreamEvent, 4)
 	select {
 	case <-ctx.Done():
 		close(ch)
 		return ch, ctx.Err()
-	case ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: specmode.SubmitToolName}:
+	case ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "call-1", ToolName: specmode.SubmitToolName}:
 	}
-	ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: string(arguments)}
-	ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call-1"}
-	ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone}
+	ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "call-1", ArgumentsFragment: string(arguments)}
+	ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "call-1"}
+	ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventDone}
 	close(ch)
 	return ch, nil
 }

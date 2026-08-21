@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // sessionProvider adapts a TurnSession back to the Provider interface so the
@@ -13,9 +13,9 @@ import (
 // this reduces to the wrapped provider's StreamCompletion, so behavior is
 // byte-identical; an optimized session (PR8) takes effect here transparently.
 type sessionProvider struct {
-	session zeroruntime.TurnSession
+	session runeruntime.TurnSession
 }
 
-func (s sessionProvider) StreamCompletion(ctx context.Context, request zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (s sessionProvider) StreamCompletion(ctx context.Context, request runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	return s.session.Stream(ctx, request)
 }

@@ -22,6 +22,7 @@ import (
 	"rune/internal/providercatalog"
 	"rune/internal/providermodeldiscovery"
 	"rune/internal/providers"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/sessions"
 	"rune/internal/specmode"
@@ -30,7 +31,6 @@ import (
 	"rune/internal/trace"
 	"rune/internal/usage"
 	"rune/internal/worktrees"
-	"rune/internal/zeroruntime"
 )
 
 const (
@@ -471,9 +471,9 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 	// session switcher is installed only when the run START is optimized, so
 	// the legacy ModelSwitcher path above stays untouched otherwise.
 	turnSessions, _ := providers.OptimizedTurnSessions(resolved.Provider, provider, providers.Options{})
-	var modelSessionSwitcher func(context.Context, string) (zeroruntime.TurnSessionProvider, error)
+	var modelSessionSwitcher func(context.Context, string) (runeruntime.TurnSessionProvider, error)
 	if options.allowEscalation && turnSessions != nil {
-		modelSessionSwitcher = func(_ context.Context, modelID string) (zeroruntime.TurnSessionProvider, error) {
+		modelSessionSwitcher = func(_ context.Context, modelID string) (runeruntime.TurnSessionProvider, error) {
 			switchedProfile := resolved.Provider
 			switchedProfile.Model = modelID
 			switchedProvider, err := deps.newProvider(switchedProfile)
@@ -1028,7 +1028,7 @@ func resolveWorkspaceRoot(cwd string, deps appDeps) (string, error) {
 // text input and for stream-json input that carries no images; it is merged with
 // any --image attachments by the caller before the shared vision gate, so both
 // sources flow through the same drop+warn and agent.Options.Images wiring.
-func resolveExecPrompt(options execOptions, workspaceRoot string, stdin io.Reader) (string, []zeroruntime.ImageBlock, error) {
+func resolveExecPrompt(options execOptions, workspaceRoot string, stdin io.Reader) (string, []runeruntime.ImageBlock, error) {
 	if options.inputFormat == execInputStreamJSON {
 		input := ""
 		if options.file != "" {
@@ -1107,11 +1107,11 @@ func resolveExecPrompt(options execOptions, workspaceRoot string, stdin io.Reade
 // oversized) is wrapped into an execUsageError so the run reports it as a usage
 // problem rather than reaching a provider with an invalid image. Returns nil for
 // an empty path list (text-only behavior unchanged).
-func resolveExecImages(paths []string, workspaceRoot string) ([]zeroruntime.ImageBlock, error) {
+func resolveExecImages(paths []string, workspaceRoot string) ([]runeruntime.ImageBlock, error) {
 	if len(paths) == 0 {
 		return nil, nil
 	}
-	images := make([]zeroruntime.ImageBlock, 0, len(paths))
+	images := make([]runeruntime.ImageBlock, 0, len(paths))
 	for _, path := range paths {
 		image, err := imageinput.LoadFile(path, workspaceRoot)
 		if err != nil {

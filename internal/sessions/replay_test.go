@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestCompactionMessagesPreservesInteractiveAndMutationEvidence(t *testing.T) {
@@ -18,7 +18,7 @@ func TestCompactionMessagesPreservesInteractiveAndMutationEvidence(t *testing.T)
 	}
 
 	messages := CompactionMessages(events)
-	if len(messages) != 4 || messages[0].Role != zeroruntime.MessageRoleAssistant || messages[1].Role != zeroruntime.MessageRoleTool {
+	if len(messages) != 4 || messages[0].Role != runeruntime.MessageRoleAssistant || messages[1].Role != runeruntime.MessageRoleTool {
 		t.Fatalf("unexpected normalized compaction messages: %#v", messages)
 	}
 	if messages[1].Content != "Postgres only" || len(messages[3].ChangedFiles) != 1 || messages[3].ChangedFiles[0] != "db.go" {

@@ -11,10 +11,10 @@ import (
 
 	"rune/internal/agent"
 	"rune/internal/config"
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
 	"rune/internal/workspacetrust"
 	"rune/internal/worktrees"
-	"rune/internal/zeroruntime"
 )
 
 // These tests close the end-to-end gap the chokepoint unit tests leave open:
@@ -44,26 +44,26 @@ func (markerTool) Run(context.Context, map[string]any) tools.Result {
 // result in the message history.
 type toolThenTextProvider struct{ toolName string }
 
-func (p toolThenTextProvider) StreamCompletion(_ context.Context, req zeroruntime.CompletionRequest) (<-chan zeroruntime.StreamEvent, error) {
+func (p toolThenTextProvider) StreamCompletion(_ context.Context, req runeruntime.CompletionRequest) (<-chan runeruntime.StreamEvent, error) {
 	toolAlreadyCalled := false
 	for _, m := range req.Messages {
-		if m.Role == zeroruntime.MessageRoleTool {
+		if m.Role == runeruntime.MessageRoleTool {
 			toolAlreadyCalled = true
 			break
 		}
 	}
-	ch := make(chan zeroruntime.StreamEvent, 8)
+	ch := make(chan runeruntime.StreamEvent, 8)
 	go func() {
 		defer close(ch)
 		if toolAlreadyCalled {
-			ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventText, Content: "done"}
-			ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone}
+			ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventText, Content: "done"}
+			ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventDone}
 			return
 		}
-		ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: p.toolName}
-		ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "c1", ArgumentsFragment: `{"pattern":"*"}`}
-		ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "c1"}
-		ch <- zeroruntime.StreamEvent{Type: zeroruntime.StreamEventDone}
+		ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "c1", ToolName: p.toolName}
+		ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "c1", ArgumentsFragment: `{"pattern":"*"}`}
+		ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "c1"}
+		ch <- runeruntime.StreamEvent{Type: runeruntime.StreamEventDone}
 	}()
 	return ch, nil
 }
@@ -212,7 +212,7 @@ func TestExecSurfacesMCPTrustNotice(t *testing.T) {
 		code := runWithDeps([]string{"exec", "--skip-permissions-unsafe", "--max-turns", "3", "go"}, &out, &errBuf, appDeps{
 			getwd:         func() (string, error) { return repo, nil },
 			resolveConfig: func(string, config.Overrides) (config.ResolvedConfig, error) { return execResolvedConfig(), nil },
-			newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+			newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 				return toolThenTextProvider{toolName: "glob"}, nil
 			},
 			resolveMCPConfig: func(string, bool) (config.MCPConfig, error) { return config.MCPConfig{}, nil },
@@ -261,7 +261,7 @@ func TestExecSpecSurfacesMCPTrustNotice(t *testing.T) {
 	_ = runWithDeps([]string{"exec", "--use-spec", "--skip-permissions-unsafe", "--max-turns", "3", "go"}, &out, &errBuf, appDeps{
 		getwd:         func() (string, error) { return repo, nil },
 		resolveConfig: func(string, config.Overrides) (config.ResolvedConfig, error) { return execResolvedConfig(), nil },
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return toolThenTextProvider{toolName: "glob"}, nil
 		},
 		resolveMCPConfig: func(string, bool) (config.MCPConfig, error) { return config.MCPConfig{}, nil },
@@ -288,7 +288,7 @@ func runExecTrust(t *testing.T, extraArgs []string, launchDir, worktreeDir strin
 		resolveConfig: func(string, config.Overrides) (config.ResolvedConfig, error) {
 			return execResolvedConfig(), nil
 		},
-		newProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		newProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return toolThenTextProvider{toolName: "glob"}, nil
 		},
 	})

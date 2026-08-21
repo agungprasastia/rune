@@ -13,7 +13,7 @@ import (
 )
 
 // taskOptions configures the `rune-perf-bench tasks` subcommand: the reproducible
-// Terminal-Bench-style harness that runs ZERO headlessly against a task set and
+// Terminal-Bench-style harness that runs RUNE headlessly against a task set and
 // records a publishable result (model + commit + self-correct flag + date).
 type taskOptions struct {
 	SuitePath   string
@@ -197,7 +197,7 @@ func taskHelpText() string {
 	return strings.Join([]string{
 		"Usage: rune-perf-bench tasks [options]",
 		"",
-		"Runs ZERO headlessly against a Terminal-Bench-style task set and records a",
+		"Runs RUNE headlessly against a Terminal-Bench-style task set and records a",
 		"reproducible, publishable result (model + commit + self-correct flag + date).",
 		"",
 		"Options:",
@@ -206,8 +206,8 @@ func taskHelpText() string {
 		"  --mode <name>       Exec mode preset to apply",
 		"  --self-correct      Enable the post-edit verify-and-correct loop",
 		"  --binary <path>     Path to the `zero` binary (required unless --dry-run)",
-		"  --version <v>       Record the ZERO version (default: $RUNE_BENCH_VERSION)",
-		"  --commit <sha>      Record the ZERO commit (default: $RUNE_BENCH_COMMIT)",
+		"  --version <v>       Record the RUNE version (default: $RUNE_BENCH_VERSION)",
+		"  --commit <sha>      Record the RUNE commit (default: $RUNE_BENCH_COMMIT)",
 		"  --output <path>     Write the JSON result to path",
 		"  --json              Print only the JSON result",
 		"  --dry-run           Record every task as skipped without invoking the agent",

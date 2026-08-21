@@ -5,17 +5,17 @@ import (
 
 	"rune/internal/execution"
 	"rune/internal/hooks"
+	"rune/internal/runeruntime"
 	"rune/internal/sandbox"
 	"rune/internal/streamjson"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
-type Message = zeroruntime.Message
-type Provider = zeroruntime.Provider
-type ToolCall = zeroruntime.ToolCall
-type Usage = zeroruntime.Usage
+type Message = runeruntime.Message
+type Provider = runeruntime.Provider
+type ToolCall = runeruntime.ToolCall
+type Usage = runeruntime.Usage
 
 type PermissionMode string
 type PermissionAction string
@@ -81,7 +81,7 @@ type ToolResult struct {
 	Meta      map[string]string
 	// Images the tool produced, delivered to the model as a following user
 	// message rather than on this result. See tools.Result.Images.
-	Images       []zeroruntime.ImageBlock
+	Images       []runeruntime.ImageBlock
 	Redacted     bool
 	ChangedFiles []string
 	// ChangeSummaries are non-selectable generated-tree summaries emitted by
@@ -339,7 +339,7 @@ type Options struct {
 	// Images are optional image attachments to seed onto the initial user turn.
 	// nil for text-only runs (the seeded message then carries no images, exactly
 	// as before).
-	Images []zeroruntime.ImageBlock
+	Images []runeruntime.ImageBlock
 	// ContextWindow is the model's maximum input token budget. When > 0 the agent
 	// loop compacts long conversations once the estimated size crosses a fraction
 	// of this window. 0 DISABLES compaction entirely (every existing caller/test
@@ -400,7 +400,7 @@ type Options struct {
 	// keeps the default: the loop wraps the passed provider in a no-op session
 	// whose Stream IS provider.StreamCompletion, so behavior is byte-identical
 	// and every existing caller is unaffected.
-	TurnSessionProvider zeroruntime.TurnSessionProvider
+	TurnSessionProvider runeruntime.TurnSessionProvider
 	// ModelSessionSwitcher, when set, is the target-aware escalation hook: the
 	// loop prefers it over ModelSwitcher, and its TurnSessionProvider keeps an
 	// optimized session (and its capabilities) across a mid-run model switch.
@@ -408,7 +408,7 @@ type Options struct {
 	// default no-op session — today's behavior, unchanged. Same non-fatal error
 	// contract as ModelSwitcher: a returned error records a note and the run
 	// continues on the current model and session.
-	ModelSessionSwitcher func(ctx context.Context, modelID string) (zeroruntime.TurnSessionProvider, error)
+	ModelSessionSwitcher func(ctx context.Context, modelID string) (runeruntime.TurnSessionProvider, error)
 	// Profile, when set, arms the execution-profile posture controller for this
 	// run (auto-escalation to stricter knob values on failure/uncertainty/risky
 	// mutation signals). nil — the default everywhere today — leaves the loop
@@ -463,7 +463,7 @@ type Result struct {
 	Messages    []Message
 	StopReason  StopReason
 	// FinishReason is the provider's normalized terminal stop reason for the turn
-	// that produced FinalAnswer: zeroruntime.FinishReasonLength when the output
+	// that produced FinalAnswer: runeruntime.FinishReasonLength when the output
 	// hit the token cap, FinishReasonContentFilter when it was filtered. Empty for
 	// a normal completion.
 	FinishReason string
@@ -485,10 +485,10 @@ type Result struct {
 // wording stays consistent.
 func (result Result) TruncationNotice() string {
 	switch result.FinishReason {
-	case zeroruntime.FinishReasonLength:
+	case runeruntime.FinishReasonLength:
 		return "Response was cut off at the output token limit and may be incomplete. " +
 			"Raise the model's max output tokens or ask rune to continue."
-	case zeroruntime.FinishReasonContentFilter:
+	case runeruntime.FinishReasonContentFilter:
 		return "Response was withheld or cut off by the provider's content filter and may be incomplete."
 	case "":
 		return ""

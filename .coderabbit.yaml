@@ -17,8 +17,8 @@ reviews:
     - "!out/**"
     - "!coverage/**"
     - "!*.tgz"
-    - "!/zero"
-    - "!/zero.exe"
+    - "!/rune"
+    - "!/rune.exe"
   path_instructions:
     - path: "src/**/*.ts"
       instructions: |

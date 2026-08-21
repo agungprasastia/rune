@@ -15,7 +15,7 @@ import (
 	"rune/internal/providers/gemini"
 	"rune/internal/providers/openai"
 	"rune/internal/providers/providerio"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // Options configures provider construction.
@@ -37,7 +37,7 @@ type Options struct {
 }
 
 // New creates a runtime provider for a resolved provider profile.
-func New(profile config.ProviderProfile, options Options) (zeroruntime.Provider, error) {
+func New(profile config.ProviderProfile, options Options) (runeruntime.Provider, error) {
 	resolved, err := resolveProfile(profile, options)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func New(profile config.ProviderProfile, options Options) (zeroruntime.Provider,
 // ProviderCapabilities projection computed from the same model-registry entry
 // New already resolves. The default session's Stream is the provider's
 // StreamCompletion, so runtime behavior is identical to using New directly.
-func NewTurnSessionProvider(profile config.ProviderProfile, options Options) (zeroruntime.TurnSessionProvider, error) {
+func NewTurnSessionProvider(profile config.ProviderProfile, options Options) (runeruntime.TurnSessionProvider, error) {
 	provider, err := New(profile, options)
 	if err != nil {
 		return nil, err
@@ -122,26 +122,26 @@ func NewTurnSessionProvider(profile config.ProviderProfile, options Options) (ze
 	if err != nil {
 		return nil, err
 	}
-	return zeroruntime.NewProviderTurnSessionProvider(provider, caps), nil
+	return runeruntime.NewProviderTurnSessionProvider(provider, caps), nil
 }
 
 // resolveCapabilities projects the resolved profile's model-registry entry into
-// the flat zeroruntime.ProviderCapabilities (zeroruntime cannot reference
-// modelregistry types — modelregistry imports zeroruntime, so a typed field
+// the flat runeruntime.ProviderCapabilities (runeruntime cannot reference
+// modelregistry types — modelregistry imports runeruntime, so a typed field
 // would form an import cycle). A model absent from the registry yields only the
 // resolved API model id and max-output tokens; the rest stays rune (unknown).
-func resolveCapabilities(profile config.ProviderProfile, options Options) (zeroruntime.ProviderCapabilities, error) {
+func resolveCapabilities(profile config.ProviderProfile, options Options) (runeruntime.ProviderCapabilities, error) {
 	resolved, err := resolveProfile(profile, options)
 	if err != nil {
-		return zeroruntime.ProviderCapabilities{}, err
+		return runeruntime.ProviderCapabilities{}, err
 	}
-	caps := zeroruntime.ProviderCapabilities{
+	caps := runeruntime.ProviderCapabilities{
 		Model:           resolved.apiModel,
 		MaxOutputTokens: resolved.maxOutputTokens,
 	}
 	registry, err := defaultRegistry(options.ModelRegistry)
 	if err != nil {
-		return zeroruntime.ProviderCapabilities{}, err
+		return runeruntime.ProviderCapabilities{}, err
 	}
 	if entry, ok := registry.Get(strings.TrimSpace(profile.Model)); ok {
 		caps.ContextWindow = entry.ContextLimits.ContextWindow
@@ -359,7 +359,7 @@ func isCodexCatalog(profile config.ProviderProfile, _ resolvedProfile) bool {
 // key independently here (a second oauth.FirstStored) could, after a transient
 // per-candidate load error or a mid-session `rune auth login`, pick a different
 // login than the bearer — a mismatch the backend rejects.
-func newCodexProvider(profile config.ProviderProfile, resolved resolvedProfile, options Options) (zeroruntime.Provider, error) {
+func newCodexProvider(profile config.ProviderProfile, resolved resolvedProfile, options Options) (runeruntime.Provider, error) {
 	accountKey := options.OAuthLoginKey
 	return openai.NewCodexProvider(openai.CodexOptions{
 		Options: openai.Options{

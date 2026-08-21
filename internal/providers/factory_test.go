@@ -10,7 +10,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/oauth"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestNewCreatesOpenAIProviderWithFactoryOptions(t *testing.T) {
@@ -33,8 +33,8 @@ func TestNewCreatesOpenAIProviderWithFactoryOptions(t *testing.T) {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)
@@ -112,8 +112,8 @@ func TestNewUsesMiniMaxCompatibleEndpoints(t *testing.T) {
 				t.Fatalf("New() error = %v", err)
 			}
 
-			stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-				Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+			stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+				Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 			})
 			if err != nil {
 				t.Fatalf("StreamCompletion() error = %v", err)
@@ -147,8 +147,8 @@ func TestNewPassesOpenGatewayHY3ModelThrough(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)
@@ -200,8 +200,8 @@ func TestNewThreadsCustomProviderHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)
@@ -233,8 +233,8 @@ func TestNewAIMLAPIProviderSendsEndpointAndAuthWithoutAttribution(t *testing.T) 
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)
@@ -289,8 +289,8 @@ func TestNewSupportsOpenAIProviderKind(t *testing.T) {
 // The factory must omit it for openai-compatible profiles while still
 // forwarding it for official OpenAI so multi-turn cache routing stays intact.
 func TestPromptCacheKeyOnlyOnOfficialOpenAI(t *testing.T) {
-	requestWithSession := zeroruntime.CompletionRequest{
-		Messages:       []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	requestWithSession := runeruntime.CompletionRequest{
+		Messages:       []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 		PromptCacheKey: "sess_tui_123",
 	}
 
@@ -384,8 +384,8 @@ func TestNewResolvesKnownModelToAPIModelAndProvider(t *testing.T) {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)
@@ -436,8 +436,8 @@ func TestNewCreatesGeminiProviderFromFactoryOptions(t *testing.T) {
 		t.Fatalf("New() error = %v", err)
 	}
 
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)
@@ -518,8 +518,8 @@ func TestNewRoutesChatGPTCatalogToCodexProvider(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hello"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hello"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)
@@ -581,8 +581,8 @@ func TestNewRoutesChatGPTCatalogWithStoredAccountID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
 	}
-	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
-		Messages: []zeroruntime.Message{{Role: zeroruntime.MessageRoleUser, Content: "hi"}},
+	stream, err := provider.StreamCompletion(context.Background(), runeruntime.CompletionRequest{
+		Messages: []runeruntime.Message{{Role: runeruntime.MessageRoleUser, Content: "hi"}},
 	})
 	if err != nil {
 		t.Fatalf("StreamCompletion() error = %v", err)

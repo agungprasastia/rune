@@ -12,7 +12,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/oauth"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 // managerTestModel builds a model with two saved providers, a seeded config
@@ -48,7 +48,7 @@ func managerTestModel(t *testing.T) model {
 		ProviderProfile: seed.Providers[0],
 		SavedProviders:  seed.Providers,
 		UserConfigPath:  configPath,
-		NewProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
+		NewProvider: func(config.ProviderProfile) (runeruntime.Provider, error) {
 			return &fakeProvider{}, nil
 		},
 	})
@@ -457,7 +457,7 @@ func TestProviderManagerReadsStoredKeyBesideConfig(t *testing.T) {
 
 	// And the switch path must load the key instead of rejecting the provider.
 	var built config.ProviderProfile
-	m.newProvider = func(profile config.ProviderProfile) (zeroruntime.Provider, error) {
+	m.newProvider = func(profile config.ProviderProfile) (runeruntime.Provider, error) {
 		built = profile
 		return &fakeProvider{}, nil
 	}

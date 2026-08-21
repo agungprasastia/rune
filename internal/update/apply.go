@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -40,18 +39,16 @@ type ApplyResult struct {
 	Warnings      []string      `json:"warnings,omitempty"`
 }
 
-// windowsOptionalBinaries/linuxOptionalBinaries mirror the helper binary
-// names scripts/postinstall.mjs copies alongside the main binary when
-// present, so `rune upgrade` refreshes them too instead of leaving them stale.
+// windowsOptionalBinaries/linuxOptionalBinaries mirror helper binaries shipped
+// alongside native release archives.
 var (
 	windowsOptionalBinaries = []string{"rune-windows-command-runner.exe", "rune-windows-sandbox-setup.exe"}
 	linuxOptionalBinaries   = []string{"rune-linux-sandbox", "rune-seccomp"}
 	currentExecutable       = os.Executable
 )
 
-// Apply checks for an update and, if one is available, installs it: via
-// `npm install -g` for npm-managed installs, or by downloading, verifying,
-// and atomically replacing the binary for standalone installs.
+// Apply checks for an update and, if one is available, installs it by
+// downloading, verifying, and atomically replacing the binary.
 func Apply(ctx context.Context, options Options) (ApplyResult, error) {
 	checkResult, err := Check(ctx, options)
 	if err != nil {
@@ -65,42 +62,19 @@ func Apply(ctx context.Context, options Options) (ApplyResult, error) {
 	if resolved, err := filepath.EvalSymlinks(executablePath); err == nil {
 		executablePath = resolved
 	}
-	method := DetectInstallMethod(executablePath)
-	if method != InstallMethodNpm {
-		if err := preflightRecoveryState(executablePath); err != nil {
-			return ApplyResult{}, err
-		}
+	method := InstallMethodStandalone
+	if err := preflightRecoveryState(executablePath); err != nil {
+		return ApplyResult{}, err
 	}
 	if !checkResult.UpdateAvailable {
 		return ApplyResult{Result: checkResult, Message: "already up to date"}, nil
 	}
 
-	switch method {
-	case InstallMethodNpm:
-		if err := applyNpmUpdate(ctx); err != nil {
-			return ApplyResult{}, err
-		}
-		return ApplyResult{
-			Result:        checkResult,
-			Applied:       true,
-			InstallMethod: method,
-			BinaryPath:    executablePath,
-			Message:       fmt.Sprintf("updated via npm to %s", checkResult.LatestVersion),
-		}, nil
-	default:
-		warnings, err := applyStandaloneUpdate(ctx, checkResult, executablePath)
-		if err != nil {
-			return ApplyResult{}, err
-		}
-		return ApplyResult{
-			Result:        checkResult,
-			Applied:       true,
-			InstallMethod: method,
-			BinaryPath:    executablePath,
-			Message:       fmt.Sprintf("updated to %s", checkResult.LatestVersion),
-			Warnings:      warnings,
-		}, nil
+	warnings, err := applyStandaloneUpdate(ctx, checkResult, executablePath)
+	if err != nil {
+		return ApplyResult{}, err
 	}
+	return ApplyResult{Result: checkResult, Applied: true, InstallMethod: method, BinaryPath: executablePath, Message: fmt.Sprintf("updated to %s", checkResult.LatestVersion), Warnings: warnings}, nil
 }
 
 // FormatApply renders an ApplyResult as human-readable text.
@@ -116,20 +90,6 @@ func FormatApply(result ApplyResult) string {
 		lines = append(lines, "Warning: "+warning)
 	}
 	return strings.Join(lines, "\n")
-}
-
-func applyNpmUpdate(ctx context.Context) error {
-	npmPath, err := exec.LookPath("npm")
-	if err != nil {
-		return fmt.Errorf("npm not found on PATH: reinstall with `npm install -g %s@latest`", npmPackageName)
-	}
-	command := exec.CommandContext(ctx, npmPath, "install", "-g", npmPackageName+"@latest")
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-	if err := command.Run(); err != nil {
-		return fmt.Errorf("npm install -g %s@latest: %w", npmPackageName, err)
-	}
-	return nil
 }
 
 func applyStandaloneUpdate(ctx context.Context, result Result, executablePath string) ([]string, error) {

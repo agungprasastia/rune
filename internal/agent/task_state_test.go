@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
+	"rune/internal/runeruntime"
 	"rune/internal/tools"
 	"rune/internal/trace"
-	"rune/internal/zeroruntime"
 )
 
 func TestTaskStateReplayIsDeterministic(t *testing.T) {
@@ -66,16 +66,16 @@ func TestTaskStateCoalescesToolResultsIntoNextTraceEvent(t *testing.T) {
 func TestRunEmitsTaskStateFromExistingLoopEvents(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewUpdatePlanTool())
-	provider := &mockProvider{turns: [][]zeroruntime.StreamEvent{
+	provider := &mockProvider{turns: [][]runeruntime.StreamEvent{
 		{
-			{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "plan-1", ToolName: planToolName},
-			{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "plan-1", ArgumentsFragment: `{"plan":[{"content":"implement","status":"completed"}]}`},
-			{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "plan-1"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventToolCallStart, ToolCallID: "plan-1", ToolName: planToolName},
+			{Type: runeruntime.StreamEventToolCallDelta, ToolCallID: "plan-1", ArgumentsFragment: `{"plan":[{"content":"implement","status":"completed"}]}`},
+			{Type: runeruntime.StreamEventToolCallEnd, ToolCallID: "plan-1"},
+			{Type: runeruntime.StreamEventDone},
 		},
 		{
-			{Type: zeroruntime.StreamEventText, Content: "done"},
-			{Type: zeroruntime.StreamEventDone},
+			{Type: runeruntime.StreamEventText, Content: "done"},
+			{Type: runeruntime.StreamEventDone},
 		},
 	}}
 	recorder := trace.NewRecorder("session", "run", "")
@@ -182,7 +182,7 @@ func TestTaskStatePlanParityUsesLatestPlan(t *testing.T) {
 	state.observe(taskStateEvent{kind: taskStateEventPlan, arguments: `{"plan":[{"content":"old","status":"completed"}]}`})
 	state.observe(taskStateEvent{kind: taskStateEventPlan, arguments: `{"plan":[{"content":"new","status":"in_progress"}]}`})
 
-	messages := []zeroruntime.Message{{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{
+	messages := []runeruntime.Message{{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{
 		{Name: planToolName, Arguments: `{"plan":[{"content":"new","status":"in_progress"}]}`},
 	}}}
 	if parity := state.observePlanParity(messages); parity != taskPlanParityMatch {
@@ -204,14 +204,14 @@ func TestTaskStateMatchesPlanToolNormalization(t *testing.T) {
 	if snapshot.Plan.Completed != 1 || snapshot.Plan.InProgress != 1 {
 		t.Fatalf("multiple active items were not normalized like the plan tool: %#v", snapshot.Plan)
 	}
-	messages := []zeroruntime.Message{{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{{Name: planToolName, Arguments: arguments}}}}
+	messages := []runeruntime.Message{{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{{Name: planToolName, Arguments: arguments}}}}
 	if parity := state.observePlanParity(messages); parity != taskPlanParityMatch {
 		t.Fatalf("normalized state should still match its transcript event, got %q", parity)
 	}
 
 	empty := newTaskState("objective", nil)
 	empty.observe(taskStateEvent{kind: taskStateEventPlan, arguments: `{"plan":[]}`})
-	emptyMessages := []zeroruntime.Message{{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{{Name: planToolName, Arguments: `{"plan":[]}`}}}}
+	emptyMessages := []runeruntime.Message{{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{{Name: planToolName, Arguments: `{"plan":[]}`}}}}
 	if parity := empty.observePlanParity(emptyMessages); parity != taskPlanParityMatch {
 		t.Fatalf("explicit empty plan should match transcript, got %q", parity)
 	}
@@ -220,7 +220,7 @@ func TestTaskStateMatchesPlanToolNormalization(t *testing.T) {
 func TestTaskStateContextFallsBackWhenTranscriptDiffers(t *testing.T) {
 	state := newTaskState("objective", nil)
 	state.observe(taskStateEvent{kind: taskStateEventPlan, arguments: `{"plan":[{"content":"tracked","status":"completed"}]}`})
-	messages := []zeroruntime.Message{{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{
+	messages := []runeruntime.Message{{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{
 		{Name: planToolName, Arguments: `{"plan":[{"content":"transcript","status":"pending"}]}`},
 	}}}
 
@@ -236,15 +236,15 @@ func TestTaskStateContextFallsBackWhenTranscriptDiffers(t *testing.T) {
 func TestTaskStateCompactionSnapshotRetainsObjectiveOnPlanMismatch(t *testing.T) {
 	state := newTaskState("objective", nil)
 	state.observe(taskStateEvent{kind: taskStateEventPlan, arguments: `{"plan":[{"content":"verify","status":"pending"}]}`})
-	matching := []zeroruntime.Message{{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{
+	matching := []runeruntime.Message{{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{
 		{Name: planToolName, Arguments: `{"plan":[{"content":"verify","status":"pending"}]}`},
 	}}}
 	if snapshot := state.snapshotForCompaction(matching); snapshot == nil || snapshot.Objective != "objective" {
 		t.Fatalf("matching transcript should produce compact state, got %#v", snapshot)
 	}
 
-	mismatching := append([]zeroruntime.Message(nil), matching...)
-	mismatching[0].ToolCalls = []zeroruntime.ToolCall{{Name: planToolName, Arguments: `{"plan":[{"content":"other","status":"pending"}]}`}}
+	mismatching := append([]runeruntime.Message(nil), matching...)
+	mismatching[0].ToolCalls = []runeruntime.ToolCall{{Name: planToolName, Arguments: `{"plan":[{"content":"other","status":"pending"}]}`}}
 	if snapshot := state.snapshotForCompaction(mismatching); snapshot == nil || snapshot.Objective != "objective" || snapshot.PlanParity != taskPlanParityMismatch {
 		t.Fatalf("plan mismatch must retain immutable objective and mark mutable state uncorroborated, got %#v", snapshot)
 	}

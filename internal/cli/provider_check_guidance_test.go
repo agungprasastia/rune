@@ -8,7 +8,7 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/providerhealth"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 func TestRunProvidersCheckMissingKeyPrintsNextAction(t *testing.T) {
@@ -19,7 +19,7 @@ func TestRunProvidersCheckMissingKeyPrintsNextAction(t *testing.T) {
 		profile := providerCheckGuidanceProfile()
 		return config.ResolvedConfig{ActiveProvider: "groq", Provider: profile, Providers: []config.ProviderProfile{profile}, MaxTurns: 7}, nil
 	}
-	deps.newProvider = func(config.ProviderProfile) (zeroruntime.Provider, error) {
+	deps.newProvider = func(config.ProviderProfile) (runeruntime.Provider, error) {
 		t.Fatal("newProvider should not run with a missing API key")
 		return nil, nil
 	}

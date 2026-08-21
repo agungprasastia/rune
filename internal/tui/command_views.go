@@ -10,9 +10,9 @@ import (
 
 	"rune/internal/config"
 	"rune/internal/providercatalog"
+	"rune/internal/runecommands"
 	"rune/internal/sandbox"
 	"rune/internal/tools"
-	"rune/internal/zerocommands"
 )
 
 func (m model) toolsText() string {
@@ -331,7 +331,7 @@ func (m model) permissionsTextWithStore(store grantLister) string {
 		}
 	}
 
-	snapshots := zerocommands.SandboxGrantSnapshots(grants)
+	snapshots := runecommands.SandboxGrantSnapshots(grants)
 	grantRows := []commandRow{}
 	if len(snapshots) == 0 && len(prefixes) == 0 {
 		grantRows = append(grantRows, commandRow{Text: "none"})
@@ -418,7 +418,7 @@ func (m model) providerText() string {
 		})
 	}
 
-	snapshot := zerocommands.ProviderSnapshotFromProfile(m.providerProfile, true)
+	snapshot := runecommands.ProviderSnapshotFromProfile(m.providerProfile, true)
 	// A keyless profile backed by a stored OAuth login (e.g. ChatGPT) is fully
 	// authenticated — without this, /provider status showed a WORKING provider
 	// as "api key: not set" with a warning, unlike `rune providers list` which
@@ -456,7 +456,7 @@ func (m model) providerText() string {
 	})
 }
 
-func providerNextActionLines(profile config.ProviderProfile, snapshot zerocommands.ProviderSnapshot, activeName string) []string {
+func providerNextActionLines(profile config.ProviderProfile, snapshot runecommands.ProviderSnapshot, activeName string) []string {
 	providerName := firstProviderDisplayValue(snapshot.Name, activeName, profile.Name, providerSetupCatalogID(profile, snapshot.ProviderKind), "openai")
 	setupID := providerSetupCatalogID(profile, snapshot.ProviderKind)
 	lines := []string{}

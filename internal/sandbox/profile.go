@@ -84,7 +84,7 @@ type NetworkPolicy struct {
 // always requires a prompt for direct file-tool writes (write_file, edit_file,
 // apply_patch): hand-editing git's objects/refs/index or Rune's own state
 // bypasses git's and Rune's own consistency checks, regardless of subpath.
-var protectedMetadataNames = []string{".git", ".rune", ".zero", ".agents"}
+var protectedMetadataNames = []string{".git", ".rune", ".agents"}
 
 // sandboxFullyProtectedMetadataNames are the metadata directories the OS-level
 // sandbox write-denies in full for shell-executed commands. .git is
@@ -94,7 +94,7 @@ var protectedMetadataNames = []string{".git", ".rune", ".zero", ".agents"}
 // write. Only .git/hooks (auto-executing scripts) and .git/config (remote
 // URLs, credential.helper, core.hooksPath) stay write-denied, via
 // gitMetadataWriteCarveouts below.
-var sandboxFullyProtectedMetadataNames = []string{".rune", ".zero", ".agents"}
+var sandboxFullyProtectedMetadataNames = []string{".rune", ".agents"}
 
 // gitMetadataWriteCarveouts returns the .git subpaths that stay write-denied
 // under the OS-level sandbox even though the rest of .git is writable to git
@@ -332,7 +332,7 @@ func credentialDenyReadPaths(policy Policy, commandDir string, commandEnv []stri
 // command lives below the plugin root), so the credential deny must not hide
 // them. Nothing here holds a secret: credentials, tokens, and config live in
 // files directly under <configDir>/rune, not in these subtrees.
-var zeroConfigReadCarveoutNames = []string{"plugins", "specialists", "commands"}
+var runeConfigReadCarveoutNames = []string{"plugins", "specialists", "commands"}
 
 // processCredentialBaseDir is the working directory this process started in,
 // captured once during package initialization.
@@ -571,7 +571,7 @@ func credentialDenyReadPathsIn(options credentialPathOptions, allowRead []string
 		candidates = append(candidates, runeDir)
 		dirs = append(dirs, runeDir)
 		ensureDirs = append(ensureDirs, runeDir)
-		for _, name := range zeroConfigReadCarveoutNames {
+		for _, name := range runeConfigReadCarveoutNames {
 			carveouts = append(carveouts, filepath.Join(runeDir, name))
 		}
 	}

@@ -7,7 +7,7 @@ import (
 	"unicode/utf8"
 
 	"rune/internal/redaction"
-	"rune/internal/zeroruntime"
+	"rune/internal/runeruntime"
 )
 
 type EventRef struct {
@@ -324,8 +324,8 @@ func buildCompactionPrompt(events []Event, maxChars int) (string, bool) {
 // and checkpoint blobs are omitted. Message/tool fields rely on the session
 // writer's invariant that tool output is scrubbed before persistence;
 // ask_user answers and generic event previews are redacted here.
-func CompactionMessages(events []Event) []zeroruntime.Message {
-	messages := make([]zeroruntime.Message, 0, len(events))
+func CompactionMessages(events []Event) []runeruntime.Message {
+	messages := make([]runeruntime.Message, 0, len(events))
 	for _, event := range events {
 		var payload map[string]any
 		_ = json.Unmarshal(event.Payload, &payload)
@@ -339,39 +339,39 @@ func CompactionMessages(events []Event) []zeroruntime.Message {
 			content := stringField("content")
 			switch role {
 			case "user":
-				messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: content})
+				messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: content})
 			case "assistant":
-				messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleAssistant, Content: content})
+				messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleAssistant, Content: content})
 			case "ask_user_answers":
 				if answers, ok := payload["answers"]; ok {
 					encoded, _ := json.Marshal(answers)
-					messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: "User answers: " + redaction.RedactString(string(encoded), redaction.Options{})})
+					messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: "User answers: " + redaction.RedactString(string(encoded), redaction.Options{})})
 				}
 			default:
 				if content != "" {
-					messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: content})
+					messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: content})
 				}
 			}
 		case EventToolCall:
-			messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleAssistant, ToolCalls: []zeroruntime.ToolCall{{
+			messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleAssistant, ToolCalls: []runeruntime.ToolCall{{
 				ID: firstSessionString(stringField("toolCallId"), stringField("id")), Name: firstSessionString(stringField("name"), stringField("toolName")), Arguments: stringField("arguments"),
 			}}})
 		case EventToolResult:
 			status := strings.ToLower(stringField("status"))
-			messages = append(messages, zeroruntime.Message{
-				Role: zeroruntime.MessageRoleTool, ToolCallID: firstSessionString(stringField("toolCallId"), stringField("id")),
+			messages = append(messages, runeruntime.Message{
+				Role: runeruntime.MessageRoleTool, ToolCallID: firstSessionString(stringField("toolCallId"), stringField("id")),
 				Content: stringField("output"), IsError: status != "" && status != "ok", ChangedFiles: sessionStringSlice(payload["changedFiles"]),
 			})
 		case EventCompaction:
 			if summary := stringField("summary"); summary != "" {
-				messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: "[Summary of earlier conversation]\n" + summary})
+				messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: "[Summary of earlier conversation]\n" + summary})
 			}
 		case EventProviderUsage, EventSessionCheckpoint:
 			continue
 		default:
 			preview := shapedPayloadPreview(event)
 			if strings.TrimSpace(preview) != "" && preview != "{}" {
-				messages = append(messages, zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: fmt.Sprintf("[%s] %s", event.Type, preview)})
+				messages = append(messages, runeruntime.Message{Role: runeruntime.MessageRoleUser, Content: fmt.Sprintf("[%s] %s", event.Type, preview)})
 			}
 		}
 	}
