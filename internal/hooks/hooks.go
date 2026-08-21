@@ -98,8 +98,8 @@ type LoadOptions struct {
 	Env               map[string]string
 	UserConfigPath    string
 	ProjectConfigPath string
-	// ExcludeProject drops the project layer (./.zero/hooks.json) so only the
-	// user layer loads. Its zero value (false) preserves the user+project merge.
+	// ExcludeProject drops the project layer (./.rune/hooks.json) so only the
+	// user layer loads. Its rune value (false) preserves the user+project merge.
 	ExcludeProject bool
 }
 
@@ -200,9 +200,9 @@ func ResolvePaths(options ResolvePathOptions) (Paths, error) {
 	configHome := resolveEnvDir(options.Env, "XDG_CONFIG_HOME", filepath.Join(home, ".config"), cwd)
 	dataHome := resolveEnvDir(options.Env, "XDG_DATA_HOME", filepath.Join(home, ".local", "share"), cwd)
 	return Paths{
-		UserConfigPath:    filepath.Join(configHome, "zero", "hooks.json"),
-		ProjectConfigPath: filepath.Join(cwd, ".zero", "hooks.json"),
-		AuditPath:         filepath.Join(dataHome, "zero", "hooks", "audit.jsonl"),
+		UserConfigPath:    filepath.Join(configHome, "rune", "hooks.json"),
+		ProjectConfigPath: filepath.Join(cwd, ".rune", "hooks.json"),
+		AuditPath:         filepath.Join(dataHome, "rune", "hooks", "audit.jsonl"),
 	}, nil
 }
 
@@ -305,7 +305,7 @@ func (store *ConfigStore) Upsert(hook Definition) (Definition, error) {
 		return Definition{}, err
 	}
 	raw := definitionToRaw(hook)
-	// Upsert treats the zero-value Enabled field as omitted so new hooks default
+	// Upsert treats the rune-value Enabled field as omitted so new hooks default
 	// to enabled. Disable persisted hooks explicitly with SetEnabled.
 	if !hook.Enabled {
 		delete(raw, "enabled")
@@ -401,7 +401,7 @@ func FormatList(config Config, diagnostics []Diagnostic) string {
 	if config.Enabled {
 		state = "enabled"
 	}
-	lines := []string{"Zero Hooks: " + state}
+	lines := []string{"Rune Hooks: " + state}
 	if len(config.Hooks) == 0 {
 		lines = append(lines, "  No hooks configured.")
 	} else {
@@ -653,7 +653,7 @@ func readSingleConfig(path string) (Config, error) {
 	layer, ok := readLayer(SourceProject, path, &diagnostics)
 	if len(diagnostics) > 0 {
 		diagnostic := diagnostics[0]
-		return Config{}, fmt.Errorf("invalid Zero hook config at %s: %s", diagnostic.Path, diagnostic.Message)
+		return Config{}, fmt.Errorf("invalid Rune hook config at %s: %s", diagnostic.Path, diagnostic.Message)
 	}
 	if !ok {
 		return Config{Enabled: true, Hooks: []Definition{}}, nil
@@ -889,12 +889,12 @@ func requiredID(obj map[string]any, field string) (string, error) {
 	return value, nil
 }
 
-// KnownEvents returns the hook events Zero recognizes, in dispatch order.
+// KnownEvents returns the hook events Rune recognizes, in dispatch order.
 func KnownEvents() []Event {
 	return []Event{EventBeforeTool, EventAfterTool, EventSessionStart, EventSessionEnd, EventSpecialistStart, EventSpecialistStop}
 }
 
-// IsValidEvent reports whether event is one Zero recognizes.
+// IsValidEvent reports whether event is one Rune recognizes.
 func IsValidEvent(event Event) bool {
 	for _, known := range KnownEvents() {
 		if event == known {

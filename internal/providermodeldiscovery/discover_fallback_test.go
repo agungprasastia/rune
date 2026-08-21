@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/config"
+	"rune/internal/providercatalog"
 )
 
 func TestDiscoverCatalogFallsBackWhenLiveIDsMismatch(t *testing.T) {

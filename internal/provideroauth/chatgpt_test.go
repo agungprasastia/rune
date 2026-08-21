@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/oauth"
+	"rune/internal/oauth"
 )
 
 // makeIDToken signs a fake JWS for tests. We only need the payload to round-trip
@@ -27,7 +27,7 @@ func makeIDToken(t *testing.T, claims map[string]any) string {
 	}
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`))
 	body := base64.RawURLEncoding.EncodeToString(payload)
-	// A short zero-byte signature is enough to satisfy "three base64url
+	// A short rune-byte signature is enough to satisfy "three base64url
 	// segments" — extractChatGPTAccountID does not parse the signature.
 	return header + "." + body + ".AAAA"
 }
@@ -186,9 +186,9 @@ func TestExtractChatGPTAccountIDClaimWrongType(t *testing.T) {
 }
 
 // chatgptTestEnv returns the minimum env that opts the user into the chatgpt
-// preset, so the resolver can build a Config without ZERO_OAUTH_CHATGPT_* vars.
+// preset, so the resolver can build a Config without RUNE_OAUTH_CHATGPT_* vars.
 func chatgptTestEnv() map[string]string {
-	return map[string]string{"ZERO_OAUTH_ALLOW_PRESETS": "1"}
+	return map[string]string{"RUNE_OAUTH_ALLOW_PRESETS": "1"}
 }
 
 // chatgptTestServer is a minimal mock of the ChatGPT authorization server that
@@ -320,10 +320,10 @@ func TestChatGPTLoginUsesPreset(t *testing.T) {
 	// The chatgpt preset pins the authorize/token endpoints; we override
 	// both with the test server's URLs to keep the loopback flow
 	// self-contained. The chatgpt preset's client_id is preserved by NOT
-	// overriding ZERO_OAUTH_CHATGPT_CLIENT_ID.
+	// overriding RUNE_OAUTH_CHATGPT_CLIENT_ID.
 	env := chatgptTestEnv()
-	env["ZERO_OAUTH_CHATGPT_AUTHORIZE_URL"] = ts.AuthorizeURL()
-	env["ZERO_OAUTH_CHATGPT_TOKEN_URL"] = ts.TokenURL()
+	env["RUNE_OAUTH_CHATGPT_AUTHORIZE_URL"] = ts.AuthorizeURL()
+	env["RUNE_OAUTH_CHATGPT_TOKEN_URL"] = ts.TokenURL()
 
 	var out strings.Builder
 	token, err := ChatGPTLogin(context.Background(), ChatGPTOptions{
@@ -348,7 +348,7 @@ func TestChatGPTLoginUsesPreset(t *testing.T) {
 		t.Fatalf("token_type = %q, want Bearer", token.TokenType)
 	}
 	if token.ExpiresAt.IsZero() {
-		t.Fatalf("ExpiresAt is zero, want non-zero (3600s in the future)")
+		t.Fatalf("ExpiresAt is rune, want non-rune (3600s in the future)")
 	}
 	// The preset's client_id must reach the token endpoint (this asserts
 	// the resolver actually used the preset, not an env override).
@@ -375,8 +375,8 @@ func TestChatGPTAuthorizeURLIncludesConnectorScopes(t *testing.T) {
 	defer ts.Close()
 
 	env := chatgptTestEnv()
-	env["ZERO_OAUTH_CHATGPT_AUTHORIZE_URL"] = ts.AuthorizeURL()
-	env["ZERO_OAUTH_CHATGPT_TOKEN_URL"] = ts.TokenURL()
+	env["RUNE_OAUTH_CHATGPT_AUTHORIZE_URL"] = ts.AuthorizeURL()
+	env["RUNE_OAUTH_CHATGPT_TOKEN_URL"] = ts.TokenURL()
 
 	var gotScope string
 	inspect := func(authURL string) error {
@@ -426,8 +426,8 @@ func TestChatGPTLoginMissingAuthorizationEndpointErrors(t *testing.T) {
 	// authorize URL survives a no-op env override (an off-by-one safety
 	// net for callers that pass an empty Env).
 	env := chatgptTestEnv()
-	env["ZERO_OAUTH_CHATGPT_AUTHORIZE_URL"] = ""
-	env["ZERO_OAUTH_CHATGPT_TOKEN_URL"] = "https://chatgpt.invalid/oauth/token"
+	env["RUNE_OAUTH_CHATGPT_AUTHORIZE_URL"] = ""
+	env["RUNE_OAUTH_CHATGPT_TOKEN_URL"] = "https://chatgpt.invalid/oauth/token"
 	// No OpenBrowser => the login would hang waiting for a callback. We
 	// use a 2s timeout so a regression that drops the preset's authorize
 	// URL is surfaced as a timeout, not a hang.

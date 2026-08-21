@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // A tool_use content_block_start that arrives without a usable name/id can't be

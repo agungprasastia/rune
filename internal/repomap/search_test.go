@@ -96,6 +96,6 @@ func TestSearchAppliesLimitAndIgnoresBlankQueries(t *testing.T) {
 		t.Fatalf("blank query returned results: %#v", results)
 	}
 	if results := Search(snapshot, "go", 0); len(results) != 0 {
-		t.Fatalf("zero limit returned results: %#v", results)
+		t.Fatalf("rune limit returned results: %#v", results)
 	}
 }

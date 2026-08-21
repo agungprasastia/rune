@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/doctor"
-	"github.com/rune-ai/rune/internal/providerhealth"
-	zsearch "github.com/rune-ai/rune/internal/search"
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/config"
+	"rune/internal/doctor"
+	"rune/internal/providerhealth"
+	zsearch "rune/internal/search"
+	"rune/internal/sessions"
 )
 
 type doctorOptions struct {
@@ -114,7 +114,7 @@ func runSearch(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) 
 		return exitSuccess
 	}
 	if strings.TrimSpace(options.query) == "" {
-		return writeExecUsageError(stderr, "search query required. Use `zero search <query>`.")
+		return writeExecUsageError(stderr, "search query required. Use `rune search <query>`.")
 	}
 
 	result, err := zsearch.Sessions(options.query, zsearch.Options{
@@ -265,7 +265,7 @@ func writePrettyJSON(w io.Writer, value any) error {
 
 func writeDoctorHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero doctor [flags]
+  rune doctor [flags]
 
 Runs Go backend health checks for config and provider setup.
 
@@ -279,9 +279,9 @@ Flags:
 
 func writeSearchHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero search [flags] <query>
+  rune search [flags] <query>
 
-Searches persisted local Zero session events.
+Searches persisted local Rune session events.
 
 Flags:
       --json                 Print JSON results

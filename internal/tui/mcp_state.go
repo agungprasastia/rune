@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/config"
+	"rune/internal/mcp"
+	"rune/internal/tools"
 )
 
 type MCPStateOptions struct {

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/zerocommands"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/zerocommands"
 )
 
 type commandCenterOptions struct {
@@ -407,7 +407,7 @@ func formatProviderCatalogLine(provider providerCatalogSummary) string {
 		provider.RuntimeSupported,
 	))
 	if provider.RuntimeSupported {
-		lines = append(lines, "    setup: zero providers setup "+displayCLIValue(provider.ID, "unknown")+" --set-active")
+		lines = append(lines, "    setup: rune providers setup "+displayCLIValue(provider.ID, "unknown")+" --set-active")
 	} else {
 		lines = append(lines, "    unsupported: "+displayCLIValue(provider.RuntimeUnsupportedReason, "unknown"))
 	}
@@ -461,7 +461,7 @@ func formatProviderCatalogValue(value string, fallback string) string {
 
 func writeConfigHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero config [flags]
+  rune config [flags]
 
 Inspects resolved Go configuration without printing secrets.
 
@@ -474,9 +474,9 @@ Flags:
 
 func writeModelsHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero models list [flags]
+  rune models list [flags]
 
-Lists Zero model registry entries.
+Lists Rune model registry entries.
 
 Flags:
       --json                  Print JSON model list
@@ -489,17 +489,17 @@ Flags:
 
 func writeProvidersHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero providers current [flags]
-  zero providers list [flags]
-  zero providers catalog [flags]
-  zero providers add <catalog-id> [flags]
-  zero providers check [name] [flags]
-  zero providers use <name> [flags]
-  zero providers remove <name> [flags]
-  zero providers rename <old> <new> [flags]
-  zero providers setup <catalog-id> [flags]
-  zero providers detect [flags]
-  zero providers models [name] [flags]
+  rune providers current [flags]
+  rune providers list [flags]
+  rune providers catalog [flags]
+  rune providers add <catalog-id> [flags]
+  rune providers check [name] [flags]
+  rune providers use <name> [flags]
+  rune providers remove <name> [flags]
+  rune providers rename <old> <new> [flags]
+  rune providers setup <catalog-id> [flags]
+  rune providers detect [flags]
+  rune providers models [name] [flags]
 
 Inspects resolved provider profiles and provider catalog descriptors without printing secrets.
 Detect probes for running local runtimes (Ollama, LM Studio) and prints adopt commands plus per-provider next steps.

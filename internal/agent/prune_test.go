@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // bigToolResult builds a tool-result message with approximately tokens worth of

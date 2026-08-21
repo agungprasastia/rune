@@ -94,7 +94,7 @@ go run ./cmd/zero-perf-bench tasks \
   --output dist/bench/tasks-selfcorrect.json
 ```
 
-`--version`/`--commit` also read from `ZERO_BENCH_VERSION` / `ZERO_BENCH_COMMIT`
+`--version`/`--commit` also read from `RUNE_BENCH_VERSION` / `RUNE_BENCH_COMMIT`
 when the flags are omitted, so CI can stamp them once in the environment.
 
 Use `--dry-run` to exercise the record path without invoking a model (every task

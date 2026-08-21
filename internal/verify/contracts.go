@@ -3,12 +3,12 @@ package verify
 import (
 	"strings"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/testrunner"
+	"rune/internal/redaction"
+	"rune/internal/testrunner"
 )
 
 const RuntimeGo = "go"
-const ReportContractVersion = "zero.verify.report.v1"
+const ReportContractVersion = "rune.verify.report.v1"
 
 type EventType string
 

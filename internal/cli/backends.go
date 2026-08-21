@@ -5,11 +5,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/plugins"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/zerocommands"
+	"rune/internal/hooks"
+	"rune/internal/mcp"
+	"rune/internal/plugins"
+	"rune/internal/redaction"
+	"rune/internal/zerocommands"
 )
 
 type backendStatusOptions struct {
@@ -177,7 +177,7 @@ func backendDoctorReport(deps appDeps) (zerocommands.BackendDoctorReport, error)
 }
 
 func formatBackendLifecycleSnapshot(snapshot zerocommands.BackendLifecycleSnapshot) string {
-	lines := []string{"Zero Backends:"}
+	lines := []string{"Rune Backends:"}
 	lines = append(lines, fmt.Sprintf("  MCP servers: %d", len(snapshot.MCPServers)))
 	for _, server := range snapshot.MCPServers {
 		detail := server.Command
@@ -227,7 +227,7 @@ func formatBackendLifecycleSnapshot(snapshot zerocommands.BackendLifecycleSnapsh
 
 func formatBackendDoctorReport(report zerocommands.BackendDoctorReport) string {
 	lines := []string{
-		"Zero backend doctor",
+		"Rune backend doctor",
 		"Overall: " + string(report.Status),
 	}
 	for _, check := range report.Checks {
@@ -245,8 +245,8 @@ func formatBackendDoctorReport(report zerocommands.BackendDoctorReport) string {
 
 func writeBackendsHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero backends [flags]
-  zero backends doctor [flags]
+  rune backends [flags]
+  rune backends doctor [flags]
 
 Inspect MCP, hook, and plugin backend lifecycle state without connecting to
 external MCP servers.
@@ -263,7 +263,7 @@ Flags:
 
 func writeBackendsDoctorHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero backends doctor [flags]
+  rune backends doctor [flags]
 
 Diagnose MCP, hook, and plugin backend setup without connecting to external MCP
 servers or executing hooks/plugins.

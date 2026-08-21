@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ZERO_REPO="${ZERO_REPO:-Gitlawb/zero}"
-ZERO_VERSION="${ZERO_VERSION:-latest}"
-ZERO_INSTALL_DIR="${ZERO_INSTALL_DIR:-$HOME/.local/bin}"
-ZERO_GITHUB_API="${ZERO_GITHUB_API:-https://api.github.com}"
-ZERO_GITHUB_BASE_URL="${ZERO_GITHUB_BASE_URL:-https://github.com}"
+RUNE_REPO="${RUNE_REPO:-rune-ai/rune}"
+RUNE_VERSION="${RUNE_VERSION:-latest}"
+RUNE_INSTALL_DIR="${RUNE_INSTALL_DIR:-$HOME/.local/bin}"
+RUNE_GITHUB_API="${RUNE_GITHUB_API:-https://api.github.com}"
+RUNE_GITHUB_BASE_URL="${RUNE_GITHUB_BASE_URL:-https://github.com}"
 
 usage() {
   cat <<'EOF'
@@ -15,16 +15,16 @@ Usage:
   scripts/install.sh [--version <version>] [--repo <owner/repo>] [--install-dir <path>]
 
 Environment:
-  ZERO_VERSION          Release version or tag. Defaults to latest.
-  ZERO_REPO             GitHub repository. Defaults to Gitlawb/zero.
-  ZERO_INSTALL_DIR      Directory for the zero binary. Defaults to ~/.local/bin.
-  ZERO_GITHUB_API       GitHub API base URL. Defaults to https://api.github.com.
-  ZERO_GITHUB_BASE_URL  GitHub web base URL. Defaults to https://github.com.
+  RUNE_VERSION          Release version or tag. Defaults to latest.
+  RUNE_REPO             GitHub repository. Defaults to rune-ai/rune.
+  RUNE_INSTALL_DIR      Directory for the rune binary. Defaults to ~/.local/bin.
+  RUNE_GITHUB_API       GitHub API base URL. Defaults to https://api.github.com.
+  RUNE_GITHUB_BASE_URL  GitHub web base URL. Defaults to https://github.com.
 EOF
 }
 
 fail() {
-  echo "zero install: $*" >&2
+  echo "rune install: $*" >&2
   exit 1
 }
 
@@ -32,17 +32,17 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --version)
       [ "$#" -ge 2 ] || fail "--version requires a value"
-      ZERO_VERSION="$2"
+      RUNE_VERSION="$2"
       shift 2
       ;;
     --repo)
       [ "$#" -ge 2 ] || fail "--repo requires a value"
-      ZERO_REPO="$2"
+      RUNE_REPO="$2"
       shift 2
       ;;
     --install-dir)
       [ "$#" -ge 2 ] || fail "--install-dir requires a value"
-      ZERO_INSTALL_DIR="$2"
+      RUNE_INSTALL_DIR="$2"
       shift 2
       ;;
     -h|--help)
@@ -103,7 +103,7 @@ detect_arch() {
 
 latest_tag() {
   local metadata_file="$1"
-  local api_url="${ZERO_GITHUB_API%/}/repos/${ZERO_REPO}/releases/latest"
+  local api_url="${RUNE_GITHUB_API%/}/repos/${RUNE_REPO}/releases/latest"
   local tag
 
   download_json "$api_url" "$metadata_file"
@@ -154,7 +154,7 @@ find_extracted_entry() {
 }
 
 find_extracted_binary() {
-  find_extracted_entry "$1" "zero" "file"
+  find_extracted_entry "$1" "rune" "file"
 }
 
 copy_optional_file() {
@@ -162,8 +162,8 @@ copy_optional_file() {
   local source_path
 
   if source_path="$(find_extracted_entry "$extract_dir" "$name" "file")"; then
-    cp "$source_path" "$ZERO_INSTALL_DIR/$name"
-    chmod 755 "$ZERO_INSTALL_DIR/$name"
+    cp "$source_path" "$RUNE_INSTALL_DIR/$name"
+    chmod 755 "$RUNE_INSTALL_DIR/$name"
   fi
 }
 
@@ -172,8 +172,8 @@ copy_optional_dir() {
   local source_path
 
   if source_path="$(find_extracted_entry "$extract_dir" "$name" "dir")"; then
-    rm -rf "$ZERO_INSTALL_DIR/$name"
-    cp -R "$source_path" "$ZERO_INSTALL_DIR/$name"
+    rm -rf "$RUNE_INSTALL_DIR/$name"
+    cp -R "$source_path" "$RUNE_INSTALL_DIR/$name"
   fi
 }
 
@@ -188,21 +188,21 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [ "$ZERO_VERSION" = "latest" ]; then
+if [ "$RUNE_VERSION" = "latest" ]; then
   tag="$(latest_tag "$tmp_dir/latest.json")"
 else
-  case "$ZERO_VERSION" in
-    v*) tag="$ZERO_VERSION" ;;
-    *) tag="v$ZERO_VERSION" ;;
+  case "$RUNE_VERSION" in
+    v*) tag="$RUNE_VERSION" ;;
+    *) tag="v$RUNE_VERSION" ;;
   esac
 fi
 
 version="${tag#v}"
 platform="$(detect_platform)"
 arch="$(detect_arch)"
-archive_name="zero-v${version}-${platform}-${arch}.tar.gz"
+archive_name="rune-v${version}-${platform}-${arch}.tar.gz"
 checksum_name="${archive_name}.sha256"
-release_url="${ZERO_GITHUB_BASE_URL%/}/${ZERO_REPO}/releases/download/${tag}"
+release_url="${RUNE_GITHUB_BASE_URL%/}/${RUNE_REPO}/releases/download/${tag}"
 archive_path="$tmp_dir/$archive_name"
 checksum_path="$tmp_dir/$checksum_name"
 extract_dir="$tmp_dir/extract"
@@ -219,18 +219,18 @@ download "${release_url}/${checksum_name}" "$checksum_path"
 mkdir -p "$extract_dir"
 tar -xzf "$archive_path" -C "$extract_dir"
 
-binary_path="$(find_extracted_binary "$extract_dir")" || fail "release archive did not contain zero"
+binary_path="$(find_extracted_binary "$extract_dir")" || fail "release archive did not contain rune"
 
-mkdir -p "$ZERO_INSTALL_DIR"
-cp "$binary_path" "$ZERO_INSTALL_DIR/zero"
-chmod 755 "$ZERO_INSTALL_DIR/zero"
+mkdir -p "$RUNE_INSTALL_DIR"
+cp "$binary_path" "$RUNE_INSTALL_DIR/rune"
+chmod 755 "$RUNE_INSTALL_DIR/rune"
 copy_optional_file "rune-linux-sandbox"
 copy_optional_file "rune-seccomp"
 copy_optional_dir "helpers"
 
-echo "Installed $ZERO_INSTALL_DIR/zero"
+echo "Installed $RUNE_INSTALL_DIR/rune"
 
 case ":$PATH:" in
-  *":$ZERO_INSTALL_DIR:"*) ;;
-  *) echo "Add $ZERO_INSTALL_DIR to PATH to run zero from any directory." ;;
+  *":$RUNE_INSTALL_DIR:"*) ;;
+  *) echo "Add $RUNE_INSTALL_DIR to PATH to run rune from any directory." ;;
 esac

@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/execution"
 )
 
 type RemoteTool struct {
@@ -215,7 +215,7 @@ func (client *Client) initialize(ctx context.Context) error {
 		"protocolVersion": "2024-11-05",
 		"capabilities":    map[string]any{},
 		"clientInfo": map[string]any{
-			"name":    "zero",
+			"name":    "rune",
 			"version": "dev",
 		},
 	}, &result); err != nil {

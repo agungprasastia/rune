@@ -3,13 +3,13 @@ package agent
 import (
 	"context"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/execution"
+	"rune/internal/hooks"
+	"rune/internal/sandbox"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 type Message = zeroruntime.Message
@@ -32,7 +32,7 @@ const (
 	// update_plan/ask_user, but no mutating tool is advertised, so it cannot
 	// write files, run shell, or implement while planning. Entry points:
 	// the TUI's /plan on (exit with /plan off, which restores whatever mode
-	// was active before), `zero exec --plan`, and the ACP session mode
+	// was active before), `rune exec --plan`, and the ACP session mode
 	// selector ("plan").
 	PermissionModePlan PermissionMode = "plan"
 	// PermissionModeMemberAuto is a headless mode for swarm/specialist MEMBERS: it
@@ -95,7 +95,7 @@ type ToolResult struct {
 	// Risk is the sandbox risk classification of this call, stamped for EXECUTED
 	// results so run-policy observers (the execution-profile controller) can see
 	// the risk level of an allowed mutation. It mirrors the classification the
-	// permission path already computes; denied or canceled results keep the zero
+	// permission path already computes; denied or canceled results keep the rune
 	// value. Pure observation: nothing about permissions or sandboxing changes.
 	Risk sandbox.Risk
 	// LoadedTools carries the deferred-tool names a tool_search call asked the
@@ -154,7 +154,7 @@ type ProfilePolicy struct {
 // applied mid-run when an armed trigger fires. Targets are the values the
 // selected profile DISPLACED at run start (i.e. "restore the balanced
 // posture"), so escalation can never introduce a value that was not already
-// valid for this run and model. Zero-valued targets leave that knob untouched.
+// valid for this run and model. Rune-valued targets leave that knob untouched.
 type PostureEscalation struct {
 	// MaxTurns raises the turn ceiling to this value when greater than the
 	// ceiling in effect. 0 leaves the ceiling untouched.
@@ -171,7 +171,7 @@ type PostureEscalation struct {
 	// completion semantics) when true.
 	RestoreCompletionGate bool
 
-	// Triggers. A zero value disables that signal entirely.
+	// Triggers. A rune value disables that signal entirely.
 	// OnToolFailureStreak fires when the repeated-failure guard observes a
 	// same-tool retriable-failure streak of at least this length.
 	OnToolFailureStreak int
@@ -353,7 +353,7 @@ type Options struct {
 	Autonomy               string
 	Sandbox                *sandbox.Engine
 	// FileTracker records per-session file read/write versions so the write tools
-	// can detect a file changed on disk outside Zero since it was last read. nil
+	// can detect a file changed on disk outside Rune since it was last read. nil
 	// disables the check. Created once per session and threaded into every tool run.
 	FileTracker *tools.FileTracker
 	// Hooks, when set, runs configured beforeTool (blocking) and afterTool
@@ -487,7 +487,7 @@ func (result Result) TruncationNotice() string {
 	switch result.FinishReason {
 	case zeroruntime.FinishReasonLength:
 		return "Response was cut off at the output token limit and may be incomplete. " +
-			"Raise the model's max output tokens or ask zero to continue."
+			"Raise the model's max output tokens or ask rune to continue."
 	case zeroruntime.FinishReasonContentFilter:
 		return "Response was withheld or cut off by the provider's content filter and may be incomplete."
 	case "":

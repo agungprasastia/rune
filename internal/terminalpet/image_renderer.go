@@ -14,7 +14,7 @@ import (
 
 	xdraw "golang.org/x/image/draw"
 
-	"github.com/rune-ai/rune/internal/installtxn"
+	"rune/internal/installtxn"
 )
 
 const kittyChunkSize = 4096

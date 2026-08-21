@@ -10,11 +10,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/providerhealth"
-	"github.com/rune-ai/rune/internal/zerocommands"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/providerhealth"
+	"rune/internal/zerocommands"
+	"rune/internal/zeroruntime"
 )
 
 func TestRunConfigPrintsRedactedSummary(t *testing.T) {
@@ -316,7 +316,7 @@ func TestRunProvidersCatalogRejectsUnknownFlags(t *testing.T) {
 func TestRunProvidersAddWritesCatalogProfile(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 
 	exitCode := runWithDeps([]string{"providers", "add", "groq", "--name", "fast", "--set-active"}, &stdout, &stderr, providerSetupDeps(configPath))
 
@@ -351,7 +351,7 @@ func TestRunProvidersAddWritesCatalogProfile(t *testing.T) {
 func TestRunProvidersAddAimlapiWritesDefaultHeaders(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 
 	exitCode := runWithDeps([]string{"providers", "add", "aimlapi"}, &stdout, &stderr, providerSetupDeps(configPath))
 
@@ -371,7 +371,7 @@ func TestRunProvidersAddAimlapiWritesDefaultHeaders(t *testing.T) {
 		t.Fatalf("unexpected provider profile: %#v", profile)
 	}
 	if profile.CustomHeaders["X-AIMLAPI-Partner-ID"] != "part_62yQoGYDq4Yqnrj2R1iGrDNJ" ||
-		profile.CustomHeaders["X-AIMLAPI-Integration-Repo"] != "Gitlawb/zero" {
+		profile.CustomHeaders["X-AIMLAPI-Integration-Repo"] != "rune-ai/rune" {
 		t.Fatalf("missing aimlapi.com default headers: %#v", profile.CustomHeaders)
 	}
 }
@@ -379,7 +379,7 @@ func TestRunProvidersAddAimlapiWritesDefaultHeaders(t *testing.T) {
 func TestRunProvidersAddAimlapiMixedCaseHeaderOverride(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 
 	// A differently-cased override must replace the catalog header in place, not
 	// leave both spellings behind to race when request construction canonicalizes.
@@ -403,7 +403,7 @@ func TestRunProvidersAddAimlapiMixedCaseHeaderOverride(t *testing.T) {
 func TestRunProvidersAddAimlapiOverrideDropsCatalogHeaders(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 
 	exitCode := runWithDeps([]string{
 		"providers", "add", "aimlapi",
@@ -438,8 +438,8 @@ func TestRunProvidersAddWritesCustomHeaders(t *testing.T) {
 		"--api-key-env", "GATEWAY_API_KEY",
 		"--auth-header", "X-API-Key",
 		"--auth-scheme", "Token",
-		"--header", "HTTP-Referer=https://zero.dev",
-		"--header", "X-Title=Zero",
+		"--header", "HTTP-Referer=https://rune.dev",
+		"--header", "X-Title=Rune",
 	}, &stdout, &stderr, providerSetupDeps(configPath))
 
 	if exitCode != exitSuccess {
@@ -449,7 +449,7 @@ func TestRunProvidersAddWritesCustomHeaders(t *testing.T) {
 	if profile.AuthHeader != "X-API-Key" || profile.AuthScheme != "Token" {
 		t.Fatalf("unexpected auth override: %#v", profile)
 	}
-	if profile.CustomHeaders["HTTP-Referer"] != "https://zero.dev" || profile.CustomHeaders["X-Title"] != "Zero" {
+	if profile.CustomHeaders["HTTP-Referer"] != "https://rune.dev" || profile.CustomHeaders["X-Title"] != "Rune" {
 		t.Fatalf("unexpected custom headers: %#v", profile.CustomHeaders)
 	}
 }
@@ -769,7 +769,7 @@ func TestRunProvidersPositionalHelp(t *testing.T) {
 		t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
 	output := stdout.String()
-	for _, want := range []string{"Usage:", "zero providers", "list", "current", "catalog"} {
+	for _, want := range []string{"Usage:", "rune providers", "list", "current", "catalog"} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("expected providers help to contain %q, got %q", want, output)
 		}
@@ -927,11 +927,11 @@ func TestProviderCredentialStateShowsOAuthLogin(t *testing.T) {
 }
 
 // TestProvidersListMarksOAuthLoginProviders: a keyless profile whose credential
-// is a stored OAuth login (the shape `zero auth chatgpt` now writes) must render
+// is a stored OAuth login (the shape `rune auth chatgpt` now writes) must render
 // as "oauth login", not as a broken "api key: not set" entry.
 func TestProvidersListMarksOAuthLoginProviders(t *testing.T) {
 	tokensPath := filepath.Join(t.TempDir(), "oauth-tokens.json")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokensPath)
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokensPath)
 	store, err := oauth.NewStore(oauth.StoreOptions{})
 	if err != nil {
 		t.Fatalf("oauth store: %v", err)

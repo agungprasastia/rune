@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func enabledSelfCorrector(t *testing.T) *SelfCorrector {
@@ -75,7 +75,7 @@ func TestSelfReportedIncompletionMatching(t *testing.T) {
 		// real false positive (conversational recap): retelling a PAST exchange is
 		// not an admission about the current objective — the sentence carries its
 		// own narrative context ("You asked …", "at the time"):
-		{"You asked if I could work autonomously on zero if you gave me a GitHub account — I was honest that my sandbox had no repo, no build system, and no network/integration wired up yet, so I couldn't actually do it at the time.", false},
+		{"You asked if I could work autonomously on rune if you gave me a GitHub account — I was honest that my sandbox had no repo, no build system, and no network/integration wired up yet, so I couldn't actually do it at the time.", false},
 		{"When we last spoke, I couldn't reach the GitHub API from the sandbox.", false},
 		{"Last session I was unable to build the project; that is what we should retry now.", false},
 		// quoted admissions (the model citing its own earlier message or a log

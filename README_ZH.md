@@ -35,7 +35,7 @@ zero exec --output-format stream-json < turns.jsonl
 ### npm
 
 ```bash
-npm install -g @gitlawb/zero
+npm install -g @rune-ai/rune
 zero
 ```
 
@@ -46,13 +46,13 @@ npm 包是一个小型包装器，其平台构建（Linux 和 macOS 的 x64/arm6
 Linux/macOS：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rune-ai/rune/main/scripts/install.sh | bash
 ```
 
 Windows PowerShell：
 
 ```powershell
-irm https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/rune-ai/rune/main/scripts/install.ps1 | iex
 ```
 
 ### 从源码构建
@@ -60,7 +60,7 @@ irm https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.ps1 | ie
 源码构建需要 Go 1.26.5+。
 
 ```bash
-git clone https://github.com/Gitlawb/zero.git
+git clone https://github.com/rune-ai/rune.git
 cd zero
 go run ./cmd/zero
 ```
@@ -237,10 +237,10 @@ zero upgrade          下载、验证并安装最新版本
 | 控制 | 效果 |
 |---|---|
 | `NO_COLOR=<任意值>` | 禁用颜色输出 |
-| `ZERO_THEME=<名称>` | 选择启动主题（`auto`、`dark`、`light`，或颜色主题如 `dracula`、`nord`、`gruvbox`、`tokyo-night`、`catppuccin`、`one-dark`、`solarized-dark`、`rose-pine`、`everforest`、`neon`、`solarized-light`、`dune`） |
+| `RUNE_THEME=<名称>` | 选择启动主题（`auto`、`dark`、`light`，或颜色主题如 `dracula`、`nord`、`gruvbox`、`tokyo-night`、`catppuccin`、`one-dark`、`solarized-dark`、`rose-pine`、`everforest`、`neon`、`solarized-light`、`dune`） |
 | `--theme <名称>` | 从 CLI 选择 TUI 主题（相同名称） |
 | `/theme` | 在 TUI 中打开主题选择器（实时预览；`/theme <名称>` 直接切换） |
-| `ZERO_NO_FADE=1` | 禁用流式淡入动画 |
+| `RUNE_NO_FADE=1` | 禁用流式淡入动画 |
 
 含义不仅仅依赖于颜色；差异、权限和状态也使用文本或标记符号。
 
@@ -277,14 +277,14 @@ go run ./cmd/zero-release build --goos windows --goarch amd64 --output dist/zero
 实时交流在 [Discord 服务器](https://discord.gg/CaQDS6wdFn) 进行。
 
 提问、安装帮助、想法和分享都在
-[GitHub Discussions](https://github.com/Gitlawb/zero/discussions)：
+[GitHub Discussions](https://github.com/rune-ai/rune/discussions)：
 
 | 分类 | 用途 |
 |---|---|
-| [Q&A](https://github.com/Gitlawb/zero/discussions/categories/q-a) | 安装帮助、提供商/模型配置、"如何做"类问题 |
-| [Ideas](https://github.com/Gitlawb/zero/discussions/categories/ideas) | 功能提议和 PR 之前的设计讨论 |
-| [Show and tell](https://github.com/Gitlawb/zero/discussions/categories/show-and-tell) | 你的技能、插件、MCP 配置、主题和工作流 |
-| [Announcements](https://github.com/Gitlawb/zero/discussions/categories/announcements) | 维护者发布的版本和项目动态 |
+| [Q&A](https://github.com/rune-ai/rune/discussions/categories/q-a) | 安装帮助、提供商/模型配置、"如何做"类问题 |
+| [Ideas](https://github.com/rune-ai/rune/discussions/categories/ideas) | 功能提议和 PR 之前的设计讨论 |
+| [Show and tell](https://github.com/rune-ai/rune/discussions/categories/show-and-tell) | 你的技能、插件、MCP 配置、主题和工作流 |
+| [Announcements](https://github.com/rune-ai/rune/discussions/categories/announcements) | 维护者发布的版本和项目动态 |
 
 ## 贡献
 

@@ -9,7 +9,7 @@ import (
 // model's static capabilities. It is deliberately plain data — no modelregistry
 // or reasoning types — because modelregistry imports zeroruntime, so a typed
 // reference here would form an import cycle. The providers factory populates it
-// from the model-registry entry it already resolves; a zero value means the
+// from the model-registry entry it already resolves; a rune value means the
 // capabilities are unknown, which every consumer must treat as "assume nothing".
 type ProviderCapabilities struct {
 	// Model is the resolved API model id (informational; may be empty).
@@ -83,7 +83,7 @@ type TurnSessionProvider interface {
 }
 
 // NewProviderTurnSessionProvider wraps an existing Provider as a default
-// TurnSessionProvider. caps may be the zero value (unknown) for callers that
+// TurnSessionProvider. caps may be the rune value (unknown) for callers that
 // only need streaming behavior; the providers factory supplies a populated
 // projection.
 func NewProviderTurnSessionProvider(provider Provider, caps ProviderCapabilities) TurnSessionProvider {

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // TestRunAddDirDispatchForwardsGrantIntoExecScope pins the dispatch seam
@@ -178,7 +178,7 @@ func TestExecScopeReRegistrationSwapsCoreToolsByName(t *testing.T) {
 
 func tempDirOutsideDefaultTemp(t *testing.T) string {
 	t.Helper()
-	dir, err := os.MkdirTemp(".", ".zero-sandbox-outside-")
+	dir, err := os.MkdirTemp(".", ".rune-sandbox-outside-")
 	if err != nil {
 		t.Fatalf("MkdirTemp outside default temp: %v", err)
 	}

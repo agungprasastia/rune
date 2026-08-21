@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/rune-ai/rune/internal/lockutil"
+	"rune/internal/lockutil"
 )
 
 // Cross-process lock tuning. The lock is held only for a single metadata

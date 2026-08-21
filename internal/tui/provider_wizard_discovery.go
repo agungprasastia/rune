@@ -9,12 +9,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/aimlapi"
-	"github.com/rune-ai/rune/internal/browser"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/aimlapi"
+	"rune/internal/browser"
+	"rune/internal/config"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/redaction"
 )
 
 type providerModelsDiscoveredMsg struct {

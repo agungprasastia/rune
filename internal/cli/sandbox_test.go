@@ -14,8 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/config"
+	"rune/internal/sandbox"
 )
 
 func TestRunSandboxGrantsAllowListDenyRevokeAndClear(t *testing.T) {
@@ -319,7 +319,7 @@ func TestRunSandboxPolicyInspectTextAndJSON(t *testing.T) {
 			} else {
 				output := stdout.String()
 				for _, want := range []string{
-					"Zero sandbox policy",
+					"Rune sandbox policy",
 					"backend: unavailable",
 					"target_backend: windows-restricted-token",
 					"support_level: unavailable",
@@ -344,7 +344,7 @@ func TestRunSandboxPolicyInspectTextAndJSON(t *testing.T) {
 func TestHiddenWindowsSandboxSubcommandsSelfDispatch(t *testing.T) {
 	// The runner/setup sentinels are routed before normal CLI parsing, straight
 	// into the sandbox helper mains — never the unknown-command path. With no
-	// helper-specific flags they fail their own arg validation (non-zero), but
+	// helper-specific flags they fail their own arg validation (non-rune), but
 	// crucially the message is the helper's, proving the dispatch.
 	for _, tc := range []struct {
 		name string
@@ -358,7 +358,7 @@ func TestHiddenWindowsSandboxSubcommandsSelfDispatch(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			exit := runWithDeps([]string{tc.arg}, &stdout, &stderr, appDeps{})
 			if exit == 0 {
-				t.Fatalf("expected non-zero exit from the helper's own arg validation, got 0")
+				t.Fatalf("expected non-rune exit from the helper's own arg validation, got 0")
 			}
 			if !strings.Contains(stderr.String(), tc.want) {
 				t.Fatalf("stderr = %q, want the %s helper's message (proves self-dispatch)", stderr.String(), tc.want)
@@ -500,8 +500,8 @@ func TestRunSandboxPolicyJSONGoldenIncludesManagerBaselineFields(t *testing.T) {
 	t.Setenv("NETRC", "")
 	t.Setenv("DOCKER_CONFIG", "")
 	t.Setenv("KUBECONFIG", "")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", "")
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	store := newSandboxTestStore(t)
 	workspace := t.TempDir()
 	deps := appDeps{
@@ -572,7 +572,7 @@ func normalizeSandboxPolicyGoldenTempRoots(t *testing.T, gotBytes []byte, worksp
 			// git's cleartext credential stores, in both the home and XDG
 			// layouts (#816). Listed here so the exported policy JSON is what
 			// catches a regression: this baseline is the contract a user reads
-			// with `zero sandbox policy --json`.
+			// with `rune sandbox policy --json`.
 			filepath.Join(credentialHome, ".git-credentials"),
 			filepath.Join(credentialHome, ".config", "git", "credentials"),
 			filepath.Join(credentialHome, ".npmrc"),
@@ -581,7 +581,7 @@ func normalizeSandboxPolicyGoldenTempRoots(t *testing.T, gotBytes []byte, worksp
 			filepath.Join(credentialHome, ".docker", "config.json"),
 			filepath.Join(credentialHome, ".config", "gh", "hosts.yml"),
 			filepath.Join(credentialHome, ".config", "gcloud"),
-			filepath.Join(credentialHome, ".config", "zero"),
+			filepath.Join(credentialHome, ".config", "rune"),
 		}
 	}
 	gotDenyRead := jsonStringSlice(fileSystem["denyReadIfExists"])
@@ -593,7 +593,7 @@ func normalizeSandboxPolicyGoldenTempRoots(t *testing.T, gotBytes []byte, worksp
 	wantCarveouts := []string(nil)
 	wantEnsureDirs := []string(nil)
 	if runtime.GOOS != "windows" {
-		zeroDir := filepath.Join(credentialHome, ".config", "zero")
+		zeroDir := filepath.Join(credentialHome, ".config", "rune")
 		wantCarveouts = []string{
 			filepath.Join(zeroDir, "plugins"),
 			filepath.Join(zeroDir, "specialists"),
@@ -761,7 +761,7 @@ func TestRunSandboxPolicyEffectiveTextAndJSON(t *testing.T) {
 		}
 		output := stdout.String()
 		for _, want := range []string{
-			"Zero effective sandbox policy",
+			"Rune effective sandbox policy",
 			"mode: enforce",
 			"network: deny",
 			"enforce_workspace: true",

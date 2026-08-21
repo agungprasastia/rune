@@ -6,8 +6,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/redaction"
+	"rune/internal/zeroruntime"
 )
 
 type EventRef struct {
@@ -79,14 +79,14 @@ const defaultCompactionMaxPromptChars = 8000
 
 func (store *Store) PlanRewind(sessionID string, options RewindOptions) (RewindPlan, error) {
 	if !ValidSessionID(sessionID) {
-		return RewindPlan{}, fmt.Errorf("invalid zero session id %q", sessionID)
+		return RewindPlan{}, fmt.Errorf("invalid rune session id %q", sessionID)
 	}
 	events, err := store.ReadEvents(sessionID)
 	if err != nil {
 		return RewindPlan{}, err
 	}
 	if len(events) == 0 {
-		return RewindPlan{}, fmt.Errorf("zero session %s has no events to rewind", sessionID)
+		return RewindPlan{}, fmt.Errorf("rune session %s has no events to rewind", sessionID)
 	}
 	targetIndex, err := findRewindTarget(events, options)
 	if err != nil {
@@ -147,7 +147,7 @@ func findRewindTarget(events []Event, options RewindOptions) (int, error) {
 
 func (store *Store) PlanCompaction(sessionID string, options CompactionOptions) (CompactionPlan, error) {
 	if !ValidSessionID(sessionID) {
-		return CompactionPlan{}, fmt.Errorf("invalid zero session id %q", sessionID)
+		return CompactionPlan{}, fmt.Errorf("invalid rune session id %q", sessionID)
 	}
 	events, err := store.ReadEvents(sessionID)
 	if err != nil {
@@ -187,7 +187,7 @@ func (store *Store) PlanCompaction(sessionID string, options CompactionOptions) 
 
 func (store *Store) RecordCompaction(sessionID string, input RecordCompactionInput) (Event, error) {
 	if !ValidSessionID(sessionID) {
-		return Event{}, fmt.Errorf("invalid zero session id %q", sessionID)
+		return Event{}, fmt.Errorf("invalid rune session id %q", sessionID)
 	}
 	if strings.TrimSpace(input.Plan.SessionID) == "" {
 		return Event{}, fmt.Errorf("compaction plan session id is required")
@@ -300,10 +300,10 @@ func rehydrateEventsWithCompaction(events []Event, compaction Event, payload Com
 
 func buildCompactionPrompt(events []Event, maxChars int) (string, bool) {
 	if len(events) == 0 {
-		return "No compactable Zero session events.", false
+		return "No compactable Rune session events.", false
 	}
 	lines := []string{
-		"Summarize these Zero session events for future context.",
+		"Summarize these Rune session events for future context.",
 		"Preserve user intent, tool outcomes, important files, blockers, and follow-up state.",
 	}
 	for _, event := range events {

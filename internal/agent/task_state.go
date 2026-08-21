@@ -10,9 +10,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 type taskStatus string

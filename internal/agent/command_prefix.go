@@ -5,9 +5,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
 	"mvdan.cc/sh/v3/syntax"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
 func proposedCommandPrefix(toolName string, args map[string]any) []string {

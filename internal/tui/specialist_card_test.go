@@ -321,7 +321,7 @@ func TestRenderSpecialistSummary(t *testing.T) {
 	}
 	// No errors → no error segment.
 	if strings.Contains(got, "error") {
-		t.Errorf("summary should omit errors when zero, got %q", got)
+		t.Errorf("summary should omit errors when rune, got %q", got)
 	}
 
 	// With an error.

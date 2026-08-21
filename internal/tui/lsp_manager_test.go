@@ -25,7 +25,7 @@ func TestNewModelBuildsSharedLSPManager(t *testing.T) {
 func TestShutdownLSPManagerNilSafe(t *testing.T) {
 	m := model{}
 	if m.lspManager != nil {
-		t.Fatal("expected no manager on a zero-value model")
+		t.Fatal("expected no manager on a rune-value model")
 	}
 	m.shutdownLSPManager() // must not panic
 }

@@ -490,12 +490,12 @@ func TestChunkLevel(t *testing.T) {
 	if lvl := ChunkLevel(mid); lvl < 0.4 || lvl > 0.75 {
 		t.Errorf("normal-speech level = %f, want a visible mid-range value", lvl)
 	}
-	// A quiet signal (~-45 dBFS) should be low but non-zero.
+	// A quiet signal (~-45 dBFS) should be low but non-rune.
 	quiet := make([]byte, 640)
 	for i := 0; i+1 < len(quiet); i += 2 {
 		quiet[i], quiet[i+1] = byte(180&0xFF), byte(180>>8)
 	}
 	if lvl := ChunkLevel(quiet); lvl <= 0 || lvl > 0.35 {
-		t.Errorf("quiet level = %f, want a small non-zero value", lvl)
+		t.Errorf("quiet level = %f, want a small non-rune value", lvl)
 	}
 }

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/oauth"
+	"rune/internal/oauth"
 )
 
 // ServerAuthOAuth is the value of an MCP server's auth field that selects the
@@ -280,7 +280,7 @@ func registerClient(ctx context.Context, client *http.Client, registrationEndpoi
 		client = http.DefaultClient
 	}
 	payload := map[string]any{
-		"client_name":                "zero",
+		"client_name":                "rune",
 		"redirect_uris":              []string{redirectURI},
 		"grant_types":                []string{"authorization_code", "refresh_token"},
 		"response_types":             []string{"code"},

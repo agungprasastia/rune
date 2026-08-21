@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/providermodeldiscovery"
 )
 
 func seedOAuthToken(t *testing.T, providerID, access string) {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "tok.json")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", path)
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", path)
 	store, err := oauth.NewStore(oauth.StoreOptions{FilePath: path})
 	if err != nil {
 		t.Fatalf("NewStore: %v", err)

@@ -34,16 +34,16 @@ type FileSystemPolicy struct {
 	// They exist so a directory-level credential deny can also cover the files
 	// a store publishes (arbitrary temporary names, files created later in the
 	// session) without hiding the supported non-secret subtrees that live in the
-	// same directory — Zero's user plugin/specialist/command roots, whose
+	// same directory — Rune's user plugin/specialist/command roots, whose
 	// commands and scripts are themselves executed through the sandbox.
 	DenyReadCarveouts []string `json:"denyReadCarveouts,omitempty"`
-	// EnsureDenyReadDirs are directories Zero owns that a mount-based backend
+	// EnsureDenyReadDirs are directories Rune owns that a mount-based backend
 	// may create (0700) so a mask exists for them. bubblewrap cannot mount over
 	// a path that is absent when the namespace is assembled, so without this a
 	// store created mid-session would be readable by an already-running sandbox.
 	EnsureDenyReadDirs []string `json:"ensureDenyReadDirs,omitempty"`
 	// ProcessTrustedDenyReadFiles are final credential-store pathnames derived
-	// only from Zero's own process environment. Mount-based Linux cannot
+	// only from Rune's own process environment. Mount-based Linux cannot
 	// durably deny an individual pathname because an atomic rename can replace
 	// and detach the mount; its planner must fail closed while any remain after
 	// profile finalization. Pathname-policy backends enforce these normally.
@@ -52,7 +52,7 @@ type FileSystemPolicy struct {
 	// pathname, derived instead from a command-supplied environment (including
 	// MCP-injected env). They stay separate from the process-trusted list
 	// because they earn none of its host-side privileges: no carveouts, and
-	// never an EnsureDenyReadDir, since a command must not be able to make Zero
+	// never an EnsureDenyReadDir, since a command must not be able to make Rune
 	// create directories on the host. What they DO share is durability. A
 	// bubblewrap mask over one of these is bypassable by the same atomic rename,
 	// and an absent one is skipped entirely, so a backend that cannot deny them
@@ -82,9 +82,9 @@ type NetworkPolicy struct {
 // protectedMetadataNames marks control-plane directories where the app-level
 // auto-allow gate (see relativePathTouchesProtectedMetadata in engine.go)
 // always requires a prompt for direct file-tool writes (write_file, edit_file,
-// apply_patch): hand-editing git's objects/refs/index or Zero's own state
-// bypasses git's and Zero's own consistency checks, regardless of subpath.
-var protectedMetadataNames = []string{".git", ".zero", ".agents"}
+// apply_patch): hand-editing git's objects/refs/index or Rune's own state
+// bypasses git's and Rune's own consistency checks, regardless of subpath.
+var protectedMetadataNames = []string{".git", ".rune", ".zero", ".agents"}
 
 // sandboxFullyProtectedMetadataNames are the metadata directories the OS-level
 // sandbox write-denies in full for shell-executed commands. .git is
@@ -94,7 +94,7 @@ var protectedMetadataNames = []string{".git", ".zero", ".agents"}
 // write. Only .git/hooks (auto-executing scripts) and .git/config (remote
 // URLs, credential.helper, core.hooksPath) stay write-denied, via
 // gitMetadataWriteCarveouts below.
-var sandboxFullyProtectedMetadataNames = []string{".zero", ".agents"}
+var sandboxFullyProtectedMetadataNames = []string{".rune", ".zero", ".agents"}
 
 // gitMetadataWriteCarveouts returns the .git subpaths that stay write-denied
 // under the OS-level sandbox even though the rest of .git is writable to git
@@ -204,7 +204,7 @@ func permissionProfileReadRoots(workspaceRoot string, policy Policy, scope *Scop
 // credentialDenyPaths is the credential baseline a profile derives from the
 // environment: the paths to deny reads on, the known directory paths among
 // them, the trusted non-secret subtrees that stay readable, and the trusted
-// Zero-owned directories a mount-based backend may create so its mask exists.
+// Rune-owned directories a mount-based backend may create so its mask exists.
 type credentialDenyPaths struct {
 	Paths                    []string
 	Carveouts                []string
@@ -221,7 +221,7 @@ type credentialDenyPaths struct {
 
 // credentialDenyReadPaths returns default deny-read entries for well-known
 // credential stores, including tool configuration files discoverable through
-// the preserved caller environment and Zero's own config/token stores. Four
+// the preserved caller environment and Rune's own config/token stores. Four
 // deliberate limits:
 //
 //   - Windows is skipped: a non-empty profile DenyRead switches the Windows
@@ -233,10 +233,10 @@ type credentialDenyPaths struct {
 //   - Candidates are emitted whether or not they currently exist on disk.
 //     Pathname-policy backends such as Seatbelt can enforce future paths;
 //     mount-based Linux masks a path only if it exists when the namespace is
-//     assembled, which is why directories derived from Zero's own process
+//     assembled, which is why directories derived from Rune's own process
 //     environment are also reported as EnsureDirs (command-controlled roots
 //     never are) and why third-party stores such as ~/.aws stay best-effort.
-//   - Zero's own config directory is denied WHOLE, with the supported
+//   - Rune's own config directory is denied WHOLE, with the supported
 //     non-secret subtrees carved back out. Only a directory-level rule covers
 //     the temporary names its stores publish through and the files a concurrent
 //     login creates mid-session; the carveouts keep the user plugin,
@@ -251,7 +251,7 @@ func credentialDenyReadPaths(policy Policy, commandDir string, commandEnv []stri
 		return credentialDenyPaths{}
 	}
 
-	// Only roots derived from Zero's own process environment may produce
+	// Only roots derived from Rune's own process environment may produce
 	// carveouts or host directories. CommandSpec.Env can contain project-controlled
 	// MCP environment overrides, so it contributes deny-if-present paths only.
 	processBaseDirs := credentialProcessBaseDirs()
@@ -308,12 +308,12 @@ func credentialDenyReadPaths(policy Policy, commandDir string, commandEnv []stri
 	}
 	commandBaseDirs := credentialCommandBaseDirs(commandDir)
 	if len(commandBaseDirs) > 0 {
-		// A nested Zero inherits the process environment but resolves relative
+		// A nested Rune inherits the process environment but resolves relative
 		// values from the sandboxed command's cwd.
 		appendUntrusted(credentialPathOptionsFromEnvironment(commandBaseDirs, os.Environ()))
 	}
 	if commandEnv != nil {
-		// A supplied environment may also be consumed by code in the running Zero
+		// A supplied environment may also be consumed by code in the running Rune
 		// process before exec, so conservatively deny both process- and
 		// command-relative resolutions. These remain untrusted: neither resolution
 		// contributes carveouts or host directory creation.
@@ -327,22 +327,22 @@ func credentialDenyReadPaths(policy Policy, commandDir string, commandEnv []stri
 }
 
 // zeroConfigReadCarveoutNames are the supported non-secret subtrees of
-// <configDir>/zero. Their contents are extension code and prompts that a
+// <configDir>/rune. Their contents are extension code and prompts that a
 // sandboxed command legitimately executes or reads (a user plugin's tool
 // command lives below the plugin root), so the credential deny must not hide
 // them. Nothing here holds a secret: credentials, tokens, and config live in
-// files directly under <configDir>/zero, not in these subtrees.
+// files directly under <configDir>/rune, not in these subtrees.
 var zeroConfigReadCarveoutNames = []string{"plugins", "specialists", "commands"}
 
 // processCredentialBaseDir is the working directory this process started in,
 // captured once during package initialization.
 //
 // It must not be re-read per call. The token stores resolve a relative override
-// such as ZERO_OAUTH_TOKENS_PATH with filepath.Abs when the store is opened and
+// such as RUNE_OAUTH_TOKENS_PATH with filepath.Abs when the store is opened and
 // then write to that fixed path for the rest of the run, so a deny rule computed
 // from a later os.Getwd() would name a different file than the one being
 // written — denying a path nothing uses while the real store stayed readable.
-// Nothing in Zero calls os.Chdir today, which is what keeps this equal to the
+// Nothing in Rune calls os.Chdir today, which is what keeps this equal to the
 // writers' resolution; pinning it means that stays true if one is ever added,
 // instead of the two drifting apart per BuildCommandPlan.
 var processCredentialBaseDir = func() string {
@@ -353,7 +353,7 @@ var processCredentialBaseDir = func() string {
 	return filepath.Clean(cwd)
 }()
 
-// credentialProcessBaseDirs returns the directory the running Zero process uses
+// credentialProcessBaseDirs returns the directory the running Rune process uses
 // to resolve relative credential overrides.
 func credentialProcessBaseDirs() []string {
 	if strings.TrimSpace(processCredentialBaseDir) == "" {
@@ -363,7 +363,7 @@ func credentialProcessBaseDirs() []string {
 }
 
 // credentialCommandBaseDirs returns the directory a sandboxed child (including
-// a nested Zero) uses to resolve inherited relative credential overrides.
+// a nested Rune) uses to resolve inherited relative credential overrides.
 func credentialCommandBaseDirs(commandDir string) []string {
 	if dir := strings.TrimSpace(commandDir); dir != "" {
 		return []string{filepath.Clean(dir)}
@@ -447,9 +447,9 @@ func credentialPathOptionsFromEnvironment(baseDirs []string, env []string) crede
 		Netrcs:             dedupeStrings(netrcs),
 		DockerConfigDirs:   dedupeStrings(dockerConfigDirs),
 		KubeConfigs:        dedupeStrings(kubeConfigs),
-		OAuthTokens:        resolveCredentialOverridePaths(credentialEnvValue(env, "ZERO_OAUTH_TOKENS_PATH"), baseDirs),
-		OAuthStorage:       strings.TrimSpace(credentialEnvValue(env, "ZERO_OAUTH_STORAGE")),
-		MCPOAuthTokens:     resolveCredentialOverridePaths(credentialEnvValue(env, "ZERO_MCP_OAUTH_TOKENS_PATH"), baseDirs),
+		OAuthTokens:        resolveCredentialOverridePaths(credentialEnvValue(env, "RUNE_OAUTH_TOKENS_PATH"), baseDirs),
+		OAuthStorage:       strings.TrimSpace(credentialEnvValue(env, "RUNE_OAUTH_STORAGE")),
+		MCPOAuthTokens:     resolveCredentialOverridePaths(credentialEnvValue(env, "RUNE_MCP_OAUTH_TOKENS_PATH"), baseDirs),
 	}
 }
 
@@ -480,7 +480,7 @@ type credentialPathOptions struct {
 }
 
 // credentialFinalTokenFiles returns token pathnames whose selected backend
-// atomically replaces files on disk. ZERO_OAUTH_TOKENS_PATH still contributes
+// atomically replaces files on disk. RUNE_OAUTH_TOKENS_PATH still contributes
 // to the ordinary deny baseline when keyring storage is selected, but it must
 // not make bubblewrap fail closed: the keyring backend never publishes the
 // token blob or its encryption-key sibling at that path. The MCP override is a
@@ -549,30 +549,30 @@ func credentialDenyReadPathsIn(options credentialPathOptions, allowRead []string
 		// rather than the directory is deliberate: ~/.config/git also holds
 		// the global git config, which userGitConfigReadPaths grants on
 		// purpose so a sandboxed git can read user.name and aliases instead
-		// of failing outright. Added before the zero-directory handling below
+		// of failing outright. Added before the rune-directory handling below
 		// so a normalization failure there cannot drop this deny with it.
 		candidates = append(candidates, filepath.Join(configDir, "git", "credentials"))
-		// Deny the whole directory rather than an itemized file list: Zero's
+		// Deny the whole directory rather than an itemized file list: Rune's
 		// credential, token, and config stores publish through temporary siblings
 		// before an atomic rename, the legacy MCP store leaves a
 		// mcp-oauth-tokens.json.migrated backup behind, and a concurrent login can
 		// add a store that did not exist when this profile was built. Only a
-		// directory rule covers all three. Zero owns this directory, so it is also
+		// directory rule covers all three. Rune owns this directory, so it is also
 		// an EnsureDir: bubblewrap cannot mask a path that is absent when the
 		// namespace is assembled.
 		// Normalize the denied root first, then derive its fixed children
 		// lexically. This keeps nonexistent carveouts under the same canonical
 		// parent (for example macOS /var -> /private/var) without following a
 		// plugins/specialists/commands symlink into a credential file.
-		zeroDir := normalizeProfilePath(filepath.Join(configDir, "zero"))
-		if zeroDir == "" {
+		runeDir := normalizeProfilePath(filepath.Join(configDir, "rune"))
+		if runeDir == "" {
 			continue
 		}
-		candidates = append(candidates, zeroDir)
-		dirs = append(dirs, zeroDir)
-		ensureDirs = append(ensureDirs, zeroDir)
+		candidates = append(candidates, runeDir)
+		dirs = append(dirs, runeDir)
+		ensureDirs = append(ensureDirs, runeDir)
 		for _, name := range zeroConfigReadCarveoutNames {
-			carveouts = append(carveouts, filepath.Join(zeroDir, name))
+			carveouts = append(carveouts, filepath.Join(runeDir, name))
 		}
 	}
 	for _, tokenPath := range options.OAuthTokens {
@@ -614,7 +614,7 @@ func credentialDenyReadPathsIn(options credentialPathOptions, allowRead []string
 // credentialTokenStorePaths returns the deny entries for one token-store path:
 // the store, its lock siblings, its encryption-key sibling, and the directory
 // it publishes new contents through. The names are fixed so an override outside
-// Zero's config directory is protected by exact rules instead of hiding an
+// Rune's config directory is protected by exact rules instead of hiding an
 // arbitrary parent such as the workspace or /tmp.
 func credentialTokenStorePaths(tokenPath string) []string {
 	if strings.TrimSpace(tokenPath) == "" {
@@ -625,7 +625,7 @@ func credentialTokenStorePaths(tokenPath string) []string {
 		tokenPath + ".lockfile",
 		tokenPath + ".secret",
 		tokenPath + ".secret.lock",
-		// Left behind by a Zero older than the publication directories below.
+		// Left behind by a Rune older than the publication directories below.
 		tokenPath + ".tmp",
 		tokenPath + ".secret.tmp",
 	}
@@ -802,7 +802,7 @@ func finalizeCredentialDenyPaths(credentials credentialDenyPaths, userDenyRead [
 		credentials.Carveouts,
 	)
 	// Same retention for the command-derived finals: a file already inside a
-	// user deny or a directory Zero will actually mask is durably covered, so it
+	// user deny or a directory Rune will actually mask is durably covered, so it
 	// is not a fail-closed reason. What survives is an override pointing OUTSIDE
 	// every masked directory — the case a bubblewrap bind cannot hold.
 	credentials.CommandFinalFiles = credentialRetainedFiles(
@@ -812,7 +812,7 @@ func finalizeCredentialDenyPaths(credentials credentialDenyPaths, userDenyRead [
 		credentials.Carveouts,
 	)
 	// A command environment is also resolved against the process base dir, so an
-	// absolute override in Zero's own environment lands in both lists. Report it
+	// absolute override in Rune's own environment lands in both lists. Report it
 	// once, as the process-trusted store it is.
 	credentials.CommandFinalFiles = pathsExcluding(credentials.CommandFinalFiles, credentials.ProcessTrustedFinalFiles)
 	return credentials
@@ -883,7 +883,7 @@ func credentialFileReincludedByCarveout(deniedDir, file string, carveouts []stri
 // value is used literally, NOT tilde-expanded the way normalizeProfilePath
 // expands other candidates. Using normalizeProfilePath here would derive a deny
 // path that doesn't match where the store actually writes — e.g.
-// ZERO_OAUTH_TOKENS_PATH=~/x resolves to <cwd>/~/x on disk (the store never
+// RUNE_OAUTH_TOKENS_PATH=~/x resolves to <cwd>/~/x on disk (the store never
 // expands "~"), but normalizeProfilePath would deny $HOME/x instead, leaving
 // the real file unprotected.
 //

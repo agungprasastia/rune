@@ -8,15 +8,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providers"
-	"github.com/rune-ai/rune/internal/repomap"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/providers"
+	"rune/internal/repomap"
+	"rune/internal/tools"
 )
 
-const ContractV1 = "zero.context.report.v1"
+const ContractV1 = "rune.context.report.v1"
 const RuntimeGo = "go"
 
 const (
@@ -27,7 +27,7 @@ const (
 	CategoryFree              = "free"
 )
 
-var defaultProjectContextFiles = []string{"AGENTS.md", "ZERO.md", ".zero/AGENTS.md"}
+var defaultProjectContextFiles = []string{"AGENTS.md", "RUNE.md", "RUNE.md", ".rune/AGENTS.md", ".rune/AGENTS.md"}
 
 const maxProjectContextBytes = 8 << 10
 const maxWorkspaceMapContextBytes = 4 << 10
@@ -162,7 +162,7 @@ func systemPromptFootprint(root string, modelID string) string {
 
 func Format(report Report) string {
 	lines := []string{
-		"Zero context report",
+		"Rune context report",
 		"root: " + report.Root,
 	}
 	if report.ProviderName != "" {

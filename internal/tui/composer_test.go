@@ -7,7 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/imageinput"
+	"rune/internal/imageinput"
 )
 
 func TestComposerInsertNewlineAtCursor(t *testing.T) {

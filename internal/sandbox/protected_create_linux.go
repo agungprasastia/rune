@@ -16,8 +16,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
 	"golang.org/x/sys/unix"
+	"rune/internal/execution"
 )
 
 const protectedCreatePollInterval = 10 * time.Millisecond

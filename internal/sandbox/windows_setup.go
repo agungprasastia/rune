@@ -244,7 +244,7 @@ func ValidateWindowsSandboxSetupMarker(config WindowsSandboxSetupConfig) error {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("windows sandbox is not initialized for this workspace — run `zero sandbox setup` from an elevated (Administrator) terminal (missing %s)", filepath.Base(path))
+			return fmt.Errorf("windows sandbox is not initialized for this workspace — run `rune sandbox setup` from an elevated (Administrator) terminal (missing %s)", filepath.Base(path))
 		}
 		return fmt.Errorf("read windows sandbox setup marker: %w", err)
 	}

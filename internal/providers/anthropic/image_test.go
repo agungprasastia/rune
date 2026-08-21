@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // captureRequestBody runs one StreamCompletion against a stub server that

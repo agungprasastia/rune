@@ -6,7 +6,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/redaction"
 )
 
 func (m model) mcpAddWizardOverlay(width int) string {

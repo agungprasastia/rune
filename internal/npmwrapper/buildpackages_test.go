@@ -32,14 +32,14 @@ func TestBuildPlatformPackagesAssemblesPublishPayloads(t *testing.T) {
 	staging := filepath.Join(root, "staging")
 
 	// Payload the platform package must keep.
-	writeFixtureFile(t, filepath.Join(staging, "zero"), "#!/usr/bin/env sh\necho fixture-zero\n", 0o755)
+	writeFixtureFile(t, filepath.Join(staging, "rune"), "#!/usr/bin/env sh\necho fixture-rune\n", 0o755)
 	writeFixtureFile(t, filepath.Join(staging, "rune-linux-sandbox"), "#!/usr/bin/env sh\n", 0o755)
 	writeFixtureFile(t, filepath.Join(staging, "rune-seccomp"), "#!/usr/bin/env sh\n", 0o755)
 	// Wrapper-owned files the platform package must exclude.
-	writeFixtureFile(t, filepath.Join(staging, "package.json"), `{"name":"@gitlawb/zero"}`, 0o644)
+	writeFixtureFile(t, filepath.Join(staging, "package.json"), `{"name":"@rune-ai/rune"}`, 0o644)
 	writeFixtureFile(t, filepath.Join(staging, "README.md"), "readme\n", 0o644)
 	writeFixtureFile(t, filepath.Join(staging, "VERSION"), version+"\n", 0o644)
-	writeFixtureFile(t, filepath.Join(staging, "bin", "zero.js"), "#!/usr/bin/env node\n", 0o755)
+	writeFixtureFile(t, filepath.Join(staging, "bin", "rune.js"), "#!/usr/bin/env node\n", 0o755)
 	// Vendored helpers tree with npm's symlink .bin shims and agent-browser's
 	// multi-platform binary set.
 	agentBrowserDir := filepath.Join(staging, "helpers", "node_modules", "agent-browser")
@@ -68,7 +68,7 @@ func TestBuildPlatformPackagesAssemblesPublishPayloads(t *testing.T) {
 
 	// Archive with the payload at the archive root, like rune-release's
 	// createArchive, plus the sha256 sidecar the script verifies against.
-	assetName := fmt.Sprintf("zero-v%s-linux-x64.tar.gz", version)
+	assetName := fmt.Sprintf("rune-v%s-linux-x64.tar.gz", version)
 	archivePath := filepath.Join(root, assetName)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -92,7 +92,7 @@ func TestBuildPlatformPackagesAssemblesPublishPayloads(t *testing.T) {
 		t.Fatalf("build-platform-packages failed: %v\n%s", err, output)
 	}
 
-	platformDir := filepath.Join(outDir, "platforms", "zero-linux-x64")
+	platformDir := filepath.Join(outDir, "platforms", "rune-linux-x64")
 	var platformPkg struct {
 		Name    string   `json:"name"`
 		Version string   `json:"version"`
@@ -101,8 +101,8 @@ func TestBuildPlatformPackagesAssemblesPublishPayloads(t *testing.T) {
 		Scripts map[string]string
 	}
 	unmarshalJSONFile(t, filepath.Join(platformDir, "package.json"), &platformPkg)
-	if platformPkg.Name != "@gitlawb/zero" {
-		t.Fatalf("platform package name = %q, want @gitlawb/zero (same-name suffixed versions share one trusted publisher)", platformPkg.Name)
+	if platformPkg.Name != "@rune-ai/rune" {
+		t.Fatalf("platform package name = %q, want @rune-ai/rune (same-name suffixed versions share one trusted publisher)", platformPkg.Name)
 	}
 	if want := version + "-linux-x64"; platformPkg.Version != want {
 		t.Fatalf("platform package version = %q, want %q", platformPkg.Version, want)
@@ -114,7 +114,7 @@ func TestBuildPlatformPackagesAssemblesPublishPayloads(t *testing.T) {
 		t.Fatalf("platform package has lifecycle scripts: %v", platformPkg.Scripts)
 	}
 
-	info, err := os.Stat(filepath.Join(platformDir, "zero"))
+	info, err := os.Stat(filepath.Join(platformDir, "rune"))
 	if err != nil {
 		t.Fatalf("platform package binary missing: %v", err)
 	}
@@ -198,11 +198,11 @@ func TestBuildPlatformPackagesAssemblesPublishPayloads(t *testing.T) {
 		t.Fatalf("published wrapper has dependencies: %v (helpers are vendored in the platform payloads)", wrapperPkg.Dependencies)
 	}
 	wantAliases := map[string]string{
-		"@gitlawb/zero-darwin-arm64": "npm:@gitlawb/zero@" + version + "-darwin-arm64",
-		"@gitlawb/zero-darwin-x64":   "npm:@gitlawb/zero@" + version + "-darwin-x64",
-		"@gitlawb/zero-linux-arm64":  "npm:@gitlawb/zero@" + version + "-linux-arm64",
-		"@gitlawb/zero-linux-x64":    "npm:@gitlawb/zero@" + version + "-linux-x64",
-		"@gitlawb/zero-win32-x64":    "npm:@gitlawb/zero@" + version + "-win32-x64",
+		"@rune-ai/rune-darwin-arm64": "npm:@rune-ai/rune@" + version + "-darwin-arm64",
+		"@rune-ai/rune-darwin-x64":   "npm:@rune-ai/rune@" + version + "-darwin-x64",
+		"@rune-ai/rune-linux-arm64":  "npm:@rune-ai/rune@" + version + "-linux-arm64",
+		"@rune-ai/rune-linux-x64":    "npm:@rune-ai/rune@" + version + "-linux-x64",
+		"@rune-ai/rune-win32-x64":    "npm:@rune-ai/rune@" + version + "-win32-x64",
 	}
 	if len(wrapperPkg.Optional) != len(wantAliases) {
 		t.Fatalf("wrapper optionalDependencies = %v, want %v", wrapperPkg.Optional, wantAliases)
@@ -212,7 +212,7 @@ func TestBuildPlatformPackagesAssemblesPublishPayloads(t *testing.T) {
 			t.Fatalf("wrapper optionalDependencies[%q] = %q, want %q", alias, wrapperPkg.Optional[alias], spec)
 		}
 	}
-	for _, file := range []string{"bin/zero.js", "scripts/postinstall.mjs", "README.md", "LICENSE"} {
+	for _, file := range []string{"bin/rune.js", "scripts/postinstall.mjs", "README.md", "LICENSE"} {
 		if _, err := os.Stat(filepath.Join(wrapperDir, filepath.FromSlash(file))); err != nil {
 			t.Fatalf("wrapper payload missing %s: %v", file, err)
 		}

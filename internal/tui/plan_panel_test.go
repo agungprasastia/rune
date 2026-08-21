@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func TestPlanPanelUpdateFromItems(t *testing.T) {

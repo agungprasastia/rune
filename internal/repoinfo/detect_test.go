@@ -35,7 +35,7 @@ func TestLanguageForPathOverlapExtensions(t *testing.T) {
 		{"scripts/install.sh", "Shell", true},
 		{"scripts/install.bash", "Shell", true},
 		{"tools/report.py", "Python", true},
-		{"crates/zero/src/lib.rs", "Rust", true},
+		{"crates/rune/src/lib.rs", "Rust", true},
 		{"LICENSE", "", false},
 	}
 	for _, tt := range cases {

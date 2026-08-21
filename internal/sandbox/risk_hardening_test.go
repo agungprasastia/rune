@@ -22,7 +22,7 @@ func TestClassifyFlagsForkBombAsDestructive(t *testing.T) {
 
 func TestClassifyFlagsBlockDeviceWrite(t *testing.T) {
 	for _, command := range []string{
-		"dd if=/dev/zero of=/dev/sda",
+		"dd if=/dev/rune of=/dev/sda",
 		"cat data > /dev/nvme0n1",
 		"echo x > /dev/sdb1",
 	} {

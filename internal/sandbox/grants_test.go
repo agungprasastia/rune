@@ -175,7 +175,7 @@ func TestGrantStoreSerializesMigrationNoticeAcrossStores(t *testing.T) {
 // TestConsumeMigrationNoticeWritesNothingWithoutAPendingNotice is the regression
 // test for jatmn's #755 finding: ConsumeMigrationNotice took the interprocess
 // lock unconditionally, and acquiring that lock MkdirAlls the grants directory
-// and creates <grants>.lockfile. Every startup and every `zero exec` calls this,
+// and creates <grants>.lockfile. Every startup and every `rune exec` calls this,
 // so it turned "read the grants state" into "require a writable grants
 // directory" — a user with no grants file whose grants path sat on a read-only
 // mount failed outright with "failed to migrate sandbox grants".
@@ -558,7 +558,7 @@ func TestGrantStoreInvalidatesMalformedLegacyToolKeys(t *testing.T) {
 
 func TestResolveGrantPathUsesOverrideAndConfigHome(t *testing.T) {
 	override := filepath.Join(t.TempDir(), "custom.json")
-	path, err := ResolveGrantPath(map[string]string{"ZERO_SANDBOX_GRANTS_PATH": override})
+	path, err := ResolveGrantPath(map[string]string{"RUNE_SANDBOX_GRANTS_PATH": override})
 	if err != nil {
 		t.Fatalf("ResolveGrantPath override returned error: %v", err)
 	}
@@ -571,7 +571,7 @@ func TestResolveGrantPathUsesOverrideAndConfigHome(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ResolveGrantPath config home returned error: %v", err)
 	}
-	want := filepath.Join(configHome, "zero", "sandbox-grants.json")
+	want := filepath.Join(configHome, "rune", "sandbox-grants.json")
 	if path != want {
 		t.Fatalf("config path = %q, want %q", path, want)
 	}

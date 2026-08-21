@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/zerocommands"
+	"rune/internal/redaction"
+	"rune/internal/sessions"
+	"rune/internal/zerocommands"
 )
 
 type sessionCommandOptions struct {
@@ -368,7 +368,7 @@ func runSessionsRewind(store *sessions.Store, sessionID string, options sessionC
 		return writeSessionCommandError(stderr, err)
 	}
 	if session == nil {
-		return writeExecUsageError(stderr, "Zero session not found: "+redact(sessionID))
+		return writeExecUsageError(stderr, "Rune session not found: "+redact(sessionID))
 	}
 	workspaceRoot := strings.TrimSpace(session.Cwd)
 	if workspaceRoot == "" {
@@ -419,11 +419,11 @@ func runSessionsCompactPlan(store *sessions.Store, sessionID string, options ses
 }
 
 func writeSessionCommandError(stderr io.Writer, err error) int {
-	message := strings.TrimPrefix(err.Error(), "zero session")
+	message := strings.TrimPrefix(err.Error(), "rune session")
 	if message != err.Error() {
-		message = "Zero session" + message
+		message = "Rune session" + message
 	}
-	if strings.Contains(message, "not found") || strings.Contains(message, "invalid zero session id") {
+	if strings.Contains(message, "not found") || strings.Contains(message, "invalid rune session id") {
 		return writeExecUsageError(stderr, message)
 	}
 	return writeAppError(stderr, message, exitCrash)
@@ -431,7 +431,7 @@ func writeSessionCommandError(stderr io.Writer, err error) int {
 
 func formatRewindPlan(plan sessions.RewindPlan) string {
 	return strings.Join([]string{
-		"Zero session rewind plan",
+		"Rune session rewind plan",
 		"session: " + redact(plan.SessionID),
 		"target: " + redact(plan.TargetEventID),
 		fmt.Sprintf("kept: %d", plan.KeptCount),
@@ -441,7 +441,7 @@ func formatRewindPlan(plan sessions.RewindPlan) string {
 
 func formatCompactionPlan(plan sessions.CompactionPlan) string {
 	lines := []string{
-		"Zero session compaction plan",
+		"Rune session compaction plan",
 		"session: " + redact(plan.SessionID),
 		fmt.Sprintf("compactable: %d", plan.CompactableCount),
 		fmt.Sprintf("preserved: %d", plan.PreservedCount),
@@ -455,9 +455,9 @@ func formatCompactionPlan(plan sessions.CompactionPlan) string {
 
 func formatSessionSnapshotsList(items []zerocommands.SessionSnapshot) string {
 	if len(items) == 0 {
-		return "No Zero sessions found."
+		return "No Rune sessions found."
 	}
-	lines := []string{fmt.Sprintf("Zero sessions (%d):", len(items))}
+	lines := []string{fmt.Sprintf("Rune sessions (%d):", len(items))}
 	for _, session := range items {
 		lines = append(lines, "  "+formatSessionSnapshotLine(session))
 	}
@@ -465,7 +465,7 @@ func formatSessionSnapshotsList(items []zerocommands.SessionSnapshot) string {
 }
 
 func formatSessionSnapshotTree(node zerocommands.SessionTreeSnapshot) string {
-	lines := []string{"Zero session tree:"}
+	lines := []string{"Rune session tree:"}
 	appendSessionSnapshotTree(&lines, node, "")
 	return strings.Join(lines, "\n") + "\n"
 }
@@ -522,10 +522,10 @@ func redact(value string) string {
 
 func writeSessionsHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sessions <command> [flags]
+  rune sessions <command> [flags]
 
 Commands:
-  list                  List local Zero sessions
+  list                  List local Rune sessions
   children <id>         List direct child sessions for a parent session
   lineage <id>          Print the root-to-session lineage path
   tree <id>             Print a child-session tree

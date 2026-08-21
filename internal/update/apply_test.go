@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/release"
+	"rune/internal/release"
 )
 
 func TestApplyReturnsNoopWhenUpToDate(t *testing.T) {
@@ -33,13 +33,13 @@ func TestApplyReturnsNoopWhenUpToDate(t *testing.T) {
 }
 
 func TestApplyStandaloneUpdateReplacesBinary(t *testing.T) {
-	binaryName := "zero"
+	binaryName := "rune"
 	// macOS ships no optional helper binaries (matching scripts/postinstall.mjs),
 	// so there's nothing to refresh there; only linux/windows have one to check.
 	optionalName := ""
 	switch runtime.GOOS {
 	case "windows":
-		binaryName = "zero.exe"
+		binaryName = "rune.exe"
 		optionalName = "rune-windows-command-runner.exe"
 	case "linux":
 		optionalName = "rune-seccomp"
@@ -60,12 +60,12 @@ func TestApplyStandaloneUpdateReplacesBinary(t *testing.T) {
 		}
 	}
 
-	archiveName := "zero-v0.2.0-linux-x64.tar.gz"
+	archiveName := "rune-v0.2.0-linux-x64.tar.gz"
 	archiveDir := t.TempDir()
 	archivePath := filepath.Join(archiveDir, archiveName)
 	writeTestTarGz(t, archivePath, map[string]string{
-		"zero":                            "new-binary",
-		"zero.exe":                        "new-binary-exe",
+		"rune":                            "new-binary",
+		"rune.exe":                        "new-binary-exe",
 		"rune-seccomp":                    "new-helper",
 		"rune-windows-command-runner.exe": "new-helper-exe",
 	})
@@ -143,8 +143,8 @@ func TestApplyStandaloneUpdateReplacesBinary(t *testing.T) {
 			// On Windows, replacement leaves a namespaced recovery copy of each
 			// replaced binary for identity-bound cleanup by a later update.
 			windowsRecovery := runtime.GOOS == "windows" && strings.HasSuffix(name, ".old") &&
-				(strings.HasPrefix(name, binaryName+".zero-update-") ||
-					optionalName != "" && strings.HasPrefix(name, optionalName+".zero-update-"))
+				(strings.HasPrefix(name, binaryName+".rune-update-") ||
+					optionalName != "" && strings.HasPrefix(name, optionalName+".rune-update-"))
 			if name == binaryName || (optionalName != "" && name == optionalName) || windowsRecovery {
 				continue
 			}
@@ -154,11 +154,11 @@ func TestApplyStandaloneUpdateReplacesBinary(t *testing.T) {
 }
 
 func TestApplyStandaloneUpdateWarnsWhenHelperRefreshFails(t *testing.T) {
-	binaryName := "zero"
+	binaryName := "rune"
 	optionalName := "rune-seccomp"
 	switch runtime.GOOS {
 	case "windows":
-		binaryName = "zero.exe"
+		binaryName = "rune.exe"
 		optionalName = "rune-windows-command-runner.exe"
 	case "darwin":
 		t.Skip("macOS ships no optional helper binaries to refresh")
@@ -180,12 +180,12 @@ func TestApplyStandaloneUpdateWarnsWhenHelperRefreshFails(t *testing.T) {
 	// point of the fix. So fail it through the seam instead.
 	stubStageBinaryFailure(t, existingHelperPath, errors.New("staging is unavailable in this test"))
 
-	archiveName := "zero-v0.2.0-linux-x64.tar.gz"
+	archiveName := "rune-v0.2.0-linux-x64.tar.gz"
 	archiveDir := t.TempDir()
 	archivePath := filepath.Join(archiveDir, archiveName)
 	writeTestTarGz(t, archivePath, map[string]string{
-		"zero":                            "new-binary",
-		"zero.exe":                        "new-binary-exe",
+		"rune":                            "new-binary",
+		"rune.exe":                        "new-binary-exe",
 		"rune-seccomp":                    "new-helper",
 		"rune-windows-command-runner.exe": "new-helper-exe",
 	})
@@ -254,11 +254,11 @@ func TestApplyStandaloneUpdateWarnsWhenHelperRefreshFails(t *testing.T) {
 // by the sandbox runner, so reporting Applied: true and exiting 0 would hand
 // the operator a success while a sibling executable is suspect.
 func TestApplyStandaloneUpdateFailsWhenHelperRefreshReportsTampering(t *testing.T) {
-	binaryName := "zero"
+	binaryName := "rune"
 	optionalName := "rune-seccomp"
 	switch runtime.GOOS {
 	case "windows":
-		binaryName = "zero.exe"
+		binaryName = "rune.exe"
 		optionalName = "rune-windows-command-runner.exe"
 	case "darwin":
 		t.Skip("macOS ships no optional helper binaries to refresh")
@@ -275,12 +275,12 @@ func TestApplyStandaloneUpdateFailsWhenHelperRefreshReportsTampering(t *testing.
 	}
 	stubStageBinaryFailure(t, existingHelperPath, fmt.Errorf("promote: %w", ErrTargetPossiblyTampered))
 
-	archiveName := "zero-v0.2.0-linux-x64.tar.gz"
+	archiveName := "rune-v0.2.0-linux-x64.tar.gz"
 	archiveDir := t.TempDir()
 	archivePath := filepath.Join(archiveDir, archiveName)
 	writeTestTarGz(t, archivePath, map[string]string{
-		"zero":                            "new-binary",
-		"zero.exe":                        "new-binary-exe",
+		"rune":                            "new-binary",
+		"rune.exe":                        "new-binary-exe",
 		"rune-seccomp":                    "new-helper",
 		"rune-windows-command-runner.exe": "new-helper-exe",
 	})
@@ -339,9 +339,9 @@ func TestApplyStandaloneUpdateFailsWhenHelperRefreshReportsTampering(t *testing.
 }
 
 func TestApplyStandaloneUpdateRejectsChecksumMismatch(t *testing.T) {
-	binaryName := "zero"
+	binaryName := "rune"
 	if runtime.GOOS == "windows" {
-		binaryName = "zero.exe"
+		binaryName = "rune.exe"
 	}
 
 	installDir := t.TempDir()
@@ -350,10 +350,10 @@ func TestApplyStandaloneUpdateRejectsChecksumMismatch(t *testing.T) {
 		t.Fatalf("WriteFile executable: %v", err)
 	}
 
-	archiveName := "zero-v0.2.0-linux-x64.tar.gz"
+	archiveName := "rune-v0.2.0-linux-x64.tar.gz"
 	archiveDir := t.TempDir()
 	archivePath := filepath.Join(archiveDir, archiveName)
-	writeTestTarGz(t, archivePath, map[string]string{"zero": "new-binary", "zero.exe": "new-binary-exe"})
+	writeTestTarGz(t, archivePath, map[string]string{"rune": "new-binary", "rune.exe": "new-binary-exe"})
 
 	badChecksumText, err := release.FormatSHA256Checksum("0000000000000000000000000000000000000000000000000000000000000000"[:64], archiveName)
 	if err != nil {

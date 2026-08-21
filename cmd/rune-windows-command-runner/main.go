@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 func main() {

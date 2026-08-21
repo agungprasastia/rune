@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/background"
+	"rune/internal/tools"
 )
 
 func TestOutputToolReadsCompletedTaskSummary(t *testing.T) {

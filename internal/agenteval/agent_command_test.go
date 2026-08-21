@@ -53,7 +53,7 @@ func TestCommandAgentRunnerCapturesStdoutStderrAndExitCode(t *testing.T) {
 		t.Fatalf("ExitCode = %d, want 7; result=%#v", result.ExitCode, result)
 	}
 	if result.Error != "" {
-		t.Fatalf("Error = %q, want empty for non-zero exit", result.Error)
+		t.Fatalf("Error = %q, want empty for non-rune exit", result.Error)
 	}
 	if result.Stdout != "agent stdout\n" {
 		t.Fatalf("Stdout = %q", result.Stdout)

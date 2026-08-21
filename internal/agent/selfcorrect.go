@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/lsp"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/verify"
+	"rune/internal/lsp"
+	"rune/internal/redaction"
+	"rune/internal/trace"
+	"rune/internal/verify"
 )
 
 // defaultSelfCorrectMaxAttempts bounds how many corrective rounds a single run

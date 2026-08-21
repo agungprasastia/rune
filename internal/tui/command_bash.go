@@ -6,7 +6,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // bashEscapeTimeout bounds a "!cmd" shell escape so a hung command can't freeze

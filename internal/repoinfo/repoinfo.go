@@ -1,5 +1,5 @@
 // Package repoinfo characterizes a repository from local git commands only
-// (no network). It powers the `zero repo-info` command.
+// (no network). It powers the `rune repo-info` command.
 package repoinfo
 
 import (
@@ -59,7 +59,7 @@ type Info struct {
 	TagCount              *int       `json:"tagCount,omitempty"`
 }
 
-// RunGit runs a git subcommand in dir and returns raw stdout. A non-zero exit
+// RunGit runs a git subcommand in dir and returns raw stdout. A non-rune exit
 // (or spawn failure) MUST return a non-nil error.
 type RunGit func(ctx context.Context, dir string, args ...string) (string, error)
 

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // emptyTurn is a stream that produces no visible text and no tool calls.

@@ -14,11 +14,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/sessions"
+	"rune/internal/zeroruntime"
 )
 
 func TestRunExecHelpDocumentsM1Flags(t *testing.T) {
@@ -250,7 +250,7 @@ func TestRunExecUsesInitSessionIDAndSessionTitle(t *testing.T) {
 		t.Fatalf("exitCode = %d stdout=%s stderr=%s", exitCode, stdout.String(), stderr.String())
 	}
 
-	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "zero", "sessions")})
+	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "rune", "sessions")})
 	session, err := store.Get("specialist_child")
 	if err != nil {
 		t.Fatalf("Get session returned error: %v", err)
@@ -269,7 +269,7 @@ func TestRunExecUsesInitSessionIDAndSessionTitle(t *testing.T) {
 func TestRunExecPersistsCallingSessionChildMetadata(t *testing.T) {
 	dataHome := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", dataHome)
-	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "zero", "sessions")})
+	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "rune", "sessions")})
 	parent, err := store.Create(sessions.CreateInput{SessionID: "parent_session", Title: "Parent", Cwd: "/repo", ModelID: "gpt-parent", Provider: "openai"})
 	if err != nil {
 		t.Fatalf("Create parent returned error: %v", err)
@@ -660,11 +660,11 @@ func (provider recordingExecProvider) StreamCompletion(context.Context, zerorunt
 }
 
 func TestRunPromptFlagRoutesToExecRunner(t *testing.T) {
-	execExitCode, execStdout, execStderr := runExecWithEcho(t, []string{"exec", "hello zero"})
+	execExitCode, execStdout, execStderr := runExecWithEcho(t, []string{"exec", "hello rune"})
 
 	for _, args := range [][]string{
-		{"-p", "hello zero"},
-		{"--prompt", "hello zero"},
+		{"-p", "hello rune"},
+		{"--prompt", "hello rune"},
 	} {
 		t.Run(args[0], func(t *testing.T) {
 			exitCode, stdout, stderr := runExecWithEcho(t, args)
@@ -943,7 +943,7 @@ func TestRunExecJSONUnsafeOutputsWarningEvent(t *testing.T) {
 func TestRunExecUsesProjectConfigAndOpenAICompatibleProvider(t *testing.T) {
 	clearProviderEnv(t)
 	root := t.TempDir()
-	configDir := filepath.Join(root, ".zero")
+	configDir := filepath.Join(root, ".rune")
 	if err := os.MkdirAll(configDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -1100,8 +1100,8 @@ func clearProviderEnv(t *testing.T) {
 	t.Helper()
 
 	for _, key := range []string{
-		"ZERO_PROVIDER_COMMAND",
-		"ZERO_PROVIDER",
+		"RUNE_PROVIDER_COMMAND",
+		"RUNE_PROVIDER",
 		"OPENAI_API_KEY",
 		"OPENAI_BASE_URL",
 		"OPENAI_MODEL",
@@ -1405,7 +1405,7 @@ func TestRunExecWiresModelSwitcherUnderFlag(t *testing.T) {
 	// The original (escalation-source) provider handled ONLY the escalation turn;
 	// the escalated (target) provider handled ONLY the post-switch answer turn.
 	// This FAILS if loop.go drops `provider = newProvider` (the second provider
-	// would then handle zero turns and the first would handle both).
+	// would then handle rune turns and the first would handle both).
 	if builtProviders[0].turns != 1 {
 		t.Fatalf("first (source) provider handled %d turns, want exactly 1 (the escalation turn)", builtProviders[0].turns)
 	}
@@ -1516,7 +1516,7 @@ func TestRunExecAttributesUsageToEscalatedModel(t *testing.T) {
 		t.Fatalf("exitCode = %d stdout=%s stderr=%s", exitCode, stdout.String(), stderr.String())
 	}
 
-	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "zero", "sessions")})
+	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "rune", "sessions")})
 	events, err := store.ReadEvents("escalation_run")
 	if err != nil {
 		t.Fatalf("ReadEvents returned error: %v", err)
@@ -1598,7 +1598,7 @@ func TestRunExecNilSwitchProviderKeepsOriginalAttribution(t *testing.T) {
 		t.Fatalf("exitCode = %d stdout=%s stderr=%s", exitCode, stdout.String(), stderr.String())
 	}
 
-	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "zero", "sessions")})
+	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "rune", "sessions")})
 	events, err := store.ReadEvents("nil_switch_run")
 	if err != nil {
 		t.Fatalf("ReadEvents returned error: %v", err)
@@ -1731,7 +1731,7 @@ func TestRunExecUsageOmitsModelKeyWithoutEscalationFlag(t *testing.T) {
 		t.Fatalf("exitCode = %d stdout=%s stderr=%s", exitCode, stdout.String(), stderr.String())
 	}
 
-	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "zero", "sessions")})
+	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "rune", "sessions")})
 	events, err := store.ReadEvents("no_escalation_run")
 	if err != nil {
 		t.Fatalf("ReadEvents returned error: %v", err)
@@ -1839,7 +1839,7 @@ func TestRunExecSwitcherErrorKeepsOriginalModelAttribution(t *testing.T) {
 		t.Fatalf("newProvider builds = %d, want 2 (initial + one failed rebuild attempt)", builds)
 	}
 
-	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "zero", "sessions")})
+	store := sessions.NewStore(sessions.StoreOptions{RootDir: filepath.Join(dataHome, "rune", "sessions")})
 	events, err := store.ReadEvents("switch_error_run")
 	if err != nil {
 		t.Fatalf("ReadEvents returned error: %v", err)

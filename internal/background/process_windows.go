@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/rune-ai/rune/internal/execution"
 	"golang.org/x/sys/windows"
+	"rune/internal/execution"
 )
 
 // stillActiveExitCode is the documented GetExitCodeProcess value for a process

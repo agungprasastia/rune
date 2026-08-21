@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestStreamCompletionPostsMessagesRequest(t *testing.T) {
@@ -36,7 +36,7 @@ func TestStreamCompletionPostsMessagesRequest(t *testing.T) {
 		BaseURL:   server.URL + "/",
 		Model:     "claude-test",
 		MaxTokens: 64_000,
-		UserAgent: "zero-test",
+		UserAgent: "rune-test",
 	})
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
@@ -44,7 +44,7 @@ func TestStreamCompletionPostsMessagesRequest(t *testing.T) {
 
 	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
 		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleSystem, Content: "You are Zero."},
+			{Role: zeroruntime.MessageRoleSystem, Content: "You are Rune."},
 			{Role: zeroruntime.MessageRoleUser, Content: "Read the file."},
 			{
 				Role:    zeroruntime.MessageRoleAssistant,
@@ -77,8 +77,8 @@ func TestStreamCompletionPostsMessagesRequest(t *testing.T) {
 	if gotVersion != defaultVersion {
 		t.Fatalf("anthropic-version = %q, want %q", gotVersion, defaultVersion)
 	}
-	if gotUserAgent != "zero-test" {
-		t.Fatalf("User-Agent = %q, want zero-test", gotUserAgent)
+	if gotUserAgent != "rune-test" {
+		t.Fatalf("User-Agent = %q, want rune-test", gotUserAgent)
 	}
 	if gotBody["model"] != "claude-test" || gotBody["stream"] != true || gotBody["max_tokens"] != float64(64_000) {
 		t.Fatalf("unexpected model/stream/max_tokens: %#v", gotBody)
@@ -86,7 +86,7 @@ func TestStreamCompletionPostsMessagesRequest(t *testing.T) {
 	// Prompt caching: system is sent as a cacheable text block, not a bare string.
 	system := gotBody["system"].([]any)
 	sysBlock := system[0].(map[string]any)
-	if sysBlock["type"] != "text" || sysBlock["text"] != "You are Zero." {
+	if sysBlock["type"] != "text" || sysBlock["text"] != "You are Rune." {
 		t.Fatalf("unexpected system block: %#v", gotBody["system"])
 	}
 	if cc, _ := sysBlock["cache_control"].(map[string]any); cc["type"] != "ephemeral" {
@@ -140,7 +140,7 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 		Model:         "claude-test",
 		AuthHeader:    "Authorization",
 		AuthScheme:    "Bearer",
-		CustomHeaders: map[string]string{"X-Tenant": "zero"},
+		CustomHeaders: map[string]string{"X-Tenant": "rune"},
 	})
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
@@ -159,7 +159,7 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 	if gotCustomAuth != "Bearer sk-ant" {
 		t.Fatalf("Authorization = %q, want bearer token", gotCustomAuth)
 	}
-	if gotTenant != "zero" {
+	if gotTenant != "rune" {
 		t.Fatalf("X-Tenant = %q, want custom header", gotTenant)
 	}
 }
@@ -168,7 +168,7 @@ func TestStreamCompletionEmitsTextUsageAndDone(t *testing.T) {
 	provider := newTestProvider(t, func(w http.ResponseWriter, r *http.Request) {
 		writeSSEEvent(w, "message_start", `{"type":"message_start","message":{"usage":{"input_tokens":25}}}`)
 		writeSSEEvent(w, "content_block_delta", `{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}`)
-		writeSSEEvent(w, "content_block_delta", `{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":" Zero"}}`)
+		writeSSEEvent(w, "content_block_delta", `{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":" Rune"}}`)
 		writeSSEEvent(w, "message_delta", `{"type":"message_delta","usage":{"output_tokens":15}}`)
 		writeSSEEvent(w, "message_stop", `{"type":"message_stop"}`)
 	})
@@ -176,7 +176,7 @@ func TestStreamCompletionEmitsTextUsageAndDone(t *testing.T) {
 	events := collectProviderEvents(t, provider)
 	want := []zeroruntime.StreamEvent{
 		{Type: zeroruntime.StreamEventText, Content: "Hello"},
-		{Type: zeroruntime.StreamEventText, Content: " Zero"},
+		{Type: zeroruntime.StreamEventText, Content: " Rune"},
 		{Type: zeroruntime.StreamEventUsage, Usage: zeroruntime.Usage{InputTokens: 25, OutputTokens: 15, PromptTokens: 25, CompletionTokens: 15}},
 		{Type: zeroruntime.StreamEventDone},
 	}
@@ -416,7 +416,7 @@ func TestStreamCompletionEmitsToolUseBlocks(t *testing.T) {
 func TestStreamCompletionClosesOpenToolCallOnEOF(t *testing.T) {
 	provider := newTestProvider(t, func(w http.ResponseWriter, r *http.Request) {
 		writeSSEEvent(w, "content_block_start", `{"type":"content_block_start","index":0,"content_block":{"type":"tool_use","id":"toolu_1","name":"grep","input":{}}}`)
-		writeSSEEvent(w, "content_block_delta", `{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\"pattern\":\"Zero\"}"}}`)
+		writeSSEEvent(w, "content_block_delta", `{"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":"{\"pattern\":\"Rune\"}"}}`)
 	})
 
 	events := collectProviderEvents(t, provider)

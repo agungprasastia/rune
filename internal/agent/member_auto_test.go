@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 type safetyTool struct {

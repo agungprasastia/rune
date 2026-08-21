@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // sessionProvider adapts a TurnSession back to the Provider interface so the

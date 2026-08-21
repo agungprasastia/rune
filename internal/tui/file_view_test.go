@@ -11,9 +11,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/sessions"
+	"rune/internal/tools"
 )
 
 // TestFileViewOpenExitRestoresScroll: opening saves the chat scroll position,

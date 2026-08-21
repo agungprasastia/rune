@@ -263,7 +263,7 @@ func TestRemappedToggleBindingsIgnoreComposerGuard(t *testing.T) {
 // TestExplicitDefaultChordConfigStillRequiresEmptyComposer guards against
 // treating "explicitly configured" the same as "genuinely remapped": a user
 // who writes toggleMouse: "ctrl+e" / toggleSidebar: "ctrl+b" in config (the
-// same chord as the built-in default) gets a non-zero parsedBinding, not the
+// same chord as the built-in default) gets a non-rune parsedBinding, not the
 // isZero() sentinel, so a check that only asked "is this unset" would wrongly
 // let Ctrl+E/Ctrl+B bypass the composer guard again instead of reaching the
 // readline cursor-navigation handlers.

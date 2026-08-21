@@ -9,19 +9,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/provideroauth"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/provideroauth"
 )
 
 // withAuthStore points the provider OAuth store at a temp file for the test,
-// pinning the file backend so an inherited ZERO_OAUTH_STORAGE=keyring can't
+// pinning the file backend so an inherited RUNE_OAUTH_STORAGE=keyring can't
 // ignore the temp path and hit the OS keychain.
 func withAuthStore(t *testing.T) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "oauth-tokens.json")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", path)
-	t.Setenv("ZERO_OAUTH_STORAGE", "file")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", path)
+	t.Setenv("RUNE_OAUTH_STORAGE", "file")
 	return path
 }
 
@@ -29,12 +29,12 @@ func TestRunAuthRejectsInvalidStorageMode(t *testing.T) {
 	withAuthStore(t)
 	// A mistyped value must fail fast, not silently fall back to plaintext while
 	// the user believes encryption is active.
-	t.Setenv("ZERO_OAUTH_STORAGE", "encryptd")
+	t.Setenv("RUNE_OAUTH_STORAGE", "encryptd")
 	var stdout, stderr bytes.Buffer
 	if code := runWithDeps([]string{"auth", "status"}, &stdout, &stderr, appDeps{}); code == exitSuccess {
-		t.Fatalf("invalid ZERO_OAUTH_STORAGE should fail, got success; stdout=%q", stdout.String())
+		t.Fatalf("invalid RUNE_OAUTH_STORAGE should fail, got success; stdout=%q", stdout.String())
 	}
-	if !strings.Contains(stderr.String(), "ZERO_OAUTH_STORAGE") {
+	if !strings.Contains(stderr.String(), "RUNE_OAUTH_STORAGE") {
 		t.Fatalf("error should name the offending env var, stderr=%q", stderr.String())
 	}
 }
@@ -113,7 +113,7 @@ func TestRunAuthLoginUnknownProvider(t *testing.T) {
 
 func TestRunAuthRefreshNoToken(t *testing.T) {
 	withAuthStore(t)
-	t.Setenv("ZERO_OAUTH_DEMO_CLIENT_ID", "client") // so config resolves; refresh still fails (no token)
+	t.Setenv("RUNE_OAUTH_DEMO_CLIENT_ID", "client") // so config resolves; refresh still fails (no token)
 	var stdout, stderr bytes.Buffer
 	if code := runWithDeps([]string{"auth", "refresh", "demo"}, &stdout, &stderr, appDeps{}); code == exitSuccess {
 		t.Fatal("refresh with no stored token should fail")
@@ -196,14 +196,14 @@ func TestRunAuthHelp(t *testing.T) {
 	if code := runWithDeps([]string{"auth", "--help"}, &stdout, &stderr, appDeps{}); code != exitSuccess {
 		t.Fatalf("exit = %d", code)
 	}
-	for _, want := range []string{"zero auth", "login", "logout", "status", "refresh", "--device"} {
+	for _, want := range []string{"rune auth", "login", "logout", "status", "refresh", "--device"} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Fatalf("help missing %q:\n%s", want, stdout.String())
 		}
 	}
 }
 
-// TestRunAuthLoginChatGPTRoutesToDedicatedFlow verifies `zero auth login
+// TestRunAuthLoginChatGPTRoutesToDedicatedFlow verifies `rune auth login
 // chatgpt` reaches the dedicated ChatGPT login (fixed-port loopback + mandatory
 // authorize params), not the generic manager path. The generic login accepts
 // --device, so a ChatGPT-specific rejection proves the routing took effect.
@@ -256,7 +256,7 @@ func TestEnsureLoginProviderProfileAddsProviderWithoutStealingActive(t *testing.
 	if !strings.Contains(line, `Added provider "chatgpt"`) {
 		t.Fatalf("expected added-provider guidance, got %q", line)
 	}
-	if !strings.Contains(line, "zero providers use chatgpt") {
+	if !strings.Contains(line, "rune providers use chatgpt") {
 		t.Fatalf("expected switch hint, got %q", line)
 	}
 

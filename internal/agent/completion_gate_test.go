@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // someRequestContains reports whether any message sent to the provider across all

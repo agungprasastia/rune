@@ -32,9 +32,9 @@ func TestLoadProviderCommandSuccess(t *testing.T) {
 }
 
 func TestLoadProviderCommandDoesNotResolveAPIKeyEnvFromProcess(t *testing.T) {
-	t.Setenv("ZERO_CMD_API_KEY", "sk-process")
+	t.Setenv("RUNE_CMD_API_KEY", "sk-process")
 	command := writeCommand(t, commandScript{
-		Stdout: `{"name":"cmd","provider":"openai","apiKeyEnv":"ZERO_CMD_API_KEY","model":"gpt-command"}`,
+		Stdout: `{"name":"cmd","provider":"openai","apiKeyEnv":"RUNE_CMD_API_KEY","model":"gpt-command"}`,
 	})
 
 	cfg, err := LoadProviderCommand(command)
@@ -46,7 +46,7 @@ func TestLoadProviderCommandDoesNotResolveAPIKeyEnvFromProcess(t *testing.T) {
 	if provider.APIKey != "" {
 		t.Fatalf("APIKey = %q, want unresolved provider-command apiKeyEnv", provider.APIKey)
 	}
-	if provider.APIKeyEnv != "ZERO_CMD_API_KEY" {
+	if provider.APIKeyEnv != "RUNE_CMD_API_KEY" {
 		t.Fatalf("APIKeyEnv = %q, want command apiKeyEnv preserved", provider.APIKeyEnv)
 	}
 }
@@ -358,8 +358,8 @@ func writeCommand(t *testing.T, script commandScript) string {
 			lines = append(lines,
 				":zeroWaitReady",
 				"if exist \""+readyFile+"\" goto zeroReady",
-				"set /a ZERO_READY_TRIES+=1",
-				"if %ZERO_READY_TRIES% GEQ "+itoa(providerCommandReadyWaitAttempts)+" goto zeroReady",
+				"set /a RUNE_READY_TRIES+=1",
+				"if %RUNE_READY_TRIES% GEQ "+itoa(providerCommandReadyWaitAttempts)+" goto zeroReady",
 				"ping -n 2 127.0.0.1 >nul",
 				"goto zeroWaitReady",
 				":zeroReady",

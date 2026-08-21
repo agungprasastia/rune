@@ -11,9 +11,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/aimlapi"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
+	"rune/internal/aimlapi"
+	"rune/internal/config"
+	"rune/internal/providermodeldiscovery"
 )
 
 func TestSetupMethodOptionsDropsOAuthWithoutOAuthProviders(t *testing.T) {
@@ -679,7 +679,7 @@ func TestSetupTakeoverRendersAndCompletes(t *testing.T) {
 		Setup: SetupOptions{
 			Visible:    true,
 			Required:   true,
-			ConfigPath: "/tmp/zero/config.json",
+			ConfigPath: "/tmp/rune/config.json",
 			Providers: []SetupProviderOption{
 				{ID: "openai", Name: "OpenAI", DefaultModel: "gpt-4.1", EnvVar: "OPENAI_API_KEY", RequiresAuth: true},
 				{ID: "ollama", Name: "Ollama Local", DefaultModel: "llama3.1", Local: true},
@@ -687,7 +687,7 @@ func TestSetupTakeoverRendersAndCompletes(t *testing.T) {
 			Save: func(selection SetupSelection) (SetupResult, error) {
 				saved = selection
 				return SetupResult{
-					ConfigPath: "/tmp/zero/config.json",
+					ConfigPath: "/tmp/rune/config.json",
 					Provider: config.ProviderProfile{
 						Name:      selection.CatalogID,
 						CatalogID: selection.CatalogID,
@@ -700,7 +700,7 @@ func TestSetupTakeoverRendersAndCompletes(t *testing.T) {
 	m.width = 100
 	m.height = 30
 
-	if view := plainRender(t, m.View()); !strings.Contains(view, "Welcome to Zero") || !strings.Contains(view, "Space to set up Zero") || !strings.Contains(view, "terminal agent for changing real code") {
+	if view := plainRender(t, m.View()); !strings.Contains(view, "Welcome to Rune") || !strings.Contains(view, "Space to set up Rune") || !strings.Contains(view, "terminal agent for changing real code") {
 		t.Fatalf("setup welcome view missing expected text:\n%s", view)
 	}
 
@@ -759,7 +759,7 @@ func TestSetupTakeoverCustomCompatibleCollectsEndpointNameAndModel(t *testing.T)
 			Save: func(selection SetupSelection) (SetupResult, error) {
 				saved = selection
 				return SetupResult{
-					ConfigPath: "/tmp/zero/config.json",
+					ConfigPath: "/tmp/rune/config.json",
 					Provider: config.ProviderProfile{
 						Name:      selection.Name,
 						CatalogID: selection.CatalogID,
@@ -899,7 +899,7 @@ func TestSetupCompletionResetsChatSurfaceInsideAltScreen(t *testing.T) {
 			},
 			Save: func(selection SetupSelection) (SetupResult, error) {
 				return SetupResult{
-					ConfigPath: "/tmp/zero/config.json",
+					ConfigPath: "/tmp/rune/config.json",
 					Provider: config.ProviderProfile{
 						Name:      selection.CatalogID,
 						CatalogID: selection.CatalogID,
@@ -1223,7 +1223,7 @@ func TestSetupCredentialsAcceptsPastedAPIKeyWithoutRenderingSecret(t *testing.T)
 			Save: func(selection SetupSelection) (SetupResult, error) {
 				saved = selection
 				return SetupResult{
-					ConfigPath: "/tmp/zero/config.json",
+					ConfigPath: "/tmp/rune/config.json",
 					Provider: config.ProviderProfile{
 						Name:      selection.CatalogID,
 						CatalogID: selection.CatalogID,
@@ -2144,7 +2144,7 @@ func absInt(value int) int {
 	return value
 }
 
-// Completing setup switches the live provider, so it must export ZERO_PROVIDER
+// Completing setup switches the live provider, so it must export RUNE_PROVIDER
 // exactly like the /model, /provider, and wizard switch paths — a stale value
 // from an earlier switch would otherwise win over config in every spawned
 // child (applyEnv) and pin specialists/swarm members to the OLD provider's

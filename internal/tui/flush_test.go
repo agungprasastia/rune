@@ -7,7 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func sizedTestModel(width int) model {

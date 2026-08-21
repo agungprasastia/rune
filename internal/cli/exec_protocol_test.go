@@ -11,13 +11,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/mcp"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func TestRunExecHelpDocumentsProtocolFlags(t *testing.T) {
@@ -347,7 +347,7 @@ func TestRunExecStreamJSONOutputsRunEndAndRecordsSession(t *testing.T) {
 	}
 
 	store := sessions.NewStore(sessions.StoreOptions{
-		RootDir: filepath.Join(dataHome, "zero", "sessions"),
+		RootDir: filepath.Join(dataHome, "rune", "sessions"),
 	})
 	recorded, err := store.ReadEvents(sessionID)
 	if err != nil {
@@ -420,7 +420,7 @@ func TestRunExecStreamJSONEmitsAndRecordsPermissionEvents(t *testing.T) {
 		t.Fatalf("expected run_start sessionId, got %#v", events[0])
 	}
 	store := sessions.NewStore(sessions.StoreOptions{
-		RootDir: filepath.Join(dataHome, "zero", "sessions"),
+		RootDir: filepath.Join(dataHome, "rune", "sessions"),
 	})
 	recorded, err := store.ReadEvents(sessionID)
 	if err != nil {

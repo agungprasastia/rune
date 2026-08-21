@@ -9,7 +9,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/sessions"
 )
 
 func newBTWTestModel(t *testing.T) model {

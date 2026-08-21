@@ -45,6 +45,7 @@
               "$WORKSPACE/.git/config"
             ],
             "protectedMetadataNames": [
+              ".rune",
               ".zero",
               ".agents"
             ]

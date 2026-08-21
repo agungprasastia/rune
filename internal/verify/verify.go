@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/testrunner"
+	"rune/internal/redaction"
+	"rune/internal/testrunner"
 )
 
 type Status string

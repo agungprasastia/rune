@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 func TestTaskStateReplayIsDeterministic(t *testing.T) {
@@ -121,7 +121,7 @@ func TestTaskStateRecordsDurableRuntimeEvidence(t *testing.T) {
 	state.observe(taskStateEvent{kind: taskStateEventToolResult, arguments: arguments, toolResult: ToolResult{
 		ToolCallID: "test-1", Name: "exec_command", Status: tools.StatusError,
 		Output: "Error: TestResumeRetainsState failed\nfull diagnostic",
-		Meta:   map[string]string{"spill_path": ".zero/artifacts/test-1.txt"},
+		Meta:   map[string]string{"spill_path": ".rune/artifacts/test-1.txt"},
 	}})
 	state.observe(taskStateEvent{kind: taskStateEventPermission, permission: PermissionEvent{
 		ToolName: "exec_command", DecisionAction: PermissionDecisionAllowForSession,
@@ -135,7 +135,7 @@ func TestTaskStateRecordsDurableRuntimeEvidence(t *testing.T) {
 	if len(snapshot.UnresolvedFailures) != 1 || snapshot.UnresolvedFailures[0].Command != "go test ./internal/agent" || snapshot.UnresolvedFailures[0].Summary != "Error: TestResumeRetainsState failed" {
 		t.Fatalf("unexpected failure evidence: %#v", snapshot.UnresolvedFailures)
 	}
-	if len(snapshot.Artifacts) != 1 || snapshot.Artifacts[0].Path != ".zero/artifacts/test-1.txt" {
+	if len(snapshot.Artifacts) != 1 || snapshot.Artifacts[0].Path != ".rune/artifacts/test-1.txt" {
 		t.Fatalf("unexpected artifact evidence: %#v", snapshot.Artifacts)
 	}
 	if len(snapshot.Approvals) != 1 || snapshot.Approvals[0].Decision != PermissionDecisionAllowForSession || snapshot.Approvals[0].Scope != "/tmp" {

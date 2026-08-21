@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/repoinfo"
+	"rune/internal/repoinfo"
 )
 
 func intPtr(n int) *int { return &n }

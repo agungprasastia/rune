@@ -15,7 +15,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // maxSidebarFiles caps the FILES rows so the section stays a glanceable set,

@@ -6,10 +6,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/execution"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
 type rowKind int
@@ -58,7 +58,7 @@ type transcriptRow struct {
 	// through model.streamingText and never lands in the transcript, so a
 	// rowAssistant marked final IS the turn's answer — the renderer must not
 	// re-parse text to tell the two apart. turnTools/turnElapsed feed the done
-	// line; zero values mean "unknown" and the segment is omitted.
+	// line; rune values mean "unknown" and the segment is omitted.
 	final       bool
 	turnTools   int
 	turnElapsed time.Duration
@@ -101,7 +101,7 @@ type transcriptAction struct {
 func initialTranscript() []transcriptRow {
 	return []transcriptRow{{
 		kind: rowWelcome,
-		text: "Welcome to Zero. Type /help for commands.",
+		text: "Welcome to Rune. Type /help for commands.",
 	}}
 }
 
@@ -354,7 +354,7 @@ func permissionTranscriptRow(event agent.PermissionEvent) transcriptRow {
 // noise — the reference agents only surface approval when the user is actually
 // prompted or makes an explicit durable choice. The underlying audit event is
 // still recorded regardless (see the OnPermission handler and resume rebuild);
-// this only gates the rendered row, so the session log / `zero sessions` stay
+// this only gates the rendered row, so the session log / `rune sessions` stay
 // complete.
 //
 // Used in BOTH the live path (model.go OnPermission) and the resume rebuild

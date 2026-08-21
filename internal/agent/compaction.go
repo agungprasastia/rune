@@ -6,8 +6,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 // Session compaction.
@@ -95,12 +95,12 @@ type CompactionResult struct {
 const imageTokenEstimate = 1000
 
 // ApproxTextTokens estimates the token count of text WITHOUT a real tokenizer.
-// The BPE tokenizers zero targets fold a run's leading space into the following
+// The BPE tokenizers rune targets fold a run's leading space into the following
 // token rather than emitting whitespace as its own token, so naive len/4
 // overcounts real text by ~15-20% (measured: a 24.8k-char prompt counted 5.2k
 // real tokens where len/4 said 6.2k). Counting NON-whitespace bytes / 4 tracks
 // the provider's actual count closely (validated against live usage) while
-// staying allocation- and dependency-free. zero still receives the exact count
+// staying allocation- and dependency-free. rune still receives the exact count
 // back as usage on every request; this estimate is only for the pre-request
 // context budget preview and the compaction threshold.
 func ApproxTextTokens(value string) int {
@@ -388,7 +388,7 @@ type compactionState struct {
 	// real prompt-token count. ApproxTextTokens over-counts code-heavy content by
 	// ~15-20%, which would trip compaction early (at ~60% of true capacity). It
 	// starts at 1.0 and converges via an EMA as each turn reports actual usage, so
-	// later turns compact nearer to real capacity. Zero is treated as 1.0.
+	// later turns compact nearer to real capacity. Rune is treated as 1.0.
 	calibrationRatio float64
 }
 
@@ -463,7 +463,7 @@ func (state *compactionState) maybeCompact(
 		return messages
 	}
 
-	// CHEAP FIRST STAGE: reclaim context at zero token/latency cost by pruning
+	// CHEAP FIRST STAGE: reclaim context at rune token/latency cost by pruning
 	// the bodies of old, large tool results (the model has already acted on
 	// them). If that brings us back under threshold, skip the paid summarizer
 	// entirely and preserve recent turns verbatim.

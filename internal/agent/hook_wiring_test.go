@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/hooks"
+	"rune/internal/tools"
 )
 
 func TestAppendHookFeedbackFormatsOutput(t *testing.T) {

@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/rune-ai/rune/internal/imageinput"
-	"github.com/rune-ai/rune/internal/zeroruntime"
 	"os"
 	"path/filepath"
 	"regexp"
+	"rune/internal/imageinput"
+	"rune/internal/zeroruntime"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/localcontrol"
+	"rune/internal/localcontrol"
 )
 
 const defaultArtifactBaseName = "capture"

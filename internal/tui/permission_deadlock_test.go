@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
+	"rune/internal/agent"
 )
 
 func permissionModel(t *testing.T) model {

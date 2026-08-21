@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // emitDone must mark the shared state done so callers observe it through the

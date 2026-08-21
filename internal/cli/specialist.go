@@ -7,7 +7,7 @@ import (
 	osexec "os/exec"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/specialist"
+	"rune/internal/specialist"
 )
 
 type specialistOptions struct {
@@ -256,7 +256,7 @@ func runSpecialistShow(paths specialist.Paths, name string, options specialistOp
 	}
 	manifest, ok := specialist.Find(result, name)
 	if !ok {
-		return writeExecUsageError(stderr, "Zero specialist not found: "+name)
+		return writeExecUsageError(stderr, "Rune specialist not found: "+name)
 	}
 	if options.json {
 		if err := writePrettyJSON(stdout, manifest); err != nil {
@@ -374,7 +374,7 @@ func runSpecialistPath(paths specialist.Paths, options specialistOptions, stdout
 
 func writeSpecialistHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero specialist [command] [flags]
+  rune specialist [command] [flags]
 
 Commands:
   list       List built-in, user, and project specialists
@@ -390,7 +390,7 @@ Commands:
 Flags:
   --json                      Print JSON output
   --user                      Use the user specialist directory (default)
-  --project                   Use the project .zero/specialists directory
+  --project                   Use the project .rune/specialists directory
   --description <text>        Description for create
   --prompt <text>             System prompt for create
   --tools <list>              Tool ids/categories for create

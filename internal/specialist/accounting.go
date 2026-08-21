@@ -5,8 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/background"
+	"rune/internal/sessions"
 )
 
 const specialistAccountingSource = "specialist"

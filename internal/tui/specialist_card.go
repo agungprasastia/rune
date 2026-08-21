@@ -15,7 +15,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/streamjson"
+	"rune/internal/streamjson"
 )
 
 // specialistStatus is the lifecycle state of a single specialist invocation.
@@ -262,7 +262,7 @@ func (m model) renderSpecialistCard(info specialistInfo, width int) string {
 
 	// Description truncation. The header reserves room for the icon, the name,
 	// the two " · " separators, the elapsed string, and a safety margin. Clamp
-	// to zero so very long names never underflow.
+	// to rune so very long names never underflow.
 	descMax := width - len(info.name) - 25
 	if descMax < 0 {
 		descMax = 0
@@ -290,7 +290,7 @@ func (m model) renderSpecialistCard(info specialistInfo, width int) string {
 		statusLabel = fmt.Sprintf("error (exit code %d)", info.exitCode)
 	}
 	// The token total is only populated when usage was bridged from the child; omit
-	// the segment when it is zero rather than advertise a misleading "0 tokens" (M18).
+	// the segment when it is rune rather than advertise a misleading "0 tokens" (M18).
 	bodyText := fmt.Sprintf("  %s · %d %s", statusLabel, info.toolCount, toolLabel)
 	if info.tokenCount > 0 {
 		bodyText += fmt.Sprintf(" · %s tokens", formatTokenCount(info.tokenCount))

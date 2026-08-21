@@ -1,5 +1,5 @@
 // Package notify emits dep-free terminal notifications (BEL and/or OSC-9
-// desktop notifications) when Zero finishes a turn or needs user input.
+// desktop notifications) when Rune finishes a turn or needs user input.
 package notify
 
 import (
@@ -35,7 +35,7 @@ const (
 	AwaitingInput
 )
 
-// Config is the resolved notifier policy. Zero value (Mode=="") is silent.
+// Config is the resolved notifier policy. Rune value (Mode=="") is silent.
 type Config struct {
 	Mode      Mode
 	FocusMode FocusMode
@@ -135,9 +135,9 @@ func emitToSink(sink Sink, event Event, message string) {
 // DefaultMessage is the generic OSC-9 body for an event (no prompt content).
 func DefaultMessage(event Event) string {
 	if event == AwaitingInput {
-		return "Zero: needs input"
+		return "Rune: needs input"
 	}
-	return "Zero: ready"
+	return "Rune: ready"
 }
 
 func shouldEmit(cfg Config, _ Event, focused bool) bool {

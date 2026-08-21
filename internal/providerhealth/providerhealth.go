@@ -15,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providers"
-	"github.com/rune-ai/rune/internal/providers/providerio"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/config"
+	"rune/internal/providercatalog"
+	"rune/internal/providers"
+	"rune/internal/providers/providerio"
+	"rune/internal/redaction"
 )
 
 type Status string

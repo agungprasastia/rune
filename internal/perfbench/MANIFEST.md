@@ -36,7 +36,7 @@ manifest's `buildOnlyClasses` list:
   `go test ./...`: the Go compiler is the structural verifier, so a no-op
   refactor, a missing field, or a reworded-but-not-removed line fails to
   compile/run. fix uses a scoped `go test -run <name>`. nav greps the agent's
-  captured final answer (`.zero-answer.txt`) for determinable facts. This is
+  captured final answer (`.rune-answer.txt`) for determinable facts. This is
   the only pass rate that can move with model quality: `tasksVerified` /
   `tasksPassed` / `correctnessPassRate`.
 - **Build-only** (0 tasks) — the tier is empty. refactor used to live here with
@@ -64,7 +64,7 @@ into an isolated temp dir, runs `zero exec --trace`, then — before running the
   during the task (refactor-03's `package zeroapp` test would break a pre-rename
   build) and can't be pre-seen or tampered with. The `verificationCommand`
   (`go test ./...`) then compiles and runs it.
-- `.zero-answer.txt` from the `{"type":"final","text":...}` event in the
+- `.rune-answer.txt` from the `{"type":"final","text":...}` event in the
   stream-json output (nav). The `verificationCommand` is a compound `bash -c`
   grep requiring the determinable facts (e.g. nav-09 requires the answer to
   mention `port`, `name`, and `retries`). An empty file (no `final` event) makes

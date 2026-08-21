@@ -8,9 +8,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/doctor"
-	"github.com/rune-ai/rune/internal/providerhealth"
+	"rune/internal/config"
+	"rune/internal/doctor"
+	"rune/internal/providerhealth"
 )
 
 func TestParseDoctorCommandArgsRejectsFixWithConnectivity(t *testing.T) {
@@ -25,8 +25,8 @@ func TestParseDoctorCommandArgsRejectsFixWithConnectivity(t *testing.T) {
 
 func TestDoctorOptionsIncludeConfigPaths(t *testing.T) {
 	m := newModel(context.Background(), Options{
-		UserConfigPath:    "C:/zero/user.json",
-		ProjectConfigPath: "C:/repo/.zero/config.json",
+		UserConfigPath:    "C:/rune/user.json",
+		ProjectConfigPath: "C:/repo/.rune/config.json",
 		ProviderProfile: config.ProviderProfile{
 			Name:         "openai",
 			ProviderKind: config.ProviderKindOpenAI,
@@ -36,11 +36,11 @@ func TestDoctorOptionsIncludeConfigPaths(t *testing.T) {
 
 	options := m.doctorOptions(false)
 
-	if options.UserConfig != "C:/zero/user.json" {
-		t.Fatalf("UserConfig = %q, want %q", options.UserConfig, "C:/zero/user.json")
+	if options.UserConfig != "C:/rune/user.json" {
+		t.Fatalf("UserConfig = %q, want %q", options.UserConfig, "C:/rune/user.json")
 	}
-	if options.ProjectConfig != "C:/repo/.zero/config.json" {
-		t.Fatalf("ProjectConfig = %q, want %q", options.ProjectConfig, "C:/repo/.zero/config.json")
+	if options.ProjectConfig != "C:/repo/.rune/config.json" {
+		t.Fatalf("ProjectConfig = %q, want %q", options.ProjectConfig, "C:/repo/.rune/config.json")
 	}
 	if options.Connectivity {
 		t.Fatal("Connectivity = true, want false")
@@ -61,7 +61,7 @@ func TestDoctorOptionsConnectivityInvokesConfiguredProviderHealthProbe(t *testin
 	var gotOptions providerhealth.Options
 	m := newModel(context.Background(), Options{
 		ProviderProfile: profile,
-		UserAgent:       "zero-test",
+		UserAgent:       "rune-test",
 		ProbeProviderHealth: func(_ context.Context, options providerhealth.Options) providerhealth.Result {
 			called++
 			gotOptions = options
@@ -85,8 +85,8 @@ func TestDoctorOptionsConnectivityInvokesConfiguredProviderHealthProbe(t *testin
 	if !gotOptions.Connectivity {
 		t.Fatal("probe Connectivity = false, want true")
 	}
-	if gotOptions.UserAgent != "zero-test" {
-		t.Fatalf("probe UserAgent = %q, want %q", gotOptions.UserAgent, "zero-test")
+	if gotOptions.UserAgent != "rune-test" {
+		t.Fatalf("probe UserAgent = %q, want %q", gotOptions.UserAgent, "rune-test")
 	}
 	if !reflect.DeepEqual(gotOptions.Profile, profile) {
 		t.Fatalf("probe Profile = %#v, want %#v", gotOptions.Profile, profile)
@@ -281,12 +281,12 @@ func TestDoctorFixLinesUseSandboxRemedy(t *testing.T) {
 		Status:  doctor.StatusWarn,
 		Message: "Native sandbox backend unavailable on windows: Windows sandbox setup helper is not available.",
 		Details: map[string]any{
-			"remedy": "install the Windows sandbox command runner and setup helper together, then run `zero sandbox setup`",
+			"remedy": "install the Windows sandbox command runner and setup helper together, then run `rune sandbox setup`",
 		},
 	}}})
 
 	text := strings.Join(lines, "\n")
-	if !strings.Contains(text, "zero sandbox setup") {
+	if !strings.Contains(text, "rune sandbox setup") {
 		t.Fatalf("doctorFixLines missing sandbox setup remedy:\n%s", text)
 	}
 	if strings.Contains(text, "WSL2") || strings.Contains(text, "Linux container") {

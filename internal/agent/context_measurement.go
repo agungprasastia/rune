@@ -3,7 +3,7 @@ package agent
 import (
 	"encoding/json"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // Context budget.

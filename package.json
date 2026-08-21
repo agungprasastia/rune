@@ -1,14 +1,14 @@
 {
-  "name": "@gitlawb/zero",
+  "name": "@rune-ai/rune",
   "version": "0.7.0",
-  "description": "Zero — a fast, multi-provider terminal coding agent.",
+  "description": "Rune — a fast, multi-provider terminal coding agent.",
   "type": "module",
-  "module": "bin/zero.js",
+  "module": "bin/rune.js",
   "bin": {
-    "zero": "bin/zero.js"
+    "rune": "bin/rune.js"
   },
   "files": [
-    "bin/zero.js",
+    "bin/rune.js",
     "scripts/postinstall.mjs"
   ],
   "engines": {

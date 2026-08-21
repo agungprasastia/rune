@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"charm.land/lipgloss/v2"
-	"github.com/rune-ai/rune/internal/dictation"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/dictation"
+	"rune/internal/tools"
 )
 
 func renderMarkdownInline(text string) string {

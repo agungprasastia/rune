@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // Tool names. All swarm tools are additive and only act when invoked; the
@@ -69,7 +69,7 @@ func (deferredSwarmTool) DeferralEligible() bool { return true }
 // awaiting collection). It is the gate the coordination tools' Deferred() reads,
 // so they surface eagerly for the swarm's whole life rather than flapping as
 // members move to standby/done. Thread-safe (Summarize RLocks the coordinator)
-// and nil-safe: a zero-value or unwired Swarm reports inactive (stays deferred).
+// and nil-safe: a rune-value or unwired Swarm reports inactive (stays deferred).
 func (s *Swarm) hasActiveSwarm() bool {
 	if s == nil || s.coord == nil {
 		return false

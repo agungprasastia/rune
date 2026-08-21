@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/perfbench"
+	"rune/internal/perfbench"
 )
 
 // taskOptions configures the `rune-perf-bench tasks` subcommand: the reproducible
@@ -42,7 +42,7 @@ func runTasksCommand(args []string, getenv func(string) string, stdout io.Writer
 
 	set, err := perfbench.LoadTaskSet(options.SuitePath)
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Task benchmark failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Task benchmark failed: "+err.Error())
 		return 1
 	}
 
@@ -50,7 +50,7 @@ func runTasksCommand(args []string, getenv func(string) string, stdout io.Writer
 	if !options.DryRun {
 		binary := strings.TrimSpace(options.Binary)
 		if binary == "" {
-			_, _ = fmt.Fprintln(stderr, "[zero] Task benchmark failed: --binary is required unless --dry-run is set")
+			_, _ = fmt.Fprintln(stderr, "[rune] Task benchmark failed: --binary is required unless --dry-run is set")
 			return 2
 		}
 		runner = perfbench.NewExecRunner(binary)
@@ -65,19 +65,19 @@ func runTasksCommand(args []string, getenv func(string) string, stdout io.Writer
 		Runner:      runner,
 	})
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Task benchmark failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Task benchmark failed: "+err.Error())
 		return 1
 	}
 
 	if options.Output != "" {
 		if err := writeTaskReport(options.Output, result); err != nil {
-			_, _ = fmt.Fprintln(stderr, "[zero] Task benchmark failed: "+err.Error())
+			_, _ = fmt.Fprintln(stderr, "[rune] Task benchmark failed: "+err.Error())
 			return 1
 		}
 	}
 	if options.JSON {
 		if err := perfbench.WriteTaskJSON(stdout, result); err != nil {
-			_, _ = fmt.Fprintln(stderr, "[zero] Task benchmark failed: "+err.Error())
+			_, _ = fmt.Fprintln(stderr, "[rune] Task benchmark failed: "+err.Error())
 			return 1
 		}
 		return 0
@@ -88,8 +88,8 @@ func runTasksCommand(args []string, getenv func(string) string, stdout io.Writer
 
 func parseTaskArgs(args []string, getenv func(string) string) (taskOptions, error) {
 	options := taskOptions{
-		Version: strings.TrimSpace(getenv("ZERO_BENCH_VERSION")),
-		Commit:  strings.TrimSpace(getenv("ZERO_BENCH_COMMIT")),
+		Version: strings.TrimSpace(getenv("RUNE_BENCH_VERSION")),
+		Commit:  strings.TrimSpace(getenv("RUNE_BENCH_COMMIT")),
 	}
 	for index := 0; index < len(args); index++ {
 		arg := args[index]
@@ -206,8 +206,8 @@ func taskHelpText() string {
 		"  --mode <name>       Exec mode preset to apply",
 		"  --self-correct      Enable the post-edit verify-and-correct loop",
 		"  --binary <path>     Path to the `zero` binary (required unless --dry-run)",
-		"  --version <v>       Record the ZERO version (default: $ZERO_BENCH_VERSION)",
-		"  --commit <sha>      Record the ZERO commit (default: $ZERO_BENCH_COMMIT)",
+		"  --version <v>       Record the ZERO version (default: $RUNE_BENCH_VERSION)",
+		"  --commit <sha>      Record the ZERO commit (default: $RUNE_BENCH_COMMIT)",
 		"  --output <path>     Write the JSON result to path",
 		"  --json              Print only the JSON result",
 		"  --dry-run           Record every task as skipped without invoking the agent",

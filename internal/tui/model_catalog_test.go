@@ -3,8 +3,8 @@ package tui
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
+	"rune/internal/modelregistry"
+	"rune/internal/providermodeldiscovery"
 )
 
 func TestModelContextWindowUsesCachedCatalog(t *testing.T) {

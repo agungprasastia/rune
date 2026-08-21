@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/workspaceindex"
+	"rune/internal/sandbox"
+	"rune/internal/workspaceindex"
 )
 
 var ignoredDirectories = map[string]bool{

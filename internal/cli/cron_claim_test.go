@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/cron"
+	"rune/internal/cron"
 )
 
 func TestFireJobClaimPreventsDoubleFire(t *testing.T) {

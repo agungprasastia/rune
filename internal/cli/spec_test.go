@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/specmode"
+	"rune/internal/sessions"
+	"rune/internal/specmode"
 )
 
 func TestRunSpecApproveCreatesImplementationSession(t *testing.T) {
@@ -124,12 +124,12 @@ func TestParseSpecRejectsCommandSpecificFlags(t *testing.T) {
 		{
 			name: "comment on show",
 			args: []string{"show", "draft", "--comment", "ship it"},
-			want: "--comment is only valid for zero spec approve",
+			want: "--comment is only valid for rune spec approve",
 		},
 		{
 			name: "reason on approve",
 			args: []string{"approve", "draft", "--reason", "too broad"},
-			want: "--reason is only valid for zero spec reject",
+			want: "--reason is only valid for rune spec reject",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

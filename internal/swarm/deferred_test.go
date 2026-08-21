@@ -3,12 +3,12 @@ package swarm
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // With NO active swarm, all swarm tools must be deferred-eligible so their
 // schemas stay out of the eager per-request tool prefix (loaded on demand via
-// tool_search), while the core built-ins remain eager. (A zero-value &Swarm{}
+// tool_search), while the core built-ins remain eager. (A rune-value &Swarm{}
 // has a nil coordinator, so hasActiveSwarm reports inactive — see nil-safety.)
 func TestSwarmToolsAreDeferred(t *testing.T) {
 	registry := tools.NewRegistry()
@@ -78,7 +78,7 @@ func TestSwarmCoordinationToolsUndeferWhenActive(t *testing.T) {
 	}
 }
 
-// hasActiveSwarm must be nil-safe: a nil *Swarm or a zero-value Swarm (nil
+// hasActiveSwarm must be nil-safe: a nil *Swarm or a rune-value Swarm (nil
 // coordinator) reports inactive, so the coordination tools stay deferred rather
 // than panicking — this is what keeps TestSwarmToolsAreDeferred (&Swarm{}) green.
 func TestHasActiveSwarmNilSafe(t *testing.T) {
@@ -87,6 +87,6 @@ func TestHasActiveSwarmNilSafe(t *testing.T) {
 		t.Error("nil swarm should report inactive")
 	}
 	if (&Swarm{}).hasActiveSwarm() {
-		t.Error("zero-value swarm (nil coord) should report inactive")
+		t.Error("rune-value swarm (nil coord) should report inactive")
 	}
 }

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/config"
+	"rune/internal/tools"
 )
 
 func TestCoreRegistryIncludesDefaultLocalControlTools(t *testing.T) {

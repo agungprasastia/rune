@@ -45,9 +45,9 @@ func TestAnAncestorLinkCannotRedirectAWrite(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	linkDir(t, outside, filepath.Join(workspace, ".zero"))
+	linkDir(t, outside, filepath.Join(workspace, ".rune"))
 
-	handle, relative, err := Open(workspace, filepath.Join(workspace, ".zero", "store"))
+	handle, relative, err := Open(workspace, filepath.Join(workspace, ".rune", "store"))
 	if err != nil {
 		t.Fatalf("Open should confine, not refuse outright: %v", err)
 	}

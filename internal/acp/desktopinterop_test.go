@@ -1,7 +1,7 @@
 package acp
 
-// desktopinterop_test.go covers three defects found by driving the real `zero
-// acp` binary from a desktop ACP client. Each is a case where ZERO and a
+// desktopinterop_test.go covers three defects found by driving the real `rune
+// acp` binary from a desktop ACP client. Each is a case where RUNE and a
 // conforming client disagreed about the wire, and none of them failed loudly —
 // they produced a silent denial, a spurious crash, or two buttons the user
 // could not tell apart.
@@ -15,16 +15,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
+	"rune/internal/agent"
 )
 
 // ---- an offered option is an acceptable answer ----
 
 // The list the options were BUILT from and the list the answer was CHECKED
-// against were different whenever ZERO did not enumerate: the client was sent
+// against were different whenever RUNE did not enumerate: the client was sent
 // Allow and Reject, and its reply was validated against an empty slice, so
 // every button it could possibly show failed closed to deny. The user clicked
-// Allow and ZERO recorded a denial, with nothing on screen to say so.
+// Allow and RUNE recorded a denial, with nothing on screen to say so.
 func TestAnOfferedOptionIsAccepted(t *testing.T) {
 	// No AvailableDecisions: the fallback path, which is every permission event
 	// that is not a prompt.
@@ -130,7 +130,7 @@ func TestStrictAllowStillRoundTrips(t *testing.T) {
 
 // Only context.Canceled was recognised, so dismissing a permission dialog came
 // back as JSON-RPC -32603 carrying the internal sentinel text. Clients render
-// that as a failed turn, so declining a tool looked like ZERO falling over —
+// that as a failed turn, so declining a tool looked like RUNE falling over —
 // and for apply_patch, dismissing is the ONLY refusal a client is offered.
 func TestCancellingAPermissionEndsTheTurnAsCancelled(t *testing.T) {
 	canceled := fmt.Errorf("%w for apply_patch", agent.ErrPermissionApprovalCanceled)
@@ -168,7 +168,7 @@ func TestPermissionCancellationSurvivesWrapping(t *testing.T) {
 // A decision that never became an option cannot be selected.
 //
 // PermissionDecisionCancel is the case that exists today: optionKindFor drops
-// it because ACP expresses cancellation through the outcome, yet ZERO
+// it because ACP expresses cancellation through the outcome, yet RUNE
 // enumerates it in AvailableDecisions for shell commands and apply_patch. While
 // the reply was validated against the DECISIONS rather than the sent options, a
 // client could return {"outcome":"selected","optionId":"cancel"} — an id it was

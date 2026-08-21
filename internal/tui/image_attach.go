@@ -12,11 +12,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/imageinput"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/terminalpet"
-	"github.com/rune-ai/rune/internal/zeroruntime"
 	_ "golang.org/x/image/webp"
+	"rune/internal/imageinput"
+	"rune/internal/modelregistry"
+	"rune/internal/terminalpet"
+	"rune/internal/zeroruntime"
 )
 
 const attachmentThumbnailMaxPixels = 16 << 20

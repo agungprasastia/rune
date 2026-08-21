@@ -9,7 +9,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/usercommands"
+	"rune/internal/usercommands"
 )
 
 func loopTestModel(t *testing.T, now time.Time) model {

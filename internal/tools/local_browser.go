@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/localcontrol"
+	"rune/internal/localcontrol"
 )
 
 const localBrowserOutputBudgetBytes = 128 * 1024

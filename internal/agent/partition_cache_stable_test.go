@@ -3,7 +3,7 @@ package agent
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func TestPartitionToolsActiveAppendsLoadedToolAfterEagerBlock(t *testing.T) {

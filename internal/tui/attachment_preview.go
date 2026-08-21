@@ -3,7 +3,7 @@ package tui
 import (
 	"strings"
 
-	"github.com/rune-ai/rune/internal/terminalpet"
+	"rune/internal/terminalpet"
 )
 
 const (

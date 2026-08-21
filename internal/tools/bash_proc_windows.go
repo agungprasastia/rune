@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
-	zeroSandbox "github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/execution"
+	zeroSandbox "rune/internal/sandbox"
 )
 
 // bashWaitDelay bounds how long Wait blocks for the I/O pipes to drain after the
@@ -20,7 +20,7 @@ var bashWaitDelay = 2 * time.Second
 // hardenProcessLifetime makes a Windows shell command killable as a process
 // tree. cmd.exe starts helper commands as child processes, so killing only the
 // shell can leave a long-running child alive and holding cwd/temp handles after
-// Zero exits.
+// Rune exits.
 func hardenProcessLifetime(command *exec.Cmd) {
 	command.WaitDelay = bashWaitDelay
 	command.Cancel = func() error {

@@ -16,8 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/config"
+	"rune/internal/execution"
 )
 
 type mcpExecutionPreparer struct {
@@ -45,7 +45,7 @@ func TestStdioClientListsAndCallsTools(t *testing.T) {
 		Type:    ServerTypeStdio,
 		Command: executable,
 		Args:    []string{"-test.run=TestMCPStdioHelperProcess", "--"},
-		Env:     map[string]string{"ZERO_MCP_STDIO_HELPER": "1"},
+		Env:     map[string]string{"RUNE_MCP_STDIO_HELPER": "1"},
 	})
 	if err != nil {
 		t.Fatalf("Connect() error = %v", err)
@@ -67,14 +67,14 @@ func TestStdioClientListsAndCallsTools(t *testing.T) {
 		t.Fatalf("lookup schema = %#v, want object schema", listed[0].InputSchema)
 	}
 
-	result, err := client.CallTool(ctx, "lookup", map[string]any{"query": "zero"})
+	result, err := client.CallTool(ctx, "lookup", map[string]any{"query": "rune"})
 	if err != nil {
 		t.Fatalf("CallTool() error = %v", err)
 	}
 	if result.IsError {
 		t.Fatalf("CallTool() result IsError = true: %#v", result)
 	}
-	if got := TextContent(result.Content); got != "lookup: zero" {
+	if got := TextContent(result.Content); got != "lookup: rune" {
 		t.Fatalf("CallTool() text = %q, want lookup result", got)
 	}
 }
@@ -93,7 +93,7 @@ func TestStdioClientUsesTypedMCPExecutionOrigin(t *testing.T) {
 		Type:    ServerTypeStdio,
 		Command: executable,
 		Args:    []string{"-test.run=TestMCPStdioHelperProcess", "--"},
-		Env:     map[string]string{"ZERO_MCP_STDIO_HELPER": "1"},
+		Env:     map[string]string{"RUNE_MCP_STDIO_HELPER": "1"},
 	}, ConnectOptions{Execution: execution.NewRunner(preparer), WorkspaceRoot: workspace})
 	if err != nil {
 		t.Fatalf("ConnectWithOptions() error = %v", err)
@@ -120,7 +120,7 @@ func TestStdioClientCloseAllowsConcurrentCallers(t *testing.T) {
 		Type:    ServerTypeStdio,
 		Command: executable,
 		Args:    []string{"-test.run=TestMCPStdioHelperProcess", "--"},
-		Env:     map[string]string{"ZERO_MCP_STDIO_HELPER": "1"},
+		Env:     map[string]string{"RUNE_MCP_STDIO_HELPER": "1"},
 	})
 	if err != nil {
 		t.Fatalf("Connect() error = %v", err)
@@ -207,13 +207,13 @@ func TestHTTPClientListsAndCallsTools(t *testing.T) {
 				http.Error(response, "bad params", http.StatusBadRequest)
 				return
 			}
-			if params.Name != "lookup" || params.Arguments["query"] != "zero" {
+			if params.Name != "lookup" || params.Arguments["query"] != "rune" {
 				t.Errorf("tools/call params = %#v", params)
 				http.Error(response, "bad tool call", http.StatusBadRequest)
 				return
 			}
 			writeHTTPRPCResponse(t, response, message.ID, map[string]any{
-				"content": []map[string]any{{"type": "text", "text": "lookup: zero"}},
+				"content": []map[string]any{{"type": "text", "text": "lookup: rune"}},
 			})
 		default:
 			t.Errorf("unexpected method %q", message.Method)
@@ -245,11 +245,11 @@ func TestHTTPClientListsAndCallsTools(t *testing.T) {
 		t.Fatalf("listed tools = %#v, want lookup", listed)
 	}
 
-	result, err := client.CallTool(ctx, "lookup", map[string]any{"query": "zero"})
+	result, err := client.CallTool(ctx, "lookup", map[string]any{"query": "rune"})
 	if err != nil {
 		t.Fatalf("CallTool() error = %v", err)
 	}
-	if got := TextContent(result.Content); got != "lookup: zero" {
+	if got := TextContent(result.Content); got != "lookup: rune" {
 		t.Fatalf("CallTool() text = %q, want lookup result", got)
 	}
 }
@@ -413,13 +413,13 @@ func TestSSEClientListsAndCallsToolsFromRemoteStream(t *testing.T) {
 				http.Error(response, "bad params", http.StatusBadRequest)
 				return
 			}
-			if params.Name != "lookup" || params.Arguments["query"] != "zero" {
+			if params.Name != "lookup" || params.Arguments["query"] != "rune" {
 				t.Errorf("tools/call params = %#v", params)
 				http.Error(response, "bad tool call", http.StatusBadRequest)
 				return
 			}
 			events <- formatSSERPCResponse(t, message.ID, map[string]any{
-				"content": []map[string]any{{"type": "text", "text": "lookup: zero"}},
+				"content": []map[string]any{{"type": "text", "text": "lookup: rune"}},
 			})
 			response.WriteHeader(http.StatusAccepted)
 		default:
@@ -453,11 +453,11 @@ func TestSSEClientListsAndCallsToolsFromRemoteStream(t *testing.T) {
 		t.Fatalf("listed tools = %#v, want lookup", listed)
 	}
 
-	result, err := client.CallTool(ctx, "lookup", map[string]any{"query": "zero"})
+	result, err := client.CallTool(ctx, "lookup", map[string]any{"query": "rune"})
 	if err != nil {
 		t.Fatalf("CallTool() error = %v", err)
 	}
-	if got := TextContent(result.Content); got != "lookup: zero" {
+	if got := TextContent(result.Content); got != "lookup: rune" {
 		t.Fatalf("CallTool() text = %q, want lookup result", got)
 	}
 }
@@ -624,7 +624,7 @@ func (closer errorCloser) Close() error {
 }
 
 func TestMCPStdioHelperProcess(t *testing.T) {
-	if os.Getenv("ZERO_MCP_STDIO_HELPER") != "1" {
+	if os.Getenv("RUNE_MCP_STDIO_HELPER") != "1" {
 		return
 	}
 
@@ -787,7 +787,7 @@ func TestSchemaFromMCPInputSchema(t *testing.T) {
 			"query": map[string]any{
 				"type":        "string",
 				"description": "Search query",
-				"enum":        []any{"zero", "docs"},
+				"enum":        []any{"rune", "docs"},
 			},
 			"limit": map[string]any{
 				"type":    "integer",

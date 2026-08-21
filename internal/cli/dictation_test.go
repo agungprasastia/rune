@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/dictation"
+	"rune/internal/config"
+	"rune/internal/dictation"
 )
 
 func TestFactoryFallsBackToBatchWhenLocalStreamingNotConfigured(t *testing.T) {

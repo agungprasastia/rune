@@ -146,7 +146,7 @@ func TestRunSkillAddRejectsInvalid(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	exit := runWithDeps([]string{"skill", "add", bad}, &stdout, &stderr, appDeps{skillsDir: func() string { return skillsDir }})
 	if exit == 0 {
-		t.Fatalf("expected a non-zero exit for an invalid skill source")
+		t.Fatalf("expected a non-rune exit for an invalid skill source")
 	}
 }
 
@@ -205,8 +205,8 @@ func TestRunPluginAddListRemove(t *testing.T) {
 	pluginsDir := t.TempDir()
 	src := writeSourcePluginDir(t, filepath.Join(t.TempDir(), "src"), map[string]any{
 		"schemaVersion": float64(1),
-		"id":            "zero.demo",
-		"name":          "Zero Demo",
+		"id":            "rune.demo",
+		"name":          "Rune Demo",
 		"version":       "0.1.0",
 	})
 	deps := appDeps{pluginsDir: func() string { return pluginsDir }}
@@ -215,26 +215,26 @@ func TestRunPluginAddListRemove(t *testing.T) {
 	if exit := runWithDeps([]string{"plugin", "add", src}, &stdout, &stderr, deps); exit != 0 {
 		t.Fatalf("plugin add exit = %d, stderr = %s", exit, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "zero.demo") {
+	if !strings.Contains(stdout.String(), "rune.demo") {
 		t.Fatalf("add output missing id:\n%s", stdout.String())
 	}
 
 	stdout.Reset()
 	stderr.Reset()
-	if exit := runWithDeps([]string{"plugin", "info", "zero.demo"}, &stdout, &stderr, deps); exit != 0 {
+	if exit := runWithDeps([]string{"plugin", "info", "rune.demo"}, &stdout, &stderr, deps); exit != 0 {
 		t.Fatalf("plugin info exit = %d, stderr = %s", exit, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "zero.demo") || !strings.Contains(stdout.String(), "manifest:") {
+	if !strings.Contains(stdout.String(), "rune.demo") || !strings.Contains(stdout.String(), "manifest:") {
 		t.Fatalf("info output missing plugin details:\n%s", stdout.String())
 	}
 
 	// remove
 	stdout.Reset()
 	stderr.Reset()
-	if exit := runWithDeps([]string{"plugin", "remove", "zero.demo"}, &stdout, &stderr, deps); exit != 0 {
+	if exit := runWithDeps([]string{"plugin", "remove", "rune.demo"}, &stdout, &stderr, deps); exit != 0 {
 		t.Fatalf("plugin remove exit = %d, stderr = %s", exit, stderr.String())
 	}
-	if _, err := os.Stat(filepath.Join(pluginsDir, "zero.demo")); err == nil {
+	if _, err := os.Stat(filepath.Join(pluginsDir, "rune.demo")); err == nil {
 		t.Fatalf("plugin dir should be gone after remove")
 	}
 }
@@ -245,7 +245,7 @@ func TestRunPluginAddRejectsInvalidManifest(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	exit := runWithDeps([]string{"plugin", "add", src}, &stdout, &stderr, appDeps{pluginsDir: func() string { return pluginsDir }})
 	if exit == 0 {
-		t.Fatalf("expected a non-zero exit for an invalid manifest")
+		t.Fatalf("expected a non-rune exit for an invalid manifest")
 	}
 }
 
@@ -287,7 +287,7 @@ func TestRunToolsMakeRejectsBadName(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	exit := runWithDeps([]string{"tools", "make", "../escape"}, &stdout, &stderr, appDeps{toolsDir: func() string { return toolsDir }})
 	if exit == 0 {
-		t.Fatalf("expected a non-zero exit for an invalid tool name")
+		t.Fatalf("expected a non-rune exit for an invalid tool name")
 	}
 }
 
@@ -296,7 +296,7 @@ func TestRunToolsMakeRequiresName(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	exit := runWithDeps([]string{"tools", "make"}, &stdout, &stderr, appDeps{toolsDir: func() string { return toolsDir }})
 	if exit == 0 {
-		t.Fatalf("expected a non-zero exit when no name is given")
+		t.Fatalf("expected a non-rune exit when no name is given")
 	}
 }
 
@@ -342,7 +342,7 @@ func TestRunToolsListSurfacesDiagnostics(t *testing.T) {
 func TestRunRemoveRejectsJSONFlag(t *testing.T) {
 	for _, args := range [][]string{
 		{"skill", "remove", "demo", "--json"},
-		{"plugin", "remove", "zero.demo", "--json"},
+		{"plugin", "remove", "rune.demo", "--json"},
 	} {
 		var stdout, stderr bytes.Buffer
 		exit := runWithDeps(args, &stdout, &stderr, appDeps{

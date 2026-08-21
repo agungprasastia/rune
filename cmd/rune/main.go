@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/rune-ai/rune/internal/cli"
+	"rune/internal/cli"
 )
 
 func main() {

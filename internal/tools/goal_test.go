@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/sessions"
 )
 
 func TestGoalToolsAreBoundToTheirSession(t *testing.T) {

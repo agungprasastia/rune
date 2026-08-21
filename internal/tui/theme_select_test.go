@@ -125,7 +125,7 @@ func TestAllThemesContrastAndHierarchy(t *testing.T) {
 	}
 }
 
-// resolveThemeMode precedence: explicit flag > ZERO_THEME env > system.
+// resolveThemeMode precedence: explicit flag > RUNE_THEME env > system.
 func TestResolveThemeModePrecedence(t *testing.T) {
 	cases := []struct {
 		flag, env string
@@ -325,7 +325,7 @@ func TestNewThemePresetsWired(t *testing.T) {
 
 	for _, name := range []string{"neon", "dune"} {
 		if !validThemeMode(name) {
-			t.Errorf("%q should be a valid --theme/ZERO_THEME value", name)
+			t.Errorf("%q should be a valid --theme/RUNE_THEME value", name)
 		}
 	}
 
@@ -334,7 +334,7 @@ func TestNewThemePresetsWired(t *testing.T) {
 	}
 }
 
-// The --theme flag and ZERO_THEME both resolve through resolveThemeMode, and
+// The --theme flag and RUNE_THEME both resolve through resolveThemeMode, and
 // applyTheme must actually swap zeroTheme to the resolved preset, adapting only
 // its contrast direction when the terminal has the opposite polarity.
 func TestNewThemePresetsResolveThroughCLIAndEnvPath(t *testing.T) {

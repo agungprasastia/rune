@@ -266,9 +266,9 @@ func Package(ctx context.Context, options PackageOptions) (PackageResult, error)
 
 func ZeroArtifactName(goos string) string {
 	if goos == "windows" {
-		return "zero.exe"
+		return "rune.exe"
 	}
-	return "zero"
+	return "rune"
 }
 
 func LinuxSandboxHelperArtifactName(goos string) string {
@@ -304,7 +304,7 @@ func DefaultBuildOutput(rootDir string, goos string) string {
 }
 
 func BuildLdflags(version string) string {
-	return "-s -w -X github.com/rune-ai/rune/internal/cli.version=" + version
+	return "-s -w -X rune/internal/cli.version=" + version
 }
 
 func ReleasePlatform(goos string) (string, error) {
@@ -347,7 +347,7 @@ func ReleasePackageName(version string, goos string, goarch string) (string, err
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("zero-v%s-%s-%s", version, platform, arch), nil
+	return fmt.Sprintf("rune-v%s-%s-%s", version, platform, arch), nil
 }
 
 func ReleaseArchiveName(version string, goos string, goarch string) (string, error) {
@@ -675,7 +675,7 @@ func smokeVersion(ctx context.Context, binaryPath string, version string) error 
 		}
 		return fmt.Errorf("smoke release binary: %s", output)
 	}
-	expected := "zero " + version
+	expected := "rune " + version
 	if output != expected {
 		return fmt.Errorf("expected %s --version to print %s, got %s", filepath.Base(binaryPath), expected, output)
 	}
@@ -696,7 +696,7 @@ func copyPackageFiles(rootDir string, stagingDir string, artifactPath string, st
 			return err
 		}
 	}
-	if err := copyFile(filepath.Join(rootDir, "bin", "zero.js"), filepath.Join(stagingDir, "bin", "zero.js"), 0o755); err != nil {
+	if err := copyFile(filepath.Join(rootDir, "bin", "rune.js"), filepath.Join(stagingDir, "bin", "rune.js"), 0o755); err != nil {
 		return err
 	}
 	for name, source := range helperArtifacts {

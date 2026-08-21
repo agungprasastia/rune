@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/modelregistry"
+	"rune/internal/providercatalog"
 )
 
 func TestResolveAppliesLayerPrecedence(t *testing.T) {
@@ -39,7 +39,7 @@ func TestResolveAppliesLayerPrecedence(t *testing.T) {
 		UserConfigPath:    userPath,
 		ProjectConfigPath: projectPath,
 		Env: map[string]string{
-			"ZERO_PROVIDER": "env",
+			"RUNE_PROVIDER": "env",
 			"OPENAI_MODEL":  "env-model",
 		},
 		Overrides: Overrides{
@@ -226,21 +226,21 @@ func TestResolveLoadsProviderCatalogSnakeAndCamelJSONFields(t *testing.T) {
 			"base_url": "https://snake.example/v1",
 			"model": "snake-model",
 			"catalog_id": "custom-openai-compatible",
-			"api_key_env": "ZERO_SNAKE_API_KEY",
+			"api_key_env": "RUNE_SNAKE_API_KEY",
 			"api_format": "responses",
 			"auth_header": "X-API-Key",
 			"auth_scheme": "Token",
-			"auth_header_value": "env:ZERO_SNAKE_HEADER"
+			"auth_header_value": "env:RUNE_SNAKE_HEADER"
 		}, {
 			"name": "camel",
 			"provider": "anthropic",
 			"model": "camel-model",
 			"catalogID": "anthropic",
-			"apiKeyEnv": "ZERO_CAMEL_API_KEY",
+			"apiKeyEnv": "RUNE_CAMEL_API_KEY",
 			"apiFormat": "messages",
 			"authHeader": "Authorization",
 			"authScheme": "Bearer",
-			"authHeaderValue": "env:ZERO_CAMEL_HEADER"
+			"authHeaderValue": "env:RUNE_CAMEL_HEADER"
 		}]
 	}`)
 
@@ -252,7 +252,7 @@ func TestResolveLoadsProviderCatalogSnakeAndCamelJSONFields(t *testing.T) {
 	if resolved.Provider.CatalogID != "custom-openai-compatible" {
 		t.Fatalf("CatalogID = %q, want snake alias value", resolved.Provider.CatalogID)
 	}
-	if resolved.Provider.APIKeyEnv != "ZERO_SNAKE_API_KEY" {
+	if resolved.Provider.APIKeyEnv != "RUNE_SNAKE_API_KEY" {
 		t.Fatalf("APIKeyEnv = %q, want snake alias value", resolved.Provider.APIKeyEnv)
 	}
 	if resolved.Provider.APIFormat != "responses" {
@@ -264,7 +264,7 @@ func TestResolveLoadsProviderCatalogSnakeAndCamelJSONFields(t *testing.T) {
 	if resolved.Provider.AuthScheme != "Token" {
 		t.Fatalf("AuthScheme = %q, want snake alias value", resolved.Provider.AuthScheme)
 	}
-	if resolved.Provider.AuthHeaderValue != "env:ZERO_SNAKE_HEADER" {
+	if resolved.Provider.AuthHeaderValue != "env:RUNE_SNAKE_HEADER" {
 		t.Fatalf("AuthHeaderValue = %q, want snake alias value", resolved.Provider.AuthHeaderValue)
 	}
 	if resolved.Provider.APIKey != "" {
@@ -275,7 +275,7 @@ func TestResolveLoadsProviderCatalogSnakeAndCamelJSONFields(t *testing.T) {
 	if camel.CatalogID != "anthropic" {
 		t.Fatalf("camel CatalogID = %q, want camel alias value", camel.CatalogID)
 	}
-	if camel.APIKeyEnv != "ZERO_CAMEL_API_KEY" {
+	if camel.APIKeyEnv != "RUNE_CAMEL_API_KEY" {
 		t.Fatalf("camel APIKeyEnv = %q, want camel alias value", camel.APIKeyEnv)
 	}
 	if camel.APIFormat != "messages" {
@@ -287,7 +287,7 @@ func TestResolveLoadsProviderCatalogSnakeAndCamelJSONFields(t *testing.T) {
 	if camel.AuthScheme != "Bearer" {
 		t.Fatalf("camel AuthScheme = %q, want camel alias value", camel.AuthScheme)
 	}
-	if camel.AuthHeaderValue != "env:ZERO_CAMEL_HEADER" {
+	if camel.AuthHeaderValue != "env:RUNE_CAMEL_HEADER" {
 		t.Fatalf("camel AuthHeaderValue = %q, want camel alias value", camel.AuthHeaderValue)
 	}
 }
@@ -301,11 +301,11 @@ func TestResolveMergesProviderCatalogFieldsByLayerPrecedence(t *testing.T) {
 			"base_url": "https://catalog.example/v1",
 			"model": "user-model",
 			"catalog_id": "openai",
-			"api_key_env": "ZERO_USER_API_KEY",
+			"api_key_env": "RUNE_USER_API_KEY",
 			"api_format": "user-format",
 			"auth_header": "X-User-Key",
 			"auth_scheme": "UserScheme",
-			"auth_header_value": "env:ZERO_USER_HEADER"
+			"auth_header_value": "env:RUNE_USER_HEADER"
 		}]
 	}`)
 	projectPath := writeConfig(t, `{
@@ -315,7 +315,7 @@ func TestResolveMergesProviderCatalogFieldsByLayerPrecedence(t *testing.T) {
 			"apiFormat": "project-format",
 			"authHeader": "X-Project-Key",
 			"authScheme": "ProjectScheme",
-			"authHeaderValue": "env:ZERO_PROJECT_HEADER"
+			"authHeaderValue": "env:RUNE_PROJECT_HEADER"
 		}]
 	}`)
 
@@ -339,7 +339,7 @@ func TestResolveMergesProviderCatalogFieldsByLayerPrecedence(t *testing.T) {
 	if resolved.Provider.CatalogID != "custom-openai-compatible" {
 		t.Fatalf("CatalogID = %q, want CLI override", resolved.Provider.CatalogID)
 	}
-	if resolved.Provider.APIKeyEnv != "ZERO_USER_API_KEY" {
+	if resolved.Provider.APIKeyEnv != "RUNE_USER_API_KEY" {
 		t.Fatalf("APIKeyEnv = %q, want inherited user value", resolved.Provider.APIKeyEnv)
 	}
 	if resolved.Provider.APIFormat != "cli-format" {
@@ -351,7 +351,7 @@ func TestResolveMergesProviderCatalogFieldsByLayerPrecedence(t *testing.T) {
 	if resolved.Provider.AuthScheme != "CliScheme" {
 		t.Fatalf("AuthScheme = %q, want CLI override", resolved.Provider.AuthScheme)
 	}
-	if resolved.Provider.AuthHeaderValue != "env:ZERO_PROJECT_HEADER" {
+	if resolved.Provider.AuthHeaderValue != "env:RUNE_PROJECT_HEADER" {
 		t.Fatalf("AuthHeaderValue = %q, want project override", resolved.Provider.AuthHeaderValue)
 	}
 	if resolved.Provider.Model != "user-model" {
@@ -365,13 +365,13 @@ func TestResolveAPIKeyEnvLooksUpEnvOnlyWhenAPIKeyMissing(t *testing.T) {
 		"providers": [{
 			"name": "from-env",
 			"provider": "openai",
-			"apiKeyEnv": "ZERO_FROM_ENV_API_KEY",
+			"apiKeyEnv": "RUNE_FROM_ENV_API_KEY",
 			"model": "gpt-from-env"
 		}, {
 			"name": "direct",
 			"provider": "openai",
 			"apiKey": "sk-direct",
-			"apiKeyEnv": "ZERO_DIRECT_API_KEY",
+			"apiKeyEnv": "RUNE_DIRECT_API_KEY",
 			"model": "gpt-direct"
 		}]
 	}`)
@@ -379,8 +379,8 @@ func TestResolveAPIKeyEnvLooksUpEnvOnlyWhenAPIKeyMissing(t *testing.T) {
 	resolved, err := Resolve(ResolveOptions{
 		ProjectConfigPath: path,
 		Env: map[string]string{
-			"ZERO_FROM_ENV_API_KEY": "sk-from-env",
-			"ZERO_DIRECT_API_KEY":   "sk-should-not-win",
+			"RUNE_FROM_ENV_API_KEY": "sk-from-env",
+			"RUNE_DIRECT_API_KEY":   "sk-should-not-win",
 		},
 	})
 	if err != nil {
@@ -390,7 +390,7 @@ func TestResolveAPIKeyEnvLooksUpEnvOnlyWhenAPIKeyMissing(t *testing.T) {
 	if resolved.Provider.APIKey != "sk-from-env" {
 		t.Fatalf("APIKey = %q, want value from apiKeyEnv", resolved.Provider.APIKey)
 	}
-	if resolved.Provider.APIKeyEnv != "ZERO_FROM_ENV_API_KEY" {
+	if resolved.Provider.APIKeyEnv != "RUNE_FROM_ENV_API_KEY" {
 		t.Fatalf("APIKeyEnv = %q, want env reference preserved", resolved.Provider.APIKeyEnv)
 	}
 	direct := providerByName(t, resolved.Providers, "direct")
@@ -405,7 +405,7 @@ func TestResolveAPIKeyEnvRedactsResolvedSecretOnErrors(t *testing.T) {
 		"providers": [{
 			"name": "custom",
 			"provider_kind": "openai-compatible",
-			"apiKeyEnv": "ZERO_CUSTOM_API_KEY",
+			"apiKeyEnv": "RUNE_CUSTOM_API_KEY",
 			"model": "custom-model"
 		}]
 	}`)
@@ -413,7 +413,7 @@ func TestResolveAPIKeyEnvRedactsResolvedSecretOnErrors(t *testing.T) {
 	_, err := Resolve(ResolveOptions{
 		ProjectConfigPath: path,
 		Env: map[string]string{
-			"ZERO_CUSTOM_API_KEY": "sk-env-secret-value",
+			"RUNE_CUSTOM_API_KEY": "sk-env-secret-value",
 		},
 	})
 	if err == nil {
@@ -527,7 +527,7 @@ func TestResolveReplacesMCPServerOverlayCollections(t *testing.T) {
 					"type": "stdio",
 					"command": "docs-mcp",
 					"args": ["--user"],
-					"env": {"ZERO_DOCS_TOKEN": "user-token"}
+					"env": {"RUNE_DOCS_TOKEN": "user-token"}
 				}
 			}
 		}
@@ -536,7 +536,7 @@ func TestResolveReplacesMCPServerOverlayCollections(t *testing.T) {
 		"mcpServers": {
 			"docs": {
 				"args": ["--project"],
-				"env": {"ZERO_DOCS_PROJECT": "1"}
+				"env": {"RUNE_DOCS_PROJECT": "1"}
 			},
 			"web": {
 				"type": "http",
@@ -562,8 +562,8 @@ func TestResolveReplacesMCPServerOverlayCollections(t *testing.T) {
 	if got := strings.Join(docs.Args, " "); got != "--project" {
 		t.Fatalf("docs.Args = %q, want project args override", got)
 	}
-	if _, ok := docs.Env["ZERO_DOCS_TOKEN"]; ok || docs.Env["ZERO_DOCS_PROJECT"] != "1" {
-		t.Fatalf("docs.Env = %#v, want ZERO_DOCS_TOKEN absent and ZERO_DOCS_PROJECT=1", docs.Env)
+	if _, ok := docs.Env["RUNE_DOCS_TOKEN"]; ok || docs.Env["RUNE_DOCS_PROJECT"] != "1" {
+		t.Fatalf("docs.Env = %#v, want RUNE_DOCS_TOKEN absent and RUNE_DOCS_PROJECT=1", docs.Env)
 	}
 	web := resolved.MCP.Servers["web"]
 	if web.Type != "http" || web.URL != "https://example.com/mcp" {
@@ -579,7 +579,7 @@ func TestResolveMCPServerLayersCannotReenableUserDisabled(t *testing.T) {
 					"type": "stdio",
 					"command": "docs-mcp",
 					"args": ["--user"],
-					"env": {"ZERO_DOCS_TOKEN": "user-token"},
+					"env": {"RUNE_DOCS_TOKEN": "user-token"},
 					"disabled": true
 				}
 			}
@@ -928,7 +928,7 @@ func TestResolveDoesNotDefaultOpenAICustomBaseURLModel(t *testing.T) {
 func TestResolveUsesAnthropicEnvFallback(t *testing.T) {
 	resolved, err := Resolve(ResolveOptions{
 		Env: map[string]string{
-			"ZERO_PROVIDER":     "anthropic",
+			"RUNE_PROVIDER":     "anthropic",
 			"ANTHROPIC_API_KEY": "sk-ant-env",
 			"ANTHROPIC_MODEL":   "claude-sonnet-4.5",
 			"OPENAI_API_KEY":    "sk-openai-env",
@@ -999,7 +999,7 @@ func TestResolveUsesAnthropicEnvFallbackWithCustomProfile(t *testing.T) {
 	resolved, err := Resolve(ResolveOptions{
 		ProjectConfigPath: path,
 		Env: map[string]string{
-			"ZERO_PROVIDER":     "claude-prod",
+			"RUNE_PROVIDER":     "claude-prod",
 			"ANTHROPIC_API_KEY": "sk-ant-env",
 			"ANTHROPIC_MODEL":   "claude-sonnet-4.5",
 		},
@@ -1031,7 +1031,7 @@ func TestResolveUsesAnthropicEnvFallbackWithCustomProfile(t *testing.T) {
 func TestResolveUsesGoogleEnvFallbackAliases(t *testing.T) {
 	resolved, err := Resolve(ResolveOptions{
 		Env: map[string]string{
-			"ZERO_PROVIDER":  "google",
+			"RUNE_PROVIDER":  "google",
 			"GOOGLE_API_KEY": "sk-google-env",
 			"GOOGLE_MODEL":   "gemini-2.5-pro",
 		},
@@ -1122,7 +1122,7 @@ func TestResolveAllowsNoConfiguredProviders(t *testing.T) {
 		t.Fatalf("Providers = %#v, want empty", resolved.Providers)
 	}
 	if HasProviderProfile(resolved.Provider) {
-		t.Fatalf("Provider = %#v, want zero value", resolved.Provider)
+		t.Fatalf("Provider = %#v, want rune value", resolved.Provider)
 	}
 	if resolved.MaxTurns != defaultMaxTurns {
 		t.Fatalf("MaxTurns = %d, want default %d", resolved.MaxTurns, defaultMaxTurns)
@@ -1149,15 +1149,15 @@ func TestResolveRejectsActiveProviderWithoutConfiguredProfiles(t *testing.T) {
 		t.Fatalf("Providers = %#v, want empty", resolved.Providers)
 	}
 	if HasProviderProfile(resolved.Provider) {
-		t.Fatalf("Provider = %#v, want zero value", resolved.Provider)
+		t.Fatalf("Provider = %#v, want rune value", resolved.Provider)
 	}
 	if resolved.MaxTurns != 0 {
-		t.Fatalf("MaxTurns = %d, want zero on failed resolve", resolved.MaxTurns)
+		t.Fatalf("MaxTurns = %d, want rune on failed resolve", resolved.MaxTurns)
 	}
 }
 
 func TestResolveKeepsNormalizedProvidersWhenNoneMarkedActive(t *testing.T) {
-	// Multiple providers configured (e.g. via `zero provider add`) but
+	// Multiple providers configured (e.g. via `rune provider add`) but
 	// activeProvider is blank/stale — a caller like the interactive TUI still
 	// needs the normalized list to fall back to an already-usable provider
 	// instead of forcing a full re-onboarding wizard.
@@ -1480,7 +1480,7 @@ func TestResolveProviderProfileExtendedJSONAliases(t *testing.T) {
 			"auth_header": "X-API-Key",
 			"auth_scheme": "raw",
 			"auth_header_value": "header-secret",
-			"custom_headers": {"X-Zero": "1"},
+			"custom_headers": {"X-Rune": "1"},
 			"model_id": "custom-model",
 			"parse_think_tags": true
 		}]
@@ -1504,8 +1504,8 @@ func TestResolveProviderProfileExtendedJSONAliases(t *testing.T) {
 	if profile.APIFormat != "responses" || profile.AuthHeader != "X-API-Key" || profile.AuthScheme != "raw" || profile.AuthHeaderValue != "header-secret" {
 		t.Fatalf("extended provider fields not loaded: %#v", profile)
 	}
-	if profile.CustomHeaders["X-Zero"] != "1" {
-		t.Fatalf("CustomHeaders = %#v, want X-Zero header", profile.CustomHeaders)
+	if profile.CustomHeaders["X-Rune"] != "1" {
+		t.Fatalf("CustomHeaders = %#v, want X-Rune header", profile.CustomHeaders)
 	}
 	if profile.ParseThinkTags == nil || !*profile.ParseThinkTags {
 		t.Fatalf("ParseThinkTags = %#v, want true", profile.ParseThinkTags)
@@ -1559,8 +1559,8 @@ func TestApplyCatalogDescriptorStripsAimlapiAttributionFromRetargetedProfile(t *
 		BaseURL: "https://proxy.example.test/v1",
 		CustomHeaders: map[string]string{
 			"x-aimlapi-partner-id":          "persisted-partner",
-			"X-AIMLAPI-Integration-Repo":    "Gitlawb/zero",
-			"X-AIMLAPI-Integration-Version": "zero",
+			"X-AIMLAPI-Integration-Repo":    "rune-ai/rune",
+			"X-AIMLAPI-Integration-Version": "rune",
 			"X-Environment":                 "staging",
 		},
 	}
@@ -1878,7 +1878,7 @@ func TestResolveNotifyDefaultEmpty(t *testing.T) {
 func writeConfig(t *testing.T, body string) string {
 	t.Helper()
 
-	path := filepath.Join(t.TempDir(), "zero.json")
+	path := filepath.Join(t.TempDir(), "rune.json")
 	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -1977,7 +1977,7 @@ func TestResolveDeferThresholdOverrideWins(t *testing.T) {
 
 func TestResolveToolsOverrideDisablesDeferralOverNonZeroBase(t *testing.T) {
 	// A programmatic Override built via ToolsOverride(0) carries the presence flag,
-	// so it must override an explicit non-zero base threshold down to 0 (disabled).
+	// so it must override an explicit non-rune base threshold down to 0 (disabled).
 	// A bare ToolsConfig{DeferThreshold: 0} could not do this — it is indistinguishable
 	// from "unset" — which is exactly the trap ToolsOverride exists to avoid.
 	path := writeConfig(t, `{
@@ -2000,7 +2000,7 @@ func TestResolveToolsOverrideDisablesDeferralOverNonZeroBase(t *testing.T) {
 }
 
 func TestResolveToolsOverrideSetsNonZeroOverNonZeroBase(t *testing.T) {
-	// ToolsOverride(7) over an explicit non-zero base must win with the new value.
+	// ToolsOverride(7) over an explicit non-rune base must win with the new value.
 	path := writeConfig(t, `{
 		"activeProvider": "p",
 		"providers": [{"name": "p", "provider": "openai", "apiKey": "sk", "model": "m"}],
@@ -2022,8 +2022,8 @@ func TestResolveToolsOverrideSetsNonZeroOverNonZeroBase(t *testing.T) {
 
 func TestApplyOverridesToolsOverrideZeroOverridesNonZero(t *testing.T) {
 	// Unit-level check on applyOverrides directly: ToolsOverride(0) must flip an
-	// explicit non-zero base to 0 (deferThresholdSet honored), while a bare
-	// non-zero ToolsConfig still overrides via the != 0 branch.
+	// explicit non-rune base to 0 (deferThresholdSet honored), while a bare
+	// non-rune ToolsConfig still overrides via the != 0 branch.
 	cfg := FileConfig{Tools: ToolsOverride(4)}
 	applyOverrides(&cfg, Overrides{Tools: ToolsOverride(0)})
 	if cfg.Tools.DeferThreshold != 0 {
@@ -2036,7 +2036,7 @@ func TestApplyOverridesToolsOverrideZeroOverridesNonZero(t *testing.T) {
 	cfg = FileConfig{Tools: ToolsOverride(4)}
 	applyOverrides(&cfg, Overrides{Tools: ToolsConfig{DeferThreshold: 5}})
 	if cfg.Tools.DeferThreshold != 5 {
-		t.Fatalf("applyOverrides bare non-zero: DeferThreshold = %d, want 5", cfg.Tools.DeferThreshold)
+		t.Fatalf("applyOverrides bare non-rune: DeferThreshold = %d, want 5", cfg.Tools.DeferThreshold)
 	}
 }
 
@@ -2124,7 +2124,7 @@ func TestResolveMaxTurnsZeroFallsBackToDefault(t *testing.T) {
 
 // The reported brick: a hand-written google profile with an apiKey but no
 // model made EVERY resolving command fail ("provider google requires model"),
-// including zero config and bare zero setup — the only commands that could
+// including rune config and bare rune setup — the only commands that could
 // have fixed it. Official-API kinds now fall back to their catalog default
 // model, exactly like the openai kind always has.
 func TestResolveDefaultsGoogleModelFromCatalog(t *testing.T) {

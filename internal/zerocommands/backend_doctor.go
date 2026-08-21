@@ -5,11 +5,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/plugins"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/config"
+	"rune/internal/hooks"
+	"rune/internal/mcp"
+	"rune/internal/plugins"
+	"rune/internal/redaction"
 )
 
 type BackendDoctorStatus string
@@ -70,7 +70,7 @@ func mcpDoctorChecks(cfg config.MCPConfig) []BackendDoctorCheck {
 			Target:  "mcp",
 			Status:  BackendDoctorStatusPass,
 			Message: "No MCP servers configured.",
-			Action:  "zero mcp add <name> --url <url>",
+			Action:  "rune mcp add <name> --url <url>",
 		}}
 	}
 
@@ -91,7 +91,7 @@ func mcpDoctorChecks(cfg config.MCPConfig) []BackendDoctorCheck {
 				Target:  target,
 				Status:  BackendDoctorStatusWarn,
 				Message: fmt.Sprintf("MCP server %s is disabled.", target),
-				Action:  "zero mcp enable " + target,
+				Action:  "rune mcp enable " + target,
 			})
 			continue
 		}
@@ -104,7 +104,7 @@ func mcpDoctorChecks(cfg config.MCPConfig) []BackendDoctorCheck {
 				Target:  target,
 				Status:  BackendDoctorStatusFail,
 				Message: redaction.RedactString(err.Error(), redaction.Options{}),
-				Action:  "zero mcp add " + target,
+				Action:  "rune mcp add " + target,
 			})
 			continue
 		}
@@ -118,7 +118,7 @@ func mcpDoctorChecks(cfg config.MCPConfig) []BackendDoctorCheck {
 			Target:  target,
 			Status:  BackendDoctorStatusPass,
 			Message: fmt.Sprintf("MCP server %s is configured.", target),
-			Action:  "zero mcp check " + target,
+			Action:  "rune mcp check " + target,
 		}
 		if detail != "" {
 			check.Details = map[string]string{"type": detail}
@@ -137,7 +137,7 @@ func hookDoctorChecks(result hooks.LoadResult) []BackendDoctorCheck {
 			Target:  "hooks",
 			Status:  BackendDoctorStatusPass,
 			Message: "No hooks configured.",
-			Action:  "zero hooks list",
+			Action:  "rune hooks list",
 		})
 	}
 	if len(result.Config.Hooks) > 0 && !result.Config.Enabled {
@@ -147,7 +147,7 @@ func hookDoctorChecks(result hooks.LoadResult) []BackendDoctorCheck {
 			Target:  "hooks",
 			Status:  BackendDoctorStatusWarn,
 			Message: "Hooks are configured but globally disabled.",
-			Action:  "zero hooks list",
+			Action:  "rune hooks list",
 		})
 	}
 	for _, diagnostic := range result.Diagnostics {
@@ -158,7 +158,7 @@ func hookDoctorChecks(result hooks.LoadResult) []BackendDoctorCheck {
 			Target:  redactSnapshotString(target),
 			Status:  hookDiagnosticStatus(diagnostic.Kind),
 			Message: redactSnapshotString(diagnostic.Message),
-			Action:  "zero hooks list",
+			Action:  "rune hooks list",
 			Details: compactDetails(map[string]string{
 				"kind":      string(diagnostic.Kind),
 				"source":    string(diagnostic.Source),
@@ -174,7 +174,7 @@ func hookDoctorChecks(result hooks.LoadResult) []BackendDoctorCheck {
 			Target:  "hooks",
 			Status:  BackendDoctorStatusPass,
 			Message: fmt.Sprintf("%d hooks configured.", len(result.Config.Hooks)),
-			Action:  "zero hooks list",
+			Action:  "rune hooks list",
 		})
 	}
 	return checks
@@ -189,7 +189,7 @@ func pluginDoctorChecks(result plugins.LoadResult) []BackendDoctorCheck {
 			Target:  "plugins",
 			Status:  BackendDoctorStatusPass,
 			Message: "No plugins loaded.",
-			Action:  "zero plugins list",
+			Action:  "rune plugins list",
 		})
 	}
 	for _, plugin := range result.Plugins {
@@ -203,7 +203,7 @@ func pluginDoctorChecks(result plugins.LoadResult) []BackendDoctorCheck {
 			Target:  target,
 			Status:  BackendDoctorStatusWarn,
 			Message: fmt.Sprintf("Plugin %s is disabled.", target),
-			Action:  "zero plugins list",
+			Action:  "rune plugins list",
 		})
 	}
 	for _, diagnostic := range result.Diagnostics {
@@ -214,7 +214,7 @@ func pluginDoctorChecks(result plugins.LoadResult) []BackendDoctorCheck {
 			Target:  redactSnapshotString(target),
 			Status:  pluginDiagnosticStatus(diagnostic.Kind),
 			Message: redactSnapshotString(diagnostic.Message),
-			Action:  "zero plugins list",
+			Action:  "rune plugins list",
 			Details: compactDetails(map[string]string{
 				"kind":         string(diagnostic.Kind),
 				"source":       string(diagnostic.Source),
@@ -232,7 +232,7 @@ func pluginDoctorChecks(result plugins.LoadResult) []BackendDoctorCheck {
 			Target:  "plugins",
 			Status:  BackendDoctorStatusPass,
 			Message: fmt.Sprintf("%d plugins loaded.", len(result.Plugins)),
-			Action:  "zero plugins list",
+			Action:  "rune plugins list",
 		})
 	}
 	return checks

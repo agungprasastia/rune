@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/sessions"
 )
 
 func TestHydrationKeepsFailedTaskWithoutSpecialist(t *testing.T) {

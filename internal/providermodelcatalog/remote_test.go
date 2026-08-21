@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/providercatalog"
 )
 
 func TestParseModelsDevProviderScopesAndMapsMetadata(t *testing.T) {

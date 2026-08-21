@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 type StreamResult struct {

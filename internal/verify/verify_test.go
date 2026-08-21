@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/testrunner"
+	"rune/internal/testrunner"
 )
 
 func TestDetectPlanFindsBunAndGoChecks(t *testing.T) {
 	root := t.TempDir()
-	writeFile(t, filepath.Join(root, "go.mod"), "module example.com/zero\n")
+	writeFile(t, filepath.Join(root, "go.mod"), "module example.com/rune\n")
 	writeFile(t, filepath.Join(root, "bun.lock"), "")
 	writeFile(t, filepath.Join(root, "package.json"), `{
 		"scripts": {

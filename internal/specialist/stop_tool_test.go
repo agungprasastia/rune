@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/background"
+	"rune/internal/tools"
 )
 
 func TestStopToolKillsBackgroundTask(t *testing.T) {

@@ -296,7 +296,7 @@ func TestCollectStreamWithOptionsEmitsTextReasoningAndUsageCallbacks(t *testing.
 		events <- StreamEvent{Type: StreamEventText, Content: "Hello "}
 		events <- StreamEvent{Type: StreamEventReasoning, Content: "Thinking. "}
 		events <- StreamEvent{Type: StreamEventUsage, Usage: Usage{PromptTokens: 12, CompletionTokens: 5, CachedInputTokens: 2}}
-		events <- StreamEvent{Type: StreamEventText, Content: "zero"}
+		events <- StreamEvent{Type: StreamEventText, Content: "rune"}
 		events <- StreamEvent{Type: StreamEventDone}
 	}()
 
@@ -309,13 +309,13 @@ func TestCollectStreamWithOptionsEmitsTextReasoningAndUsageCallbacks(t *testing.
 		OnUsage:     func(usage Usage) { usageEvents = append(usageEvents, usage) },
 	})
 
-	if collected.Text != "Hello zero" {
-		t.Fatalf("text = %q, want Hello zero", collected.Text)
+	if collected.Text != "Hello rune" {
+		t.Fatalf("text = %q, want Hello rune", collected.Text)
 	}
 	if !collected.HasReasoning {
 		t.Fatal("expected reasoning stream to mark collected turn as reasoning-bearing")
 	}
-	if len(textDeltas) != 2 || textDeltas[0] != "Hello " || textDeltas[1] != "zero" {
+	if len(textDeltas) != 2 || textDeltas[0] != "Hello " || textDeltas[1] != "rune" {
 		t.Fatalf("unexpected text callbacks: %#v", textDeltas)
 	}
 	if len(reasoningDeltas) != 1 || reasoningDeltas[0] != "Thinking. " {
@@ -357,7 +357,7 @@ func TestCollectStreamFlushesOpenToolCallsWhenChannelCloses(t *testing.T) {
 		defer close(events)
 		events <- StreamEvent{Type: StreamEventToolCallStart, ToolCallID: "call_closed", ToolName: "grep"}
 		events <- StreamEvent{Type: StreamEventToolCallDelta, ToolCallID: "call_closed", ArgumentsFragment: `{"query":"`}
-		events <- StreamEvent{Type: StreamEventToolCallDelta, ToolCallID: "call_closed", ArgumentsFragment: `zero"}`}
+		events <- StreamEvent{Type: StreamEventToolCallDelta, ToolCallID: "call_closed", ArgumentsFragment: `rune"}`}
 	}()
 
 	collected := CollectStream(context.Background(), events)
@@ -366,7 +366,7 @@ func TestCollectStreamFlushesOpenToolCallsWhenChannelCloses(t *testing.T) {
 		t.Fatalf("expected one flushed tool call, got %d", len(collected.ToolCalls))
 	}
 	toolCall := collected.ToolCalls[0]
-	if toolCall.ID != "call_closed" || toolCall.Name != "grep" || toolCall.Arguments != `{"query":"zero"}` {
+	if toolCall.ID != "call_closed" || toolCall.Name != "grep" || toolCall.Arguments != `{"query":"rune"}` {
 		t.Fatalf("unexpected flushed tool call: %#v", toolCall)
 	}
 }

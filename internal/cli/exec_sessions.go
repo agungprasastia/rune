@@ -6,9 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/sessions"
+	"rune/internal/tools"
 )
 
 type execSessionRecorder struct {
@@ -62,7 +62,7 @@ func preflightExecSession(options execOptions) error {
 			return err
 		}
 		if session == nil {
-			return execUsageError{"Zero session not found: " + options.fork}
+			return execUsageError{"Rune session not found: " + options.fork}
 		}
 	case options.resume != "":
 		session, err := store.Get(options.resume)
@@ -70,10 +70,10 @@ func preflightExecSession(options execOptions) error {
 			return err
 		}
 		if session == nil {
-			return execUsageError{"Zero session not found: " + options.resume}
+			return execUsageError{"Rune session not found: " + options.resume}
 		}
 		if !sessions.IsResumableKind(session.SessionKind) {
-			return execUsageError{"Zero session is not resumable: " + options.resume}
+			return execUsageError{"Rune session is not resumable: " + options.resume}
 		}
 	case options.resumeLatest:
 		latest, err := store.LatestResumable()
@@ -81,7 +81,7 @@ func preflightExecSession(options execOptions) error {
 			return err
 		}
 		if latest == nil {
-			return execUsageError{"No Zero sessions available to resume."}
+			return execUsageError{"No Rune sessions available to resume."}
 		}
 	}
 	return nil
@@ -95,7 +95,7 @@ func createSessionTitle(prompt string) string {
 		title = cutRuneBoundary(title, 80)
 	}
 	if title == "" {
-		return "Zero exec session"
+		return "Rune exec session"
 	}
 	return title
 }
@@ -134,6 +134,6 @@ func (recorder *execSessionRecorder) append(eventType sessions.EventType, payloa
 // is reported once at run end. No-op when recording succeeded.
 func (recorder *execSessionRecorder) warnIfRecordingFailed(stderr io.Writer) {
 	if recorder.err != nil {
-		fmt.Fprintf(stderr, "[zero] WARNING: session not fully recorded: %v\n", recorder.err)
+		fmt.Fprintf(stderr, "[rune] WARNING: session not fully recorded: %v\n", recorder.err)
 	}
 }

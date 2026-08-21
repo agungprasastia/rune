@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // lastCardText returns the text of the most recently appended transcript row —
@@ -246,7 +246,7 @@ func TestPlanStepDetailToggle(t *testing.T) {
 		t.Error("re-clicking the same step should close it")
 	}
 	if len(m.transcript) != base {
-		t.Errorf("re-click should net zero growth: got %d, base %d", len(m.transcript), base)
+		t.Errorf("re-click should net rune growth: got %d, base %d", len(m.transcript), base)
 	}
 
 	m, _ = m.openPlanStepDetail(0)

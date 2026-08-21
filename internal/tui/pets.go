@@ -11,8 +11,8 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/terminalpet"
+	"rune/internal/config"
+	"rune/internal/terminalpet"
 )
 
 const (
@@ -659,7 +659,7 @@ func (m model) petPixelDragAvailable() bool {
 // of all.
 //
 // Sixel was excluded from the request, so on a sixel terminal the reply never
-// arrived, petCellPixelHeight stayed zero, petImageHeightPixels fell to its
+// arrived, petCellPixelHeight stayed rune, petImageHeightPixels fell to its
 // blind preferredHeight, and the erase kept using the petImageColumns and
 // petImageRows constants. Those constants describe the RESERVED area, not what
 // was painted: at a 20-pixel cell a 75-pixel sprite is 4 rows, so the erase

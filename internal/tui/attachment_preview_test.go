@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/terminalpet"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/terminalpet"
+	"rune/internal/zeroruntime"
 )
 
 func previewImageBlock(t *testing.T) zeroruntime.ImageBlock {

@@ -14,8 +14,8 @@ import (
 
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/tools"
 )
 
 func displayValue(value string, fallback string) string {
@@ -315,7 +315,7 @@ func isInternalToolArgumentError(row transcriptRow) bool {
 
 // hyperlink wraps already-styled text in an OSC 8 terminal hyperlink so
 // supporting terminals (iTerm2, WezTerm, kitty, Ghostty, …) make it clickable
-// — cmd/ctrl+click on an edited file opens it. The sequences are zero-width
+// — cmd/ctrl+click on an edited file opens it. The sequences are rune-width
 // for lipgloss/x-ansi width math, and truncateStyledLine skips and re-closes
 // them via ansiSequenceEnd.
 func hyperlink(url string, text string) string {
@@ -362,7 +362,7 @@ var userHomeDir = os.UserHomeDir
 // trailing segments with a `…/` prefix:
 //
 //	under cwd      → examples/calc/calc.go
-//	under $HOME    → ~/projects/zero/main.go
+//	under $HOME    → ~/projects/rune/main.go
 //	elsewhere      → …/other/calc.go   (last displayPathTailSegments segments)
 //	already short  → returned unchanged (relative input, no separators, etc.)
 //
@@ -900,7 +900,7 @@ func renderMCPManagerCard(text string, width int) string {
 			lines = append(lines, zeroTheme.ink.Bold(true).Render(line))
 		case isMCPManagerHeading(trimmed):
 			lines = append(lines, zeroTheme.accent.Bold(true).Render(line))
-		case strings.Contains(trimmed, "zero mcp "):
+		case strings.Contains(trimmed, "rune mcp "):
 			lines = append(lines, zeroTheme.ink.Render(line))
 		case strings.HasPrefix(trimmed, "›") || strings.HasPrefix(trimmed, "- "):
 			lines = append(lines, zeroTheme.ink.Render(line))
@@ -1061,7 +1061,7 @@ func noteBox(text string, width int, borderStyle lipgloss.Style, textStyle lipgl
 }
 
 func renderAskUserRow(row transcriptRow, width int) string {
-	line := fitStyledLine(zeroTheme.accent.Render("ask zero")+"  "+zeroTheme.ink.Render(strings.TrimPrefix(row.text, "ask_user: ")), width)
+	line := fitStyledLine(zeroTheme.accent.Render("ask rune")+"  "+zeroTheme.ink.Render(strings.TrimPrefix(row.text, "ask_user: ")), width)
 	if detail := strings.TrimSpace(row.detail); detail != "" {
 		line += "\n" + wrapDetailBlock(detail, width)
 	}
@@ -1203,10 +1203,10 @@ func renderFocusedPermissionPrompt(request agent.PermissionRequest, cursor int, 
 	// ask_user "type your own answer" surface. What is typed is sent to the model
 	// as the denial reason, so it reads the instruction and adjusts.
 	if typing {
-		lines = append(lines, fill(zeroTheme.muted).Render("Tell Zero what to do differently:"))
+		lines = append(lines, fill(zeroTheme.muted).Render("Tell Rune what to do differently:"))
 		lines = append(lines, zeroTheme.userPrompt.Render("❯ ")+fill(zeroTheme.ink).Render(feedback)+fill(zeroTheme.accent).Render("▌"))
 		lines = append(lines, "")
-		lines = append(lines, fill(zeroTheme.faint).Render("enter · send to Zero    esc · back to options"))
+		lines = append(lines, fill(zeroTheme.faint).Render("enter · send to Rune    esc · back to options"))
 		return styledBlockFill(width, lines, zeroTheme.permBorder, zeroTheme.permBg), nil
 	}
 
@@ -1272,7 +1272,7 @@ func permissionOptionLabel(option permissionOption, request agent.PermissionRequ
 		case permissionDecisionDeny:
 			return "Deny — drop this message"
 		case permissionDecisionAllow:
-			return "Deliver this message to Zero"
+			return "Deliver this message to Rune"
 		default:
 			return option.label
 		}
@@ -1326,7 +1326,7 @@ func permissionOptionLabel(option permissionOption, request agent.PermissionRequ
 	case permissionDecisionDeny:
 		return "No, continue without running it"
 	case permissionDecisionCancel:
-		return "No, and tell Zero what to do differently"
+		return "No, and tell Rune what to do differently"
 	default:
 		return option.label
 	}
@@ -1463,7 +1463,7 @@ func renderAskUserQuestionnaire(prompt pendingAskUserPrompt, input string, width
 
 // renderAskUserWaitingState makes the paused handoff explicit inside the prompt
 // that owns the keyboard. It is intentionally steady: this is user-blocked work,
-// not background progress, so a spinner would imply Zero can advance without an
+// not background progress, so a spinner would imply Rune can advance without an
 // answer. The state label wins over the optional title on narrow terminals.
 func renderAskUserWaitingState(title string, width int, fill func(lipgloss.Style) lipgloss.Style) string {
 	state := zeroTheme.accent.Render("●") + " " + fill(zeroTheme.faint).Render("waiting for your answer")

@@ -1,7 +1,7 @@
 # TUI Themes
 
 Zero's TUI ships a set of built-in color themes. Pick one with `--theme <name>`,
-the `ZERO_THEME` environment variable, or the `/theme <name>` command while
+the `RUNE_THEME` environment variable, or the `/theme <name>` command while
 running. `auto` (the default) follows the terminal's detected background.
 
 Run `/theme` with no argument to open a picker: move through the list to

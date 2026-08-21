@@ -12,14 +12,14 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/aimlapi"
-	"github.com/rune-ai/rune/internal/browser"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/provideroauth"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/aimlapi"
+	"rune/internal/browser"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/provideroauth"
+	"rune/internal/redaction"
 )
 
 type setupStage int
@@ -884,11 +884,11 @@ func (m model) completeSetup() (tea.Model, tea.Cmd) {
 		m.providerProfile = result.Provider
 		m.providerName = result.Provider.Name
 		m.modelName = result.Provider.Model
-		// Export ZERO_PROVIDER alongside the committed profile fields (and the
+		// Export RUNE_PROVIDER alongside the committed profile fields (and the
 		// config setupSave already persisted as active). Unlike command_center's
 		// switch — which commits everything only after a successful build — setup
 		// commits config + profile unconditionally here, so the env must match
-		// them unconditionally too: applyEnv makes ZERO_PROVIDER WIN over config,
+		// them unconditionally too: applyEnv makes RUNE_PROVIDER WIN over config,
 		// so a stale value from an earlier /model switch left in place would send
 		// spawned children to the OLD provider even though config now names the
 		// new one. That is the exact D3 gap this closes.
@@ -1369,7 +1369,7 @@ func (m model) setupStageLines(width int, height int) []string {
 		return []string{
 			zeroTheme.ink.Bold(true).Render("Safety"),
 			"",
-			"Zero asks before running shell commands or changing files.",
+			"Rune asks before running shell commands or changing files.",
 			"Unsafe mode stays off unless you explicitly enable it.",
 			"",
 			zeroTheme.faint.Render("Default: ask before risky work."),
@@ -1378,7 +1378,7 @@ func (m model) setupStageLines(width int, height int) []string {
 		return m.setupReadyLines(width)
 	default:
 		return []string{
-			zeroTheme.accent.Render("Welcome to Zero"),
+			zeroTheme.accent.Render("Welcome to Rune"),
 			"",
 			zeroTheme.ink.Render("A terminal agent for changing real code."),
 			zeroTheme.faint.Render("Plan changes, edit with approval, run checks, and resume sessions."),
@@ -1412,7 +1412,7 @@ func (m model) setupReadyLines(width int) []string {
 	lines := []string{
 		zeroTheme.ink.Bold(true).Render("Ready"),
 		"",
-		"Zero will save this setup and open chat.",
+		"Rune will save this setup and open chat.",
 		"",
 	}
 
@@ -1718,7 +1718,7 @@ func (m model) setupNameLines(width int) []string {
 	return []string{
 		padSetupLine("  "+zeroTheme.ink.Bold(true).Render("Provider name"), rowWidth),
 		blankSetupBlockLine(rowWidth),
-		padSetupLine("  "+zeroTheme.ink.Render("Choose the short label shown in Zero."), rowWidth),
+		padSetupLine("  "+zeroTheme.ink.Render("Choose the short label shown in Rune."), rowWidth),
 		padSetupLine("  "+zeroTheme.faint.Render("Leave blank to use "+name+"."), rowWidth),
 		blankSetupBlockLine(rowWidth),
 		padSetupLine("  "+providerWizardInputLine("name > ", strings.TrimSpace(m.setup.name), name, rowWidth-2), rowWidth),
@@ -1848,7 +1848,7 @@ func (m model) setupFooter() string {
 		}
 		return zeroTheme.faint.Render("↑/↓ choose   type search   ") + zeroTheme.accent.Render("Enter") + zeroTheme.faint.Render(" continue")
 	case setupStageWelcome:
-		return zeroTheme.accent.Render("Space") + zeroTheme.faint.Render(" to set up Zero")
+		return zeroTheme.accent.Render("Space") + zeroTheme.faint.Render(" to set up Rune")
 	default:
 		return zeroTheme.accent.Render("Space") + zeroTheme.faint.Render(" to continue")
 	}

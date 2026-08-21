@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/oauth"
+	"rune/internal/oauth"
 )
 
 const (

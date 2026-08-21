@@ -19,11 +19,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/agent"
+	"rune/internal/sandbox"
 )
 
-// Profile is a named execution posture. Zero-valued fields inherit the run's
+// Profile is a named execution posture. Rune-valued fields inherit the run's
 // existing value (flag, mode, config, or built-in default) — a profile only
 // ever fills knobs the caller left unset, except MaxTurns which REPLACES the
 // resolved budget (that displacement is what escalation restores).
@@ -43,7 +43,7 @@ type Profile struct {
 	// unset and must never override an explicit opt-in).
 	SelfCorrect bool
 
-	// Escalation triggers. All zero means the profile never escalates and
+	// Escalation triggers. All rune means the profile never escalates and
 	// Policy returns nil (the loop stays byte-identical to a nil-profile run).
 	// Targets are NOT part of the catalog: escalation restores the values the
 	// profile displaced at selection time, never invented ones, so targets are

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/redaction"
 )
 
 // defaultWebhookTimeout bounds a single delivery attempt. A notification must
@@ -47,7 +47,7 @@ type webhookPayload struct {
 }
 
 // WebhookConfig configures a WebhookSink. URL is a Slack incoming-webhook URL or
-// any generic endpoint that accepts a JSON POST. The zero value (empty URL)
+// any generic endpoint that accepts a JSON POST. The rune value (empty URL)
 // yields an inert sink whose Emit is a no-op, so callers can wire a sink
 // unconditionally and let configuration decide whether it fires.
 type WebhookConfig struct {

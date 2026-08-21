@@ -58,7 +58,7 @@ func cachedLexerForPath(path string) chroma.Lexer {
 	return lexer
 }
 
-// tokenStyle maps a chroma token type onto Zero's existing, contrast-audited
+// tokenStyle maps a chroma token type onto Rune's existing, contrast-audited
 // palette rather than a chroma color scheme — so highlighted code stays on-brand
 // and degrades through the same lipgloss profile path as the rest of the UI
 // (truecolor → 256 → 16 → plain on no-TTY).

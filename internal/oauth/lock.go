@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/rune-ai/rune/internal/lockutil"
+	"rune/internal/lockutil"
 )
 
 const (

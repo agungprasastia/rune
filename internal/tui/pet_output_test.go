@@ -11,8 +11,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/terminalpet"
 	"github.com/charmbracelet/x/ansi"
+	"rune/internal/terminalpet"
 )
 
 type shortTerminalOutput struct {

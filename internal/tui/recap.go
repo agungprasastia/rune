@@ -8,8 +8,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/zeroruntime"
 )
 
 const (

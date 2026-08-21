@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // A stalled-but-open Anthropic upstream (sends one event, then hangs without

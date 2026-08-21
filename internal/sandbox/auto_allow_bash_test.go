@@ -93,7 +93,7 @@ func TestSandboxedBashAutoAllowDoesNotAffectNonShell(t *testing.T) {
 	}
 }
 
-// Forged re-entrancy markers (ambient ZERO_SANDBOXED=1 + ZERO_SANDBOX_BACKEND at
+// Forged re-entrancy markers (ambient RUNE_SANDBOXED=1 + RUNE_SANDBOX_BACKEND at
 // an unsandboxed process boundary) must NOT let a shell command combine an
 // auto-allow decision with an unwrapped pass-through plan (issue #727). The
 // runner skips wrapping when the markers are present, so the policy must stop

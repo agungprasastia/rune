@@ -7,10 +7,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/sessions"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 const streamJSONToolResultOutputLimit = 10 * 1024
@@ -64,7 +64,7 @@ func (writer *execEventWriter) warning(message string) {
 		writer.writeStreamJSON(streamjson.Event{Type: streamjson.EventWarning, RunID: writer.runID, Message: message})
 		return
 	}
-	writer.writeStderr("[zero] WARNING: " + message + "\n")
+	writer.writeStderr("[rune] WARNING: " + message + "\n")
 }
 
 func (writer *execEventWriter) text(delta string) {
@@ -323,7 +323,7 @@ func (writer *execEventWriter) errorEvent(code string, message string, recoverab
 		writer.writeJSON(map[string]any{"type": "error", "code": code, "message": message})
 		return
 	}
-	writer.writeStderr("[zero] " + message + "\n")
+	writer.writeStderr("[rune] " + message + "\n")
 }
 
 func (writer *execEventWriter) runEnd(status string, exitCode int) {

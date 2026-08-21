@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 func TestSandboxPolicySnapshotFromPolicyFillsEffectiveMode(t *testing.T) {

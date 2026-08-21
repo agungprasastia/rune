@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/execution"
+	"rune/internal/redaction"
 )
 
 const (
@@ -79,7 +79,7 @@ type GrantStore struct {
 var toolGrantNamePattern = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)
 
 func ResolveGrantPath(env map[string]string) (string, error) {
-	override := strings.TrimSpace(envValue(env, "ZERO_SANDBOX_GRANTS_PATH"))
+	override := strings.TrimSpace(envValue(env, "RUNE_SANDBOX_GRANTS_PATH"))
 	if override != "" {
 		if filepath.IsAbs(override) {
 			return filepath.Clean(override), nil
@@ -104,7 +104,7 @@ func ResolveGrantPath(env map[string]string) (string, error) {
 		}
 		configHome = resolved
 	}
-	return filepath.Join(configHome, "zero", "sandbox-grants.json"), nil
+	return filepath.Join(configHome, "rune", "sandbox-grants.json"), nil
 }
 
 func NewGrantStore(options StoreOptions) (*GrantStore, error) {
@@ -146,7 +146,7 @@ func (store *GrantStore) ConsumeMigrationNotice() (string, error) {
 	// Look for a pending notice WITHOUT taking the interprocess lock. Acquiring
 	// that lock creates the grants directory and opens <grants>.lockfile, so doing
 	// it unconditionally would make this call require a WRITABLE grants directory
-	// even when it has nothing to write. Every startup and every `zero exec` calls
+	// even when it has nothing to write. Every startup and every `rune exec` calls
 	// this, so a user with no grants file whose configured grants path (or its
 	// parent) sits on a read-only mount would fail outright with "failed to
 	// migrate sandbox grants", where reading alone reports an empty state and

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestStreamCompletionPostsChatCompletionRequest(t *testing.T) {
@@ -35,7 +35,7 @@ func TestStreamCompletionPostsChatCompletionRequest(t *testing.T) {
 		APIKey:    "sk-secret",
 		BaseURL:   server.URL + "/",
 		Model:     "gpt-test",
-		UserAgent: "zero-test",
+		UserAgent: "rune-test",
 	})
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
@@ -73,8 +73,8 @@ func TestStreamCompletionPostsChatCompletionRequest(t *testing.T) {
 	if gotAuth != "Bearer sk-secret" {
 		t.Fatalf("auth = %q, want bearer token", gotAuth)
 	}
-	if gotUserAgent != "zero-test" {
-		t.Fatalf("user agent = %q, want zero-test", gotUserAgent)
+	if gotUserAgent != "rune-test" {
+		t.Fatalf("user agent = %q, want rune-test", gotUserAgent)
 	}
 	if gotBody["model"] != "gpt-test" || gotBody["stream"] != true {
 		t.Fatalf("unexpected model/stream: %#v", gotBody)
@@ -233,7 +233,7 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 		Model:         "custom-model",
 		AuthHeader:    "X-API-Key",
 		AuthScheme:    "Token",
-		CustomHeaders: map[string]string{"HTTP-Referer": "https://zero.dev"},
+		CustomHeaders: map[string]string{"HTTP-Referer": "https://rune.dev"},
 	})
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
@@ -252,7 +252,7 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 	if gotAltAuth != "Token sk-custom" {
 		t.Fatalf("X-API-Key = %q, want custom scheme token", gotAltAuth)
 	}
-	if gotReferer != "https://zero.dev" {
+	if gotReferer != "https://rune.dev" {
 		t.Fatalf("HTTP-Referer = %q, want custom header", gotReferer)
 	}
 }
@@ -260,13 +260,13 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 func TestStreamCompletionEmitsTextUsageAndDone(t *testing.T) {
 	provider := newTestProvider(t, func(w http.ResponseWriter, r *http.Request) {
 		writeSSE(w, `{"choices":[{"delta":{"content":"hello "}}]}`)
-		writeSSE(w, `{"choices":[{"delta":{"content":"zero"}}],"usage":{"prompt_tokens":12,"completion_tokens":5,"prompt_tokens_details":{"cached_tokens":3}}}`)
+		writeSSE(w, `{"choices":[{"delta":{"content":"rune"}}],"usage":{"prompt_tokens":12,"completion_tokens":5,"prompt_tokens_details":{"cached_tokens":3}}}`)
 		writeSSE(w, `[DONE]`)
 	})
 
 	events := collectProviderEvents(t, provider)
 	assertEvent(t, events[0], zeroruntime.StreamEventText, "hello ")
-	assertEvent(t, events[1], zeroruntime.StreamEventText, "zero")
+	assertEvent(t, events[1], zeroruntime.StreamEventText, "rune")
 	if events[2].Type != zeroruntime.StreamEventUsage || events[2].Usage.PromptTokens != 12 || events[2].Usage.CompletionTokens != 5 || events[2].Usage.CachedInputTokens != 3 {
 		t.Fatalf("unexpected usage event: %#v", events[2])
 	}
@@ -420,7 +420,7 @@ func TestStreamCompletionBuffersToolArgsUntilIDAndNameArrive(t *testing.T) {
 func TestStreamCompletionTracksMultipleToolCallsByIndex(t *testing.T) {
 	provider := newTestProvider(t, func(w http.ResponseWriter, r *http.Request) {
 		writeSSE(w, `{"choices":[{"delta":{"tool_calls":[{"index":1,"function":{"arguments":"{\"query\":"}},{"index":0,"id":"call_a","function":{"name":"read_file","arguments":"{\"path\":\"a\"}"}}]}}]}`)
-		writeSSE(w, `{"choices":[{"delta":{"tool_calls":[{"index":1,"id":"call_b","function":{"name":"grep","arguments":"\"zero\"}"}}]},"finish_reason":"tool_calls"}]}`)
+		writeSSE(w, `{"choices":[{"delta":{"tool_calls":[{"index":1,"id":"call_b","function":{"name":"grep","arguments":"\"rune\"}"}}]},"finish_reason":"tool_calls"}]}`)
 		writeSSE(w, `[DONE]`)
 	})
 
@@ -434,7 +434,7 @@ func TestStreamCompletionTracksMultipleToolCallsByIndex(t *testing.T) {
 	if deltas[0].ToolCallID != "call_a" || deltas[0].ArgumentsFragment != `{"path":"a"}` {
 		t.Fatalf("unexpected first delta: %#v", deltas[0])
 	}
-	if deltas[1].ToolCallID != "call_b" || deltas[1].ArgumentsFragment != `{"query":"zero"}` {
+	if deltas[1].ToolCallID != "call_b" || deltas[1].ArgumentsFragment != `{"query":"rune"}` {
 		t.Fatalf("unexpected second delta: %#v", deltas[1])
 	}
 }
@@ -1415,7 +1415,7 @@ func TestOpenAIRequestEmptyContentHandling(t *testing.T) {
 // replica holding the cached prefix, a keyless request omits the field
 // entirely (strict servers see byte-identical requests to before),
 // DisablePromptCacheKey (used for openai-compatible gateways) suppresses it,
-// and ZERO_DISABLE_PROMPT_CACHE_KEY is the env kill switch for any endpoint.
+// and RUNE_DISABLE_PROMPT_CACHE_KEY is the env kill switch for any endpoint.
 func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 	provider, err := New(Options{Model: "gpt-test"})
 	if err != nil {
@@ -1466,7 +1466,7 @@ func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 		t.Fatalf("compatible provider must omit prompt_cache_key: %s", data)
 	}
 
-	t.Setenv("ZERO_DISABLE_PROMPT_CACHE_KEY", "1")
+	t.Setenv("RUNE_DISABLE_PROMPT_CACHE_KEY", "1")
 	req = provider.openAIRequest(zeroruntime.CompletionRequest{
 		Messages:       messages,
 		PromptCacheKey: "sess_123",
@@ -1476,15 +1476,15 @@ func TestOpenAIRequestPromptCacheKey(t *testing.T) {
 	}
 
 	// Explicitly-falsy kill switch values must NOT disable forwarding — only
-	// truthy values flip the toggle (same parsing as ZERO_FORMAT_ON_WRITE).
+	// truthy values flip the toggle (same parsing as RUNE_FORMAT_ON_WRITE).
 	for _, value := range []string{"0", "false", "FALSE"} {
-		t.Setenv("ZERO_DISABLE_PROMPT_CACHE_KEY", value)
+		t.Setenv("RUNE_DISABLE_PROMPT_CACHE_KEY", value)
 		req = provider.openAIRequest(zeroruntime.CompletionRequest{
 			Messages:       messages,
 			PromptCacheKey: "sess_123",
 		})
 		if req.PromptCacheKey != "sess_123" {
-			t.Fatalf("ZERO_DISABLE_PROMPT_CACHE_KEY=%q must be a no-op; PromptCacheKey = %q", value, req.PromptCacheKey)
+			t.Fatalf("RUNE_DISABLE_PROMPT_CACHE_KEY=%q must be a no-op; PromptCacheKey = %q", value, req.PromptCacheKey)
 		}
 	}
 }

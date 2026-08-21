@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 // nativeBackendStub reports as an active wrapping sandbox so shellSandboxActive

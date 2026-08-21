@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/providerhealth"
+	"rune/internal/providerhealth"
 )
 
 func TestClassifySetupProbeSuccess(t *testing.T) {

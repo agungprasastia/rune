@@ -273,9 +273,9 @@ func (m model) mcpManagerItems() []mcpManagerItem {
 		}
 	}
 	for _, item := range []mcpManagerItem{
-		{Kind: mcpManagerItemAddRemote, Name: "custom-remote", Label: "Add MCP server", Meta: "zero mcp add <name> --url <url>", Detail: "custom remote http sse url"},
-		{Kind: mcpManagerItemAddStdio, Name: "custom-stdio", Label: "Add local stdio MCP", Meta: "zero mcp add <name> -- <command> [args...]", Detail: "custom local stdio command"},
-		{Kind: mcpManagerItemList, Name: "list", Label: "List configured", Meta: "zero mcp list", Detail: "configured installed servers"},
+		{Kind: mcpManagerItemAddRemote, Name: "custom-remote", Label: "Add MCP server", Meta: "rune mcp add <name> --url <url>", Detail: "custom remote http sse url"},
+		{Kind: mcpManagerItemAddStdio, Name: "custom-stdio", Label: "Add local stdio MCP", Meta: "rune mcp add <name> -- <command> [args...]", Detail: "custom local stdio command"},
+		{Kind: mcpManagerItemList, Name: "list", Label: "List configured", Meta: "rune mcp list", Detail: "configured installed servers"},
 	} {
 		if mcpManagerItemMatches(item, query) {
 			items = append(items, item)
@@ -456,7 +456,7 @@ func (m model) mcpManagerSelectionDetail(width int) []string {
 	case mcpManagerItemAddStdio:
 		return []string{fillPaletteLine(zeroTheme.faint.Render("Enter fills composer: /mcp add <name> -- <command> [args...]"), width, transparentSurface)}
 	case mcpManagerItemList:
-		return []string{fillPaletteLine(zeroTheme.faint.Render("Enter runs zero mcp list and refreshes this manager."), width, transparentSurface)}
+		return []string{fillPaletteLine(zeroTheme.faint.Render("Enter runs rune mcp list and refreshes this manager."), width, transparentSurface)}
 	default:
 		return nil
 	}

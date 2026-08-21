@@ -22,15 +22,15 @@ func TestUnixInstallerScriptMatchesReleaseContracts(t *testing.T) {
 	}
 	containsAll(t, script, []string{
 		"set -euo pipefail",
-		`ZERO_REPO="${ZERO_REPO:-Gitlawb/zero}"`,
-		`ZERO_INSTALL_DIR="${ZERO_INSTALL_DIR:-$HOME/.local/bin}"`,
-		`archive_name="zero-v${version}-${platform}-${arch}.tar.gz"`,
+		`RUNE_REPO="${RUNE_REPO:-rune-ai/rune}"`,
+		`RUNE_INSTALL_DIR="${RUNE_INSTALL_DIR:-$HOME/.local/bin}"`,
+		`archive_name="rune-v${version}-${platform}-${arch}.tar.gz"`,
 		`checksum_name="${archive_name}.sha256"`,
 		"curl --fail --location --show-error --silent --header 'Accept: application/vnd.github+json'",
 		`verify_checksum "$checksum_name"`,
 		`tar -xzf "$archive_path" -C "$extract_dir"`,
 		`find_extracted_binary "$extract_dir"`,
-		`cp "$binary_path" "$ZERO_INSTALL_DIR/zero"`,
+		`cp "$binary_path" "$RUNE_INSTALL_DIR/rune"`,
 		`copy_optional_file "rune-linux-sandbox"`,
 		`copy_optional_file "rune-seccomp"`,
 		`copy_optional_dir "helpers"`,
@@ -41,9 +41,9 @@ func TestPowerShellInstallerScriptMatchesWindowsReleaseContracts(t *testing.T) {
 	script := readRepoText(t, "scripts/install.ps1")
 
 	containsAll(t, script, []string{
-		`[string]$Repository = $(if ($env:ZERO_REPO)`,
-		`Join-Path $env:LOCALAPPDATA "zero\bin"`,
-		`$archiveName = "zero-v$releaseVersion-windows-$arch.zip"`,
+		`[string]$Repository = $(if ($env:RUNE_REPO)`,
+		`Join-Path $env:LOCALAPPDATA "rune\bin"`,
+		`$archiveName = "rune-v$releaseVersion-windows-$arch.zip"`,
 		`$checksumName = "$archiveName.sha256"`,
 		`Get-FileHash -Path $archivePath -Algorithm SHA256`,
 		`Expand-Archive -Path $archivePath -DestinationPath $extractDir -Force`,
@@ -65,13 +65,13 @@ func TestUnixInstallerInstallsFromPrefixedReleaseArchiveWithoutNetwork(t *testin
 	if got := strings.TrimSpace(stderr); got != "" {
 		t.Fatalf("install.sh stderr = %q, want empty", got)
 	}
-	if !strings.Contains(stdout, "Installed "+filepath.Join(fixture.installDir, "zero")) {
+	if !strings.Contains(stdout, "Installed "+filepath.Join(fixture.installDir, "rune")) {
 		t.Fatalf("install.sh stdout missing install path:\n%s", stdout)
 	}
 
-	installed := readFile(t, filepath.Join(fixture.installDir, "zero"))
-	if !strings.Contains(string(installed), "mock-zero") {
-		t.Fatalf("installed binary = %q, want mock-zero script", string(installed))
+	installed := readFile(t, filepath.Join(fixture.installDir, "rune"))
+	if !strings.Contains(string(installed), "mock-rune") {
+		t.Fatalf("installed binary = %q, want mock-rune script", string(installed))
 	}
 	if _, err := os.Stat(filepath.Join(fixture.installDir, "helpers", "node_modules", ".bin", "agent-browser")); err != nil {
 		t.Fatalf("installed helper package missing: %v", err)
@@ -96,7 +96,7 @@ func TestUnixInstallerRejectsChecksumMismatchWithoutNetwork(t *testing.T) {
 	if !strings.Contains(output, "FAILED") || !strings.Contains(strings.ToLower(output), "checksum") {
 		t.Fatalf("checksum failure output missing checksum mismatch detail:\n%s", output)
 	}
-	if _, err := os.Stat(filepath.Join(fixture.installDir, "zero")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(fixture.installDir, "rune")); !os.IsNotExist(err) {
 		t.Fatalf("installed binary exists after checksum failure: %v", err)
 	}
 }
@@ -120,7 +120,7 @@ func newUnixInstallFixture(t *testing.T) unixInstallFixture {
 
 	releasePlatform := unixReleasePlatform(t)
 	releaseArch := unixReleaseArch(t)
-	packageName := fmt.Sprintf("zero-v0.1.0-%s-%s", releasePlatform, releaseArch)
+	packageName := fmt.Sprintf("rune-v0.1.0-%s-%s", releasePlatform, releaseArch)
 	archiveName := packageName + ".tar.gz"
 	checksumName := archiveName + ".sha256"
 	root := t.TempDir()
@@ -139,7 +139,7 @@ func newUnixInstallFixture(t *testing.T) unixInstallFixture {
 	mustMkdirAll(t, filepath.Dir(fixture.archivePath))
 	mustMkdirAll(t, fixture.installDir)
 	mustMkdirAll(t, filepath.Join(packageDir, "helpers", "node_modules", ".bin"))
-	writeFile(t, filepath.Join(packageDir, "zero"), []byte("#!/usr/bin/env sh\necho mock-zero\n"), 0o755)
+	writeFile(t, filepath.Join(packageDir, "rune"), []byte("#!/usr/bin/env sh\necho mock-rune\n"), 0o755)
 	writeFile(t, filepath.Join(packageDir, "rune-linux-sandbox"), []byte("#!/usr/bin/env sh\n"), 0o755)
 	writeFile(t, filepath.Join(packageDir, "rune-seccomp"), []byte("#!/usr/bin/env sh\n"), 0o755)
 	mustMkdirAll(t, filepath.Join(packageDir, "helpers", "node_modules", "agent-browser", "bin"))
@@ -219,8 +219,8 @@ func runUnixInstaller(t *testing.T, fixture unixInstallFixture) (string, string,
 	command.Dir = repoRoot(t)
 	command.Env = append(os.Environ(),
 		"PATH="+fixture.mockBin+string(os.PathListSeparator)+os.Getenv("PATH"),
-		"ZERO_GITHUB_BASE_URL=https://example.test",
-		"ZERO_REPO=Gitlawb/zero",
+		"RUNE_GITHUB_BASE_URL=https://example.test",
+		"RUNE_REPO=rune-ai/rune",
 	)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer

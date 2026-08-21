@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
+	"rune/internal/modelregistry"
 )
 
 func TestEscalateModelToolMetadata(t *testing.T) {

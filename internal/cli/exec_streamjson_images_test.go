@@ -8,8 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/zeroruntime"
 )
 
 // capturingImageProvider records the images carried on the last user turn of the

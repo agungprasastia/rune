@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
+	"rune/internal/config"
+	"rune/internal/providermodeldiscovery"
 )
 
 func TestRunProvidersModelsListsDiscoveredModels(t *testing.T) {
@@ -122,7 +122,7 @@ func TestRunProvidersModelsUnknownProviderFails(t *testing.T) {
 	exitCode := runWithDeps([]string{"providers", "models", "ghost"}, &stdout, &stderr, deps)
 
 	if exitCode == exitSuccess {
-		t.Fatalf("exit = %d, want non-zero for unknown provider", exitCode)
+		t.Fatalf("exit = %d, want non-rune for unknown provider", exitCode)
 	}
 	if called {
 		t.Fatal("discovery must not run for an unknown provider")

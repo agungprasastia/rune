@@ -9,12 +9,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodelcatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/providers"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodelcatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/providers"
 )
 
 // pickerKind identifies which command a picker selection feeds back into.
@@ -787,7 +787,7 @@ type modelPickerModelsDiscoveredMsg struct {
 
 // ollamaContextWindowDiscoveredMsg carries the result of an async /api/show
 // probe against a local Ollama daemon (see ollamaContextWindowDiscoveryCmd).
-// A zero contextWindow (or a non-nil err) means the probe found nothing
+// A rune contextWindow (or a non-nil err) means the probe found nothing
 // usable and the map is left untouched, not zeroed out.
 type ollamaContextWindowDiscoveredMsg struct {
 	modelName     string
@@ -1044,7 +1044,7 @@ func (m model) newEffortPicker() *commandPicker {
 
 // newThemePicker lists the terminal-native system theme followed by named palettes
 // in one flat list. Old dark/light preferences migrate to System rather than
-// appearing as choices: they would imply a terminal-canvas change that Zero
+// appearing as choices: they would imply a terminal-canvas change that Rune
 // deliberately does not make.
 func (m model) newThemePicker() *commandPicker {
 	items := make([]pickerItem, 0, len(themeModes))

@@ -5,22 +5,22 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/peermsg"
-	"github.com/rune-ai/rune/internal/providerhealth"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/skills"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/usage"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/mcp"
+	"rune/internal/modelregistry"
+	"rune/internal/peermsg"
+	"rune/internal/providerhealth"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/skills"
+	"rune/internal/tools"
+	"rune/internal/usage"
+	"rune/internal/zeroruntime"
 )
 
-// Options configures the reusable Zero terminal UI shell.
+// Options configures the reusable Rune terminal UI shell.
 type Options struct {
 	Cwd                         string
 	Version                     string // CLI build version, shown on the home screen; empty hides it
@@ -67,10 +67,10 @@ type Options struct {
 	ResponseStyle   string
 	// Theme is the operator's palette preference: "auto" (default), a built-in
 	// ("dark"/"light"), or a registered color theme. Set from the --theme flag;
-	// falls back to ZERO_THEME, then the persisted SavedTheme, then auto.
+	// falls back to RUNE_THEME, then the persisted SavedTheme, then auto.
 	Theme string
 	// SavedTheme is the theme persisted in user config (Preferences.Theme). Applied
-	// at startup below --theme and ZERO_THEME, so a /theme choice survives restart.
+	// at startup below --theme and RUNE_THEME, so a /theme choice survives restart.
 	SavedTheme string
 	// SavedPet is the persisted terminal companion id. Empty means no pet has
 	// been selected yet; "disabled" records an explicit opt-out.
@@ -80,7 +80,7 @@ type Options struct {
 	// Notify configures completion / awaiting-input notifications.
 	Notify config.NotifyConfig
 
-	// KeyBindings configures remappable TUI keybindings. An empty/zero
+	// KeyBindings configures remappable TUI keybindings. An empty/rune
 	// KeyBindingsConfig means "use built-in defaults" for each action.
 	KeyBindings config.KeyBindingsConfig
 
@@ -103,13 +103,13 @@ type Options struct {
 	ShutdownDictationServer func(context.Context) error
 
 	// STTDownloadRoot is where the auto-download stores the sherpa-onnx engine
-	// and model (e.g. ~/.config/zero/stt). Empty disables auto-download (the F9
+	// and model (e.g. ~/.config/rune/stt). Empty disables auto-download (the F9
 	// setup message then only points at manual setup / cloud providers).
 	STTDownloadRoot string
 
 	// STTKeyStatus reports whether an API key is already resolvable for a cloud
 	// STT provider ("groq"/"openai"/"deepgram"). Nil disables the inline key
-	// prompt (dictation then just shows the "run zero auth" setup error).
+	// prompt (dictation then just shows the "run rune auth" setup error).
 	STTKeyStatus func(provider string) bool
 	// SaveSTTKey stores an API key for a cloud STT provider in the credential
 	// store, so the inline prompt can capture and persist it.

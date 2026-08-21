@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/workspacetrust"
+	"rune/internal/execution"
+	"rune/internal/hooks"
+	"rune/internal/workspacetrust"
 )
 
 // trustSkip reports whether a runtime chokepoint dropped the project layer because
@@ -34,7 +34,7 @@ type trustSkip struct {
 // Each chokepoint (hooks and plugins) calls this itself rather than the caller
 // resolving trust once and passing a bool down. That is deliberate: keeping the
 // check inside the chokepoint is what makes the gate fail-closed by construction.
-// Do NOT hoist it to the callers behind an excludeProject bool whose zero value
+// Do NOT hoist it to the callers behind an excludeProject bool whose rune value
 // includes the project layer, that reintroduces a fail-open default. The extra
 // store read per session is negligible.
 func resolveTrust(trustRoot string) (excludeProject bool, trustCheckErrored bool) {
@@ -119,13 +119,13 @@ func newHookDispatcherWithExtra(workspaceRoot string, extra []hooks.Definition, 
 	}), skip
 }
 
-// projectHooksFileExists reports whether a ./.zero/hooks.json is present under
+// projectHooksFileExists reports whether a ./.rune/hooks.json is present under
 // workspaceRoot, so the caller only notices about config it actually skipped.
 func projectHooksFileExists(workspaceRoot string) bool {
 	if workspaceRoot == "" {
 		return false
 	}
-	info, err := os.Stat(filepath.Join(workspaceRoot, ".zero", "hooks.json"))
+	info, err := os.Stat(filepath.Join(workspaceRoot, ".rune", "hooks.json"))
 	return err == nil && !info.IsDir()
 }
 
@@ -150,8 +150,8 @@ func emitTrustNotice(stderr io.Writer, skips ...trustSkip) {
 		return
 	}
 	if storeErrored {
-		_, _ = fmt.Fprintln(stderr, "zero: the workspace-trust store could not be read; ignoring project hooks/plugins/MCP servers (fail-closed). Run 'zero trust' to enable.")
+		_, _ = fmt.Fprintln(stderr, "rune: the workspace-trust store could not be read; ignoring project hooks/plugins/MCP servers (fail-closed). Run 'rune trust' to enable.")
 		return
 	}
-	_, _ = fmt.Fprintln(stderr, "zero: ignoring project hooks/plugins/MCP servers in an untrusted workspace. Run 'zero trust' to enable.")
+	_, _ = fmt.Fprintln(stderr, "rune: ignoring project hooks/plugins/MCP servers in an untrusted workspace. Run 'rune trust' to enable.")
 }

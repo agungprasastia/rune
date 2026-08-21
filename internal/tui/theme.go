@@ -8,7 +8,7 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-// tuiTheme is the resolved terminal palette Zero renders with. The default system
+// tuiTheme is the resolved terminal palette Rune renders with. The default system
 // theme keeps the terminal's foreground and background intact; named palettes only
 // style local UI surfaces. The active theme lives in zeroTheme and changes only
 // after an explicit /theme selection. Every renderer consumes these named styles —

@@ -9,7 +9,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func TestTranscriptCommandTogglesDetailedView(t *testing.T) {
@@ -114,7 +114,7 @@ func TestDetailedTranscriptSwallowsNormalChatSubmit(t *testing.T) {
 
 func transcriptViewTestModel() model {
 	m := newModel(context.Background(), Options{
-		Cwd:          "/work/zero",
+		Cwd:          "/work/rune",
 		ProviderName: "openai",
 		ModelName:    "gpt-test",
 	})

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/errhint"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/errhint"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 // Mid-stream reconnect: a long autonomous task (a big refactor, a swarm member,

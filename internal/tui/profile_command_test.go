@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/zeroruntime"
 )
 
 // profileSwitchModel builds a session on a model whose catalog entry supports
@@ -351,8 +351,8 @@ func TestProfileCommandRevertLeavesCoincidingOverride(t *testing.T) {
 	}
 }
 
-// Reverting a profile whose displaced budget was zero (nothing was set before
-// it) must clear ZERO_MAX_TURNS: SetMaxTurnsEnv ignores zero, so without an
+// Reverting a profile whose displaced budget was rune (nothing was set before
+// it) must clear RUNE_MAX_TURNS: SetMaxTurnsEnv ignores rune, so without an
 // explicit unset, spawned sub-agents would keep the removed profile's budget.
 func TestProfileCommandRevertFromZeroClearsMaxTurnsEnv(t *testing.T) {
 	t.Setenv(config.MaxTurnsEnv, "")

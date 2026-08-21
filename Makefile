@@ -64,16 +64,16 @@ clean:
 
 # Run the per-turn benchmark harness over the checked-in baseline manifest and
 # write the JSON result to internal/perfbench/reports/baseline.json. Requires a
-# built `zero` binary and a model; set ZERO_BENCH_MODEL (required) and
-# ZERO_BENCH_BINARY (defaults to ./zero) to configure the run. The report is
+# built `zero` binary and a model; set RUNE_BENCH_MODEL (required) and
+# RUNE_BENCH_BINARY (defaults to ./zero) to configure the run. The report is
 # machine-specific and regenerated, not hand-edited.
 baseline: build
-	@if [ -z "$(ZERO_BENCH_MODEL)" ]; then echo "Set ZERO_BENCH_MODEL (and optionally ZERO_BENCH_BINARY) before running 'make baseline'"; exit 2; fi
-	@ZERO_BIN="$${ZERO_BENCH_BINARY:-./zero}"; \
+	@if [ -z "$(RUNE_BENCH_MODEL)" ]; then echo "Set RUNE_BENCH_MODEL (and optionally RUNE_BENCH_BINARY) before running 'make baseline'"; exit 2; fi
+	@RUNE_BIN="$${RUNE_BENCH_BINARY:-./zero}"; \
 	go run ./cmd/zero-perf-bench turn \
 		--suite internal/perfbench/manifests/baseline.json \
-		--model $(ZERO_BENCH_MODEL) \
-		--binary "$$ZERO_BIN" \
+		--model $(RUNE_BENCH_MODEL) \
+		--binary "$$RUNE_BIN" \
 		--output internal/perfbench/reports/baseline.json
 
 help:

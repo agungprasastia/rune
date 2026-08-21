@@ -6,7 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 type fakeTUITranscriber struct{}

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
+	"rune/internal/config"
+	"rune/internal/oauth"
 )
 
 func TestFirstUsableProviderPrefersRemoteKeyed(t *testing.T) {

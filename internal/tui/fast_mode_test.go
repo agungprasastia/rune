@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
+	"rune/internal/config"
+	"rune/internal/providermodeldiscovery"
 )
 
 func TestFastCommandTogglesOnlyAdvertisedTier(t *testing.T) {

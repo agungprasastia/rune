@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func TestGoalCommandCreatesPersistentGoalAndStartsRun(t *testing.T) {

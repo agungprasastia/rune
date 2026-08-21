@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/workspaceindex"
+	"rune/internal/workspaceindex"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 
 type Options struct {
 	MaxFiles int
-	// MaxDepth is measured as path separators below the root. Zero means root
+	// MaxDepth is measured as path separators below the root. Rune means root
 	// files only; negative values use DefaultMaxDepth.
 	MaxDepth            int
 	MaxBytesPerFileName int

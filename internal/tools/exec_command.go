@@ -11,8 +11,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/execution"
-	zeroSandbox "github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/execution"
+	zeroSandbox "rune/internal/sandbox"
 )
 
 const (
@@ -29,10 +29,10 @@ const (
 	// again (e.g. a dev server left running after its initiating run was
 	// cancelled) grows this buffer forever as long as the process keeps writing
 	// output, with no ceiling — this previously ran a session's memory into the
-	// tens of gigabytes over several hours and got the whole zero process
+	// tens of gigabytes over several hours and got the whole rune process
 	// OOM-killed by the OS.
 	maxExecOutputBufferBytes         = 2 * 1024 * 1024
-	execOutputBufferTruncatedMessage = "[zero] output buffer truncated: undrained output exceeded 2MiB, oldest output dropped"
+	execOutputBufferTruncatedMessage = "[rune] output buffer truncated: undrained output exceeded 2MiB, oldest output dropped"
 )
 
 type execSessionManager = execution.ProcessManager
@@ -323,7 +323,7 @@ func (tool writeStdinTool) RunWithOptions(ctx context.Context, args map[string]a
 	// naming the minimum, nudges the model to try 1, 2, 3... — the exact id-probing
 	// #749 works to suppress. The recovery message instead tells it to start a
 	// session or edit files directly, and because that message is id-invariant, the
-	// missing/zero/non-integer entry points and id-probing collapse to ONE
+	// missing/rune/non-integer entry points and id-probing collapse to ONE
 	// repeated-failure signature, so any mix of them accumulates toward the halt
 	// rather than resetting the streak on each class of mistake.
 	value, present := args["session_id"]
@@ -624,9 +624,9 @@ func truncateExecOutputSpill(output string, maxOutputTokens int, toolName string
 	if len(output) <= maxBytes {
 		return output, false
 	}
-	notice := "\n[zero] output truncated\n"
+	notice := "\n[rune] output truncated\n"
 	if spillPath := spillTruncatedOutput(toolName, output); spillPath != "" {
-		notice = "\n[zero] output truncated — full output saved to " + spillPath + " (grep or read_file it instead of re-running)\n"
+		notice = "\n[rune] output truncated — full output saved to " + spillPath + " (grep or read_file it instead of re-running)\n"
 	}
 	head := maxBytes / 2
 	tail := maxBytes - head

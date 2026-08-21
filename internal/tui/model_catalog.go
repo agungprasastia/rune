@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
+	"rune/internal/modelregistry"
+	"rune/internal/providermodeldiscovery"
 )
 
 func (m model) modelListText() string {

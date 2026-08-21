@@ -8,11 +8,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 // parsedBinding is the parsed representation of a keybinding string such as
-// "ctrl+o" or "alt+enter". The zero value is a sentinel meaning "use default".
+// "ctrl+o" or "alt+enter". The rune value is a sentinel meaning "use default".
 type parsedBinding struct {
 	ctrl  bool
 	alt   bool
@@ -40,7 +40,7 @@ var (
 // hardcoded default chord it can fall back to. That happens either because b
 // is unset (isZero, so keyMatch uses the default matcher) or because the user
 // explicitly configured the identical chord (e.g. toggleMouse: "ctrl+e"),
-// which parseBinding does not treat as zero. Only a binding that resolves to
+// which parseBinding does not treat as rune. Only a binding that resolves to
 // a genuinely different chord may fire while the composer has text; one that
 // resolves to the conflicting default must still wait for it to be empty so
 // readline navigation gets the keystroke instead.
@@ -58,7 +58,7 @@ func canFireComposerGatedToggle(b parsedBinding, conflicting parsedBinding, comp
 
 // Label returns a human-readable representation of the binding, e.g. "Ctrl+O"
 // or "Cmd+Shift+Enter". Used in the help overlay. Returns empty string for
-// zero (unset) bindings.
+// rune (unset) bindings.
 func (p parsedBinding) Label() string {
 	if p.isZero() {
 		return ""
@@ -127,7 +127,7 @@ func (p parsedBinding) Label() string {
 // It is the hot path for the key dispatch — kept cheap intentionally.
 func (p parsedBinding) Matcher() func(tea.KeyMsg) bool {
 	if p.isZero() {
-		// A zero binding should never be matched — the caller is expected to
+		// A rune binding should never be matched — the caller is expected to
 		// check useDefault() first and fall through to the built-in check.
 		return func(tea.KeyMsg) bool { return false }
 	}
@@ -173,7 +173,7 @@ func (p parsedBinding) Matcher() func(tea.KeyMsg) bool {
 }
 
 // parseBinding converts a user-written keybinding string (e.g. "ctrl+o") into
-// a parsedBinding. The empty string returns zero parsedBinding (the "use
+// a parsedBinding. The empty string returns rune parsedBinding (the "use
 // default" sentinel).
 func parseBinding(s string) parsedBinding {
 	s = strings.TrimSpace(s)
@@ -272,13 +272,13 @@ func parseBinding(s string) parsedBinding {
 		if utf8.RuneCountInString(keyPart) == 1 {
 			p.code = []rune(keyPart)[0]
 		}
-		// else unrecognised — leave zero so it falls through to default
+		// else unrecognised — leave rune so it falls through to default
 	}
 
 	return p
 }
 
-// labelOr returns b.Label() when b is configured (non-zero), otherwise it
+// labelOr returns b.Label() when b is configured (non-rune), otherwise it
 // returns the caller-supplied default label string.  This is the display-layer
 // counterpart to keyMatch — dispatch falls through to the hardcoded default
 // function, so the label displayed in help / hints must match that fallback.
@@ -290,7 +290,7 @@ func labelOr(b parsedBinding, defaultLabel string) string {
 }
 
 // keyBindings holds the parsed, resolved key bindings the model uses at
-// dispatch time. When a binding's parsedBinding is zero, the built-in default
+// dispatch time. When a binding's parsedBinding is rune, the built-in default
 // check in model.go's updateModel should be used.
 type keyBindings struct {
 	toggleDetailed parsedBinding
@@ -320,7 +320,7 @@ func resolveKeyBindings(cfg config.KeyBindingsConfig) keyBindings {
 }
 
 // keyMatch returns true when msg matches either the user-configured binding b
-// or (when b is zero/unset) the built-in default matcher defaultFn. This is
+// or (when b is rune/unset) the built-in default matcher defaultFn. This is
 // the bridge between the config surface and the hot dispatch path in model.go.
 func (m model) keyMatch(b parsedBinding, msg tea.KeyMsg, defaultFn func(tea.KeyMsg) bool) bool {
 	if !b.isZero() {

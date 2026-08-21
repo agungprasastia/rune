@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/tools"
 )
 
 // escalate_model is a control-only tool (SideEffectNone). The stream-json tool

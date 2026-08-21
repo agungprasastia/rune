@@ -8,10 +8,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/background"
+	"rune/internal/sessions"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 func TestExecutorRecordsForegroundLifecycleAndUsageRollup(t *testing.T) {
@@ -20,9 +20,9 @@ func TestExecutorRecordsForegroundLifecycleAndUsageRollup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create parent returned error: %v", err)
 	}
-	zero := 0
+	rune := 0
 	executor := Executor{
-		BinaryPath:   "/usr/local/bin/zero",
+		BinaryPath:   "/usr/local/bin/rune",
 		SessionStore: store,
 		NewSessionID: func() (string, error) { return "child_task", nil },
 		Load: func(LoadOptions) (LoadResult, error) {
@@ -38,7 +38,7 @@ func TestExecutorRecordsForegroundLifecycleAndUsageRollup(t *testing.T) {
 					{Type: streamjson.EventRunStart, RunID: "run_1", SessionID: "child_task"},
 					{Type: streamjson.EventUsage, RunID: "run_1", PromptTokens: ptrInt(12), CompletionTokens: ptrInt(5), TotalTokens: ptrInt(17)},
 					{Type: streamjson.EventFinal, RunID: "run_1", Text: "done"},
-					{Type: streamjson.EventRunEnd, RunID: "run_1", Status: "success", ExitCode: &zero},
+					{Type: streamjson.EventRunEnd, RunID: "run_1", Status: "success", ExitCode: &rune},
 				},
 				ExitCode: 0,
 			}, nil
@@ -97,7 +97,7 @@ func TestExecutorRecordsStartedChildErrorExitCode(t *testing.T) {
 		t.Fatalf("Create parent returned error: %v", err)
 	}
 	executor := Executor{
-		BinaryPath:   "/usr/local/bin/zero",
+		BinaryPath:   "/usr/local/bin/rune",
 		SessionStore: store,
 		NewSessionID: func() (string, error) { return "child_task", nil },
 		Load: func(LoadOptions) (LoadResult, error) {

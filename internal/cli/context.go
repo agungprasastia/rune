@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/contextreport"
-	"github.com/rune-ai/rune/internal/modelregistry"
+	"rune/internal/config"
+	"rune/internal/contextreport"
+	"rune/internal/modelregistry"
 )
 
 type contextOptions struct {
@@ -80,7 +80,7 @@ func parseContextArgs(args []string) (contextOptions, bool, error) {
 
 func writeContextHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero context [flags]
+  rune context [flags]
 
 Reports the current workspace context budget.
 

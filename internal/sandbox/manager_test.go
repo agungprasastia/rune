@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/oauth"
+	"rune/internal/oauth"
 )
 
 // TestCredentialPublicationDirSuffixMatchesStore keeps the duplicated suffix in
@@ -55,7 +55,7 @@ func TestPermissionProfileFromPolicyBuildsWorkspaceWriteProfile(t *testing.T) {
 	if !stringSliceContains(profile.FileSystem.ReadRoots, profileRootPath()) {
 		t.Fatalf("read roots = %#v, want full read root %q", profile.FileSystem.ReadRoots, profileRootPath())
 	}
-	if !stringSliceContains(profile.FileSystem.WriteRoots[0].ProtectedMetadataNames, ".zero") || !stringSliceContains(profile.FileSystem.WriteRoots[0].ProtectedMetadataNames, ".agents") {
+	if !stringSliceContains(profile.FileSystem.WriteRoots[0].ProtectedMetadataNames, ".rune") || !stringSliceContains(profile.FileSystem.WriteRoots[0].ProtectedMetadataNames, ".agents") {
 		t.Fatalf("protected metadata names = %#v, want workspace metadata protected", profile.FileSystem.WriteRoots[0].ProtectedMetadataNames)
 	}
 	resolvedRoot := profile.FileSystem.WriteRoots[0].Root
@@ -202,7 +202,7 @@ func TestSandboxManagerBuildsCommandPlanThroughWindowsRunner(t *testing.T) {
 	restore := windowsSandboxInitialized
 	t.Cleanup(func() { windowsSandboxInitialized = restore })
 	windowsSandboxInitialized = func() bool { return true }
-	backend := Backend{Name: BackendWindowsRestrictedToken, Available: true, Executable: `C:\zero\rune-windows-command-runner.exe`, Platform: "windows"}
+	backend := Backend{Name: BackendWindowsRestrictedToken, Available: true, Executable: `C:\rune\rune-windows-command-runner.exe`, Platform: "windows"}
 	policy := DefaultPolicy()
 	manager := NewSandboxManager(SandboxManagerOptions{GOOS: "windows", Backend: backend})
 	plan, err := manager.BuildCommandPlan(SandboxManagerRequest{
@@ -216,7 +216,7 @@ func TestSandboxManagerBuildsCommandPlanThroughWindowsRunner(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BuildCommandPlan: %v", err)
 	}
-	if !plan.Wrapped || plan.Name != `C:\zero\rune-windows-command-runner.exe` || plan.TargetBackend != BackendWindowsRestrictedToken {
+	if !plan.Wrapped || plan.Name != `C:\rune\rune-windows-command-runner.exe` || plan.TargetBackend != BackendWindowsRestrictedToken {
 		t.Fatalf("command plan = %#v, want native windows command runner wrapper", plan)
 	}
 	if plan.EnforcementLevel != EnforcementNative {
@@ -275,7 +275,7 @@ func TestSandboxManagerSelectsPlatformBackend(t *testing.T) {
 	}{
 		{name: "linux", goos: "linux", lookupName: LinuxSandboxHelperName, lookupPath: "/usr/bin/rune-linux-sandbox", want: BackendLinuxBwrap, wantTarget: BackendLinuxBwrap},
 		{name: "macos", goos: "darwin", lookupName: "sandbox-exec", lookupPath: "/usr/bin/sandbox-exec", want: BackendMacOSSeatbelt, wantTarget: BackendMacOSSeatbelt},
-		{name: "windows", goos: "windows", lookupName: WindowsSandboxCommandRunnerName, lookupPath: `C:\zero\rune-windows-command-runner.exe`, setupPath: `C:\zero\rune-windows-sandbox-setup.exe`, want: BackendWindowsRestrictedToken, wantTarget: BackendWindowsRestrictedToken},
+		{name: "windows", goos: "windows", lookupName: WindowsSandboxCommandRunnerName, lookupPath: `C:\rune\rune-windows-command-runner.exe`, setupPath: `C:\rune\rune-windows-sandbox-setup.exe`, want: BackendWindowsRestrictedToken, wantTarget: BackendWindowsRestrictedToken},
 		{name: "unsupported", goos: "plan9", want: BackendUnavailable, wantTarget: BackendUnavailable},
 	}
 
@@ -398,7 +398,7 @@ func TestCredentialDenyReadPathsIn(t *testing.T) {
 	dockerConfig := filepath.Join(home, ".docker", "config.json")
 	kubeConfig := filepath.Join(home, ".kube", "config")
 	configDir := filepath.Join(home, ".config")
-	zeroDir := filepath.Join(configDir, "zero")
+	zeroDir := filepath.Join(configDir, "rune")
 	if err := mkdirAll(
 		awsDir,
 		gcloudDir,
@@ -447,7 +447,7 @@ func TestCredentialDenyReadPathsIn(t *testing.T) {
 		filepath.Join(zeroDir, "mcp-oauth-tokens.json.migrated"),
 		filepath.Join(zeroDir, "oauth-tokens.json.tmp-1234-5678"),
 		filepath.Join(zeroDir, "credentials.enc.9-1.tmp"),
-		filepath.Join(zeroDir, ".zero-config-1.tmp"),
+		filepath.Join(zeroDir, ".rune-config-1.tmp"),
 	}
 	for _, path := range append(append([]string{keyFile}, overrideFiles...), zeroFiles...) {
 		if err := os.WriteFile(path, []byte("{}"), 0o600); err != nil {
@@ -494,7 +494,7 @@ func TestCredentialDenyReadPathsIn(t *testing.T) {
 			t.Errorf("credential deny paths = %#v, want publication directory %q included", paths, want)
 		}
 	}
-	// Zero owns its config directory and the publication directories, so the
+	// Rune owns its config directory and the publication directories, so the
 	// mount-based backend may create them to guarantee a mask exists.
 	for _, want := range normalizeProfilePaths([]string{zeroDir, oauthOverride + ".publish"}) {
 		if !stringSliceContains(credentials.EnsureDirs, want) {
@@ -564,8 +564,8 @@ func TestCredentialDenyReadPathsIn(t *testing.T) {
 }
 
 // TestCredentialDenyReadPathsInOverrideMatchesStoreResolution reproduces the
-// audit finding that a relative-and-tilde ZERO_OAUTH_TOKENS_PATH /
-// ZERO_MCP_OAUTH_TOKENS_PATH override produced a deny rule for a DIFFERENT
+// audit finding that a relative-and-tilde RUNE_OAUTH_TOKENS_PATH /
+// RUNE_MCP_OAUTH_TOKENS_PATH override produced a deny rule for a DIFFERENT
 // path than the one the token stores actually resolve (oauth.ResolveStorePath
 // / mcp.ResolveTokenStorePath never expand "~"; they resolve a relative
 // override literally against the working directory), leaving the real file
@@ -577,8 +577,8 @@ func TestCredentialPathOptionsResolveAgainstCommandDirectory(t *testing.T) {
 		"HOME=",
 		"USERPROFILE=" + filepath.Join(commandDir, "profile-home"),
 		"XDG_CONFIG_HOME=~/literal-xdg",
-		"ZERO_OAUTH_TOKENS_PATH=" + override,
-		"ZERO_MCP_OAUTH_TOKENS_PATH=mcp/tokens.json",
+		"RUNE_OAUTH_TOKENS_PATH=" + override,
+		"RUNE_MCP_OAUTH_TOKENS_PATH=mcp/tokens.json",
 	})
 	paths := credentialDenyReadPathsIn(options, nil).Paths
 
@@ -591,7 +591,7 @@ func TestCredentialPathOptionsResolveAgainstCommandDirectory(t *testing.T) {
 		t.Fatalf("config dirs = %#v, want command-relative literal XDG path %q", options.ConfigDirs, wantConfig)
 	}
 	for _, want := range []string{
-		filepath.Join(wantConfig, "zero"),
+		filepath.Join(wantConfig, "rune"),
 		filepath.Join(commandDir, override),
 		filepath.Join(commandDir, override) + ".tmp",
 		filepath.Join(commandDir, override) + ".lockfile",
@@ -611,14 +611,14 @@ func TestCredentialDenyReadPathsInConfigDirMatchesLiteralXDGResolution(t *testin
 	resolvedConfigDirs := credentialPathOptionsFromEnvironment(credentialCommandBaseDirs(commandDir), []string{"XDG_CONFIG_HOME=" + configDir}).ConfigDirs
 	paths := credentialDenyReadPathsIn(credentialPathOptions{ConfigDirs: resolvedConfigDirs}, nil).Paths
 
-	want := filepath.Join(commandDir, configDir, "zero")
+	want := filepath.Join(commandDir, configDir, "rune")
 	if !stringSliceContains(resolvedConfigDirs, filepath.Dir(want)) {
-		t.Fatalf("zero credential config dirs = %#v, want literal XDG resolution %q", resolvedConfigDirs, filepath.Dir(want))
+		t.Fatalf("rune credential config dirs = %#v, want literal XDG resolution %q", resolvedConfigDirs, filepath.Dir(want))
 	}
 	if !stringSliceContains(paths, normalizeProfilePath(want)) {
 		t.Fatalf("credential deny paths = %#v, want literal XDG resolution %q", paths, want)
 	}
-	if expanded := normalizeProfilePaths([]string{filepath.Join(configDir, "zero")})[0]; expanded != want && stringSliceContains(paths, expanded) {
+	if expanded := normalizeProfilePaths([]string{filepath.Join(configDir, "rune")})[0]; expanded != want && stringSliceContains(paths, expanded) {
 		t.Fatalf("credential deny paths = %#v, must not use tilde-expanded XDG path %q", paths, expanded)
 	}
 }
@@ -642,7 +642,7 @@ func TestBuildCommandPlanUsesCommandCredentialContext(t *testing.T) {
 		Dir:  commandDir,
 		Env: []string{
 			"HOME=" + filepath.Join(workspace, "home"),
-			"ZERO_OAUTH_TOKENS_PATH=credentials/tokens.json",
+			"RUNE_OAUTH_TOKENS_PATH=credentials/tokens.json",
 		},
 	})
 	if err != nil {
@@ -660,7 +660,7 @@ func TestBuildCommandPlanUsesCommandCredentialContext(t *testing.T) {
 // TestBuildCommandPlanDeniesRelativeOverrideAtProcessAndCommandDir covers the
 // bypass a command-directory-only resolution left open: oauth.ResolveStorePath
 // and mcp.ResolveTokenStorePath call filepath.Abs, so a relative override names
-// a file under the ZERO PROCESS working directory, while a sandboxed command
+// a file under the RUNE PROCESS working directory, while a sandboxed command
 // runs with its own cwd. Denying only the command-relative path left the real
 // store readable under the read-all posture.
 func TestBuildCommandPlanDeniesRelativeOverrideAtProcessAndCommandDir(t *testing.T) {
@@ -684,7 +684,7 @@ func TestBuildCommandPlanDeniesRelativeOverrideAtProcessAndCommandDir(t *testing
 	// The process base dir is pinned at startup rather than re-read per plan, so
 	// a test that moves the process has to move the pin with it.
 	PinProcessCredentialBaseDir(t, processDir)
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", "tokens.json")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", "tokens.json")
 
 	engine := NewEngine(EngineOptions{
 		WorkspaceRoot: workspace,
@@ -694,14 +694,14 @@ func TestBuildCommandPlanDeniesRelativeOverrideAtProcessAndCommandDir(t *testing
 	plan, err := engine.BuildCommandPlan(CommandSpec{
 		Name: "true",
 		Dir:  commandDir,
-		Env:  []string{"HOME=" + filepath.Join(workspace, "home"), "ZERO_OAUTH_TOKENS_PATH=tokens.json"},
+		Env:  []string{"HOME=" + filepath.Join(workspace, "home"), "RUNE_OAUTH_TOKENS_PATH=tokens.json"},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	// The store the Zero process actually writes.
+	// The store the Rune process actually writes.
 	processStore := filepath.Join(processDir, "tokens.json")
-	// The path a sandboxed child (e.g. a nested Zero) would resolve instead.
+	// The path a sandboxed child (e.g. a nested Rune) would resolve instead.
 	commandStore := filepath.Join(commandDir, "tokens.json")
 	if !stringSliceContains(plan.PermissionProfile.FileSystem.DenyReadIfExists, normalizeProfilePath(processStore)) {
 		t.Fatalf("DenyReadIfExists = %#v, want process override resolved to %q", plan.PermissionProfile.FileSystem.DenyReadIfExists, processStore)
@@ -732,12 +732,12 @@ func TestCredentialCarveoutsUseNormalizedParentForMissingChildren(t *testing.T) 
 	}
 
 	credentials := credentialDenyReadPathsIn(credentialPathOptions{ConfigDirs: []string{alias}}, nil)
-	wantZeroDir := normalizeProfilePath(filepath.Join(realConfig, "zero"))
+	wantZeroDir := normalizeProfilePath(filepath.Join(realConfig, "rune"))
 	if !stringSliceContains(credentials.Paths, wantZeroDir) {
-		t.Fatalf("credential deny paths = %#v, want canonical missing Zero dir %q", credentials.Paths, wantZeroDir)
+		t.Fatalf("credential deny paths = %#v, want canonical missing Rune dir %q", credentials.Paths, wantZeroDir)
 	}
 	if _, err := os.Stat(wantZeroDir); !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("test requires the Zero dir to remain absent, got %v", err)
+		t.Fatalf("test requires the Rune dir to remain absent, got %v", err)
 	}
 	for _, name := range zeroConfigReadCarveoutNames {
 		want := filepath.Join(wantZeroDir, name)
@@ -752,7 +752,7 @@ func TestCredentialCarveoutsRejectSymlinks(t *testing.T) {
 		t.Skip("symlink creation is not reliably available on Windows CI")
 	}
 	configDir := t.TempDir()
-	zeroDir := filepath.Join(configDir, "zero")
+	zeroDir := filepath.Join(configDir, "rune")
 	if err := os.MkdirAll(zeroDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -786,8 +786,8 @@ func TestPermissionProfileUnionsProcessAndCommandCredentialRootsWithoutCreatingC
 	t.Setenv("USERPROFILE", parentHome)
 	t.Setenv("XDG_CONFIG_HOME", parentConfig)
 	t.Setenv("CLOUDSDK_CONFIG", "")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", parentToken)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", parentToken)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "")
 	t.Setenv("NPM_CONFIG_USERCONFIG", "")
 	t.Setenv("npm_config_userconfig", "")
@@ -811,15 +811,15 @@ func TestPermissionProfileUnionsProcessAndCommandCredentialRootsWithoutCreatingC
 		Env: []string{
 			"HOME=" + childHome,
 			"XDG_CONFIG_HOME=" + childConfig,
-			"ZERO_OAUTH_TOKENS_PATH=" + childToken,
+			"RUNE_OAUTH_TOKENS_PATH=" + childToken,
 		},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	fs := plan.PermissionProfile.FileSystem
-	parentZero := filepath.Join(parentConfig, "zero")
-	childZero := filepath.Join(childConfig, "zero")
+	parentZero := filepath.Join(parentConfig, "rune")
+	childZero := filepath.Join(childConfig, "rune")
 	childCredentialPaths := []string{
 		filepath.Join(childHome, ".npmrc"),
 		filepath.Join(childHome, ".netrc"),
@@ -877,7 +877,7 @@ func TestPermissionProfileUnionsProcessAndCommandCredentialRootsWithoutCreatingC
 // absent path was skipped outright, and an existing one got a /dev/null bind
 // that the store's next atomic rename detaches. Neither is a deny. The path
 // still earns none of the process-trusted privileges — no EnsureDenyReadDir, so
-// a command cannot steer Zero into creating host directories — but bubblewrap
+// a command cannot steer Rune into creating host directories — but bubblewrap
 // now refuses the command instead of running it behind a mask that does not
 // hold.
 func TestCommandSuppliedTokenOverrideFailsClosedOnBubblewrap(t *testing.T) {
@@ -892,8 +892,8 @@ func TestCommandSuppliedTokenOverrideFailsClosedOnBubblewrap(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", config)
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", "")
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	workspace := t.TempDir()
 
 	baseline := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, workspace, nil)
@@ -912,7 +912,7 @@ func TestCommandSuppliedTokenOverrideFailsClosedOnBubblewrap(t *testing.T) {
 
 	commandToken := filepath.Join(tempDirOutsideDefaultTemp(t), "command-store", "tokens.json")
 	profile := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, workspace,
-		[]string{"ZERO_OAUTH_TOKENS_PATH=" + commandToken})
+		[]string{"RUNE_OAUTH_TOKENS_PATH=" + commandToken})
 	fs := profile.FileSystem
 	if !stringSliceContains(fs.CommandDenyReadFinalFiles, normalizeProfilePath(commandToken)) {
 		t.Fatalf("CommandDenyReadFinalFiles = %#v, want command override %q", fs.CommandDenyReadFinalFiles, commandToken)
@@ -951,13 +951,13 @@ func TestKeyringOAuthOverrideDoesNotFailClosedOnBubblewrap(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", config)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	workspace := t.TempDir()
 	tokenPath := filepath.Join(tempDirOutsideDefaultTemp(t), "tokens.json")
 
 	t.Run("process environment", func(t *testing.T) {
-		t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokenPath)
-		t.Setenv("ZERO_OAUTH_STORAGE", "keyring")
+		t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokenPath)
+		t.Setenv("RUNE_OAUTH_STORAGE", "keyring")
 		profile := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, workspace, nil)
 		fs := profile.FileSystem
 		if !stringSliceContains(fs.DenyReadIfExists, normalizeProfilePath(tokenPath)) {
@@ -983,11 +983,11 @@ func TestKeyringOAuthOverrideDoesNotFailClosedOnBubblewrap(t *testing.T) {
 	})
 
 	t.Run("command environment", func(t *testing.T) {
-		t.Setenv("ZERO_OAUTH_TOKENS_PATH", "")
-		t.Setenv("ZERO_OAUTH_STORAGE", "")
+		t.Setenv("RUNE_OAUTH_TOKENS_PATH", "")
+		t.Setenv("RUNE_OAUTH_STORAGE", "")
 		profile := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, workspace, []string{
-			"ZERO_OAUTH_TOKENS_PATH=" + tokenPath,
-			"ZERO_OAUTH_STORAGE=keyring",
+			"RUNE_OAUTH_TOKENS_PATH=" + tokenPath,
+			"RUNE_OAUTH_STORAGE=keyring",
 		})
 		fs := profile.FileSystem
 		if !stringSliceContains(fs.DenyReadIfExists, normalizeProfilePath(tokenPath)) {
@@ -1015,11 +1015,11 @@ func TestCommandCredentialDirectoriesFailClosedWithoutHostMutation(t *testing.T)
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", "")
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	workspace := t.TempDir()
 	commandConfig := filepath.Join(tempDirOutsideDefaultTemp(t), "missing-command-config")
-	commandZero := filepath.Join(commandConfig, "zero")
+	commandZero := filepath.Join(commandConfig, "rune")
 	profile := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, workspace, []string{
 		"HOME=" + filepath.Dir(commandConfig),
 		"XDG_CONFIG_HOME=" + commandConfig,
@@ -1114,21 +1114,21 @@ func TestKeyringExceptionKeepsFileBackedTokenStoresFailClosed(t *testing.T) {
 		{
 			name: "process encrypted OAuth store",
 			processEnv: map[string]string{
-				"ZERO_OAUTH_STORAGE":         "encrypted-file",
-				"ZERO_OAUTH_TOKENS_PATH":     filepath.Join(t.TempDir(), "oauth.json"),
-				"ZERO_MCP_OAUTH_TOKENS_PATH": "",
+				"RUNE_OAUTH_STORAGE":         "encrypted-file",
+				"RUNE_OAUTH_TOKENS_PATH":     filepath.Join(t.TempDir(), "oauth.json"),
+				"RUNE_MCP_OAUTH_TOKENS_PATH": "",
 			},
 		},
 		{
 			name: "command encrypted OAuth store",
 			processEnv: map[string]string{
-				"ZERO_OAUTH_STORAGE":         "",
-				"ZERO_OAUTH_TOKENS_PATH":     "",
-				"ZERO_MCP_OAUTH_TOKENS_PATH": "",
+				"RUNE_OAUTH_STORAGE":         "",
+				"RUNE_OAUTH_TOKENS_PATH":     "",
+				"RUNE_MCP_OAUTH_TOKENS_PATH": "",
 			},
 			commandEnv: []string{
-				"ZERO_OAUTH_STORAGE=encrypted-file",
-				"ZERO_OAUTH_TOKENS_PATH=" + filepath.Join(tempDirOutsideDefaultTemp(t), "command-oauth.json"),
+				"RUNE_OAUTH_STORAGE=encrypted-file",
+				"RUNE_OAUTH_TOKENS_PATH=" + filepath.Join(tempDirOutsideDefaultTemp(t), "command-oauth.json"),
 			},
 			commandMarker: true,
 		},
@@ -1137,10 +1137,10 @@ func TestKeyringExceptionKeepsFileBackedTokenStoresFailClosed(t *testing.T) {
 		test := &tests[i]
 		if len(test.commandEnv) > 0 {
 			_, test.wantTokenPath, _ = strings.Cut(test.commandEnv[len(test.commandEnv)-1], "=")
-		} else if test.processEnv["ZERO_OAUTH_TOKENS_PATH"] != "" {
-			test.wantTokenPath = test.processEnv["ZERO_OAUTH_TOKENS_PATH"]
+		} else if test.processEnv["RUNE_OAUTH_TOKENS_PATH"] != "" {
+			test.wantTokenPath = test.processEnv["RUNE_OAUTH_TOKENS_PATH"]
 		} else {
-			test.wantTokenPath = test.processEnv["ZERO_MCP_OAUTH_TOKENS_PATH"]
+			test.wantTokenPath = test.processEnv["RUNE_MCP_OAUTH_TOKENS_PATH"]
 		}
 	}
 
@@ -1174,12 +1174,12 @@ func TestLegacyMCPOverrideDoesNotFailClosedOnBubblewrap(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, "config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", "")
 	legacy := filepath.Join(tempDirOutsideDefaultTemp(t), "mcp-tokens.json")
 	if err := os.WriteFile(legacy, []byte("{}"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	workspace := t.TempDir()
 	tests := []struct {
 		name       string
@@ -1187,11 +1187,11 @@ func TestLegacyMCPOverrideDoesNotFailClosedOnBubblewrap(t *testing.T) {
 		commandEnv []string
 	}{
 		{name: "process override", processMCP: legacy},
-		{name: "command override", commandEnv: []string{"ZERO_MCP_OAUTH_TOKENS_PATH=" + legacy}},
+		{name: "command override", commandEnv: []string{"RUNE_MCP_OAUTH_TOKENS_PATH=" + legacy}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", test.processMCP)
+			t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", test.processMCP)
 			profile := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, workspace, test.commandEnv)
 			fs := profile.FileSystem
 			for _, want := range []string{legacy, legacy + ".migrated"} {
@@ -1244,13 +1244,13 @@ func TestOAuthOverridesInsideCredentialCarveoutsRemainFailClosedOnBubblewrap(t *
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	workspace := t.TempDir()
 
 	for _, name := range []string{"plugins", "specialists", "commands"} {
 		t.Run(name, func(t *testing.T) {
-			token := filepath.Join(configDir, "zero", name, "tokens.json")
-			t.Setenv("ZERO_OAUTH_TOKENS_PATH", token)
+			token := filepath.Join(configDir, "rune", name, "tokens.json")
+			t.Setenv("RUNE_OAUTH_TOKENS_PATH", token)
 			profile := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, workspace, nil)
 			for _, want := range []string{token, token + ".secret"} {
 				if !stringSliceContains(profile.FileSystem.ProcessTrustedDenyReadFiles, normalizeCredentialFinalPath(want)) {
@@ -1278,8 +1278,8 @@ func TestProcessCredentialBaseDirDoesNotFollowWorkingDirectoryChanges(t *testing
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, "config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", "relative-tokens.json")
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", "relative-tokens.json")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	workspace := t.TempDir()
 
 	before := permissionProfileFromPolicy(workspace, DefaultPolicy(), nil, "", nil).FileSystem.ProcessTrustedDenyReadFiles
@@ -1299,12 +1299,12 @@ func TestCommandControlledConfigAncestorDoesNotSuppressProcessTrustedFile(t *tes
 	}
 	home := t.TempDir()
 	commandConfig := filepath.Join(t.TempDir(), "command-config")
-	tokenPath := filepath.Join(commandConfig, "zero", "oauth-tokens.json")
+	tokenPath := filepath.Join(commandConfig, "rune", "oauth-tokens.json")
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokenPath)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokenPath)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 
 	profile := permissionProfileFromPolicy(t.TempDir(), DefaultPolicy(), nil, t.TempDir(), []string{"XDG_CONFIG_HOME=" + commandConfig})
 	if !stringSliceContains(profile.FileSystem.ProcessTrustedDenyReadFiles, normalizeProfilePath(tokenPath)) {
@@ -1321,8 +1321,8 @@ func TestProcessTrustedFileMarkerRequiresStrictUserDenyAncestor(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokenPath)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokenPath)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 
 	exactPolicy := DefaultPolicy()
 	exactPolicy.DenyRead = []string{tokenPath}
@@ -1344,7 +1344,7 @@ func TestProcessTrustedFinalPathsPreserveTerminalSymlinkNamesDespiteTargetAllowR
 		t.Skip("symlink creation is not reliably available on Windows CI")
 	}
 	home := t.TempDir()
-	zeroDir := filepath.Join(home, ".config", "zero")
+	zeroDir := filepath.Join(home, ".config", "rune")
 	if err := os.MkdirAll(zeroDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -1359,8 +1359,8 @@ func TestProcessTrustedFinalPathsPreserveTerminalSymlinkNamesDespiteTargetAllowR
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", outside)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", outside)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	policy := DefaultPolicy()
 	policy.AllowRead = []string{target}
 
@@ -1388,8 +1388,8 @@ func TestProcessTrustedExactAllowReadDoesNotIncludeSecret(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokenPath)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokenPath)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	policy := DefaultPolicy()
 	policy.AllowRead = []string{tokenPath}
 
@@ -1416,8 +1416,8 @@ func TestProcessTrustedFileMarkerHonorsOutOfTreeAllowRead(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokenPath)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokenPath)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	policy := DefaultPolicy()
 	policy.AllowRead = []string{filepath.Dir(tokenPath)}
 
@@ -1440,8 +1440,8 @@ func TestEngineBuildCommandPlanValidatesBwrapBeforeCreatingRuntime(t *testing.T)
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokenPath)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokenPath)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	oldUserCacheDir := sandboxUserCacheDir
 	sandboxUserCacheDir = func() (string, error) { return runtimeCache, nil }
 	t.Cleanup(func() { sandboxUserCacheDir = oldUserCacheDir })
@@ -1458,7 +1458,7 @@ func TestEngineBuildCommandPlanValidatesBwrapBeforeCreatingRuntime(t *testing.T)
 	if _, err := engine.BuildCommandPlan(CommandSpec{Name: "true", Dir: workspace}); err == nil || !strings.Contains(err.Error(), "atomic replacement") {
 		t.Fatalf("BuildCommandPlan error = %v, want fail-closed atomic replacement error", err)
 	}
-	for _, unwanted := range []string{runtimeCache, filepath.Join(home, ".config", "zero"), tokenPath + credentialPublicationDirSuffix} {
+	for _, unwanted := range []string{runtimeCache, filepath.Join(home, ".config", "rune"), tokenPath + credentialPublicationDirSuffix} {
 		if _, err := os.Stat(unwanted); !errors.Is(err, os.ErrNotExist) {
 			t.Fatalf("failed main-process validation created path %q: %v", unwanted, err)
 		}
@@ -1473,8 +1473,8 @@ func TestPermissionProfileDropsAutomaticMasksCoveredByUserDeny(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", "")
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "")
 	policy := DefaultPolicy()
 	policy.DenyRead = []string{home}
@@ -1484,7 +1484,7 @@ func TestPermissionProfileDropsAutomaticMasksCoveredByUserDeny(t *testing.T) {
 	if len(fs.DenyReadIfExists) != 0 || len(fs.DenyReadCarveouts) != 0 || len(fs.EnsureDenyReadDirs) != 0 {
 		t.Fatalf("automatic credential fields beneath user deny were retained: paths=%#v carveouts=%#v ensure=%#v", fs.DenyReadIfExists, fs.DenyReadCarveouts, fs.EnsureDenyReadDirs)
 	}
-	zeroDir := filepath.Join(home, ".config", "zero")
+	zeroDir := filepath.Join(home, ".config", "rune")
 	plan := buildLinuxBwrapFilesystemPlan(profile)
 	if stringSliceContains(plan.Args, zeroDir) {
 		t.Fatalf("bwrap args contain a nested automatic mount beneath user deny %q: %#v", home, plan.Args)
@@ -1497,23 +1497,23 @@ func TestPermissionProfileDropsRedundantAutomaticMasksInsideZeroDir(t *testing.T
 	}
 	home := t.TempDir()
 	configHome := filepath.Join(home, ".config")
-	zeroDir := filepath.Join(configHome, "zero")
+	zeroDir := filepath.Join(configHome, "rune")
 	tokenPath := filepath.Join(zeroDir, "oauth-tokens.json")
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("XDG_CONFIG_HOME", configHome)
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokenPath)
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", "")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokenPath)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", "")
 	t.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "")
 
 	profile := PermissionProfileFromPolicy(t.TempDir(), DefaultPolicy(), nil)
 	fs := profile.FileSystem
 	if !stringSliceContains(fs.DenyReadIfExists, normalizeProfilePath(zeroDir)) {
-		t.Fatalf("DenyReadIfExists = %#v, want Zero directory mask", fs.DenyReadIfExists)
+		t.Fatalf("DenyReadIfExists = %#v, want Rune directory mask", fs.DenyReadIfExists)
 	}
 	for _, path := range credentialTokenStorePaths(tokenPath) {
 		if stringSliceContains(fs.DenyReadIfExists, normalizeProfilePath(path)) {
-			t.Fatalf("DenyReadIfExists = %#v, redundant nested mask %q must be covered by Zero directory", fs.DenyReadIfExists, path)
+			t.Fatalf("DenyReadIfExists = %#v, redundant nested mask %q must be covered by Rune directory", fs.DenyReadIfExists, path)
 		}
 	}
 	if stringSliceContains(fs.EnsureDenyReadDirs, normalizeProfilePath(tokenPath+credentialPublicationDirSuffix)) {
@@ -1533,7 +1533,7 @@ func TestPermissionProfileIncludesZeroCredentialPaths(t *testing.T) {
 	// EvalSymlinks success path inside normalizeProfilePath.
 	configHome := resolvedTempDir(t)
 	t.Setenv("XDG_CONFIG_HOME", configHome)
-	zeroDir := filepath.Join(configHome, "zero")
+	zeroDir := filepath.Join(configHome, "rune")
 
 	// Build the profile before the store directory exists to verify that profile
 	// derivation retains the baseline candidate. Pathname-policy backends can
@@ -1542,7 +1542,7 @@ func TestPermissionProfileIncludesZeroCredentialPaths(t *testing.T) {
 	profile := PermissionProfileFromPolicy(t.TempDir(), DefaultPolicy(), nil)
 	want := normalizeProfilePaths([]string{zeroDir})[0]
 	if !stringSliceContains(profile.FileSystem.DenyReadIfExists, want) {
-		t.Fatalf("DenyReadIfExists = %#v, want Zero config directory %q even before it exists", profile.FileSystem.DenyReadIfExists, want)
+		t.Fatalf("DenyReadIfExists = %#v, want Rune config directory %q even before it exists", profile.FileSystem.DenyReadIfExists, want)
 	}
 
 	if err := os.MkdirAll(zeroDir, 0o700); err != nil {
@@ -1565,7 +1565,7 @@ func TestPermissionProfileIncludesZeroCredentialPaths(t *testing.T) {
 	profile = PermissionProfileFromPolicy(t.TempDir(), DefaultPolicy(), nil)
 	want = normalizeProfilePaths([]string{zeroDir})[0]
 	if !stringSliceContains(profile.FileSystem.DenyReadIfExists, want) {
-		t.Fatalf("DenyReadIfExists = %#v, want Zero config directory %q", profile.FileSystem.DenyReadIfExists, want)
+		t.Fatalf("DenyReadIfExists = %#v, want Rune config directory %q", profile.FileSystem.DenyReadIfExists, want)
 	}
 }
 
@@ -1579,7 +1579,7 @@ func TestCredentialDenyReadPathsForEnvironmentHonorsConfigOverrides(t *testing.T
 	dockerConfigDir := filepath.Join(root, "docker")
 	kubeConfigA := filepath.Join(root, "kube", "a")
 	kubeConfigB := filepath.Join(root, "kube", "b")
-	zeroConfig := filepath.Join(configHome, "zero")
+	zeroConfig := filepath.Join(configHome, "rune")
 	filePaths := []string{
 		npmrc,
 		filepath.Join(ghConfigDir, "hosts.yml"),

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/trace"
+	"rune/internal/trace"
 )
 
 // TokenResolver yields a fresh OAuth credential for one request, or ok=false to

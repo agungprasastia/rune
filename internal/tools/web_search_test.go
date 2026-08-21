@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	zeroSandbox "github.com/rune-ai/rune/internal/sandbox"
+	zeroSandbox "rune/internal/sandbox"
 )
 
 type fakeSearchBackend struct {
@@ -104,7 +104,7 @@ func TestWebSearchRedactsBackendError(t *testing.T) {
 
 func TestWebSearchRegisteredInCoreNetworkTools(t *testing.T) {
 	// web_search is registered only when a backend is configured.
-	t.Setenv("ZERO_WEBSEARCH_BASE_URL", "https://search.example/api")
+	t.Setenv("RUNE_WEBSEARCH_BASE_URL", "https://search.example/api")
 	found := false
 	for _, tool := range CoreNetworkTools() {
 		if tool.Name() == "web_search" {
@@ -184,7 +184,7 @@ func TestHTTPSearchBackendSendsProviderAndParsesResults(t *testing.T) {
 	}
 	// The configured provider and query must reach the backend.
 	if gotBody["provider"] != "exa" {
-		t.Fatalf("ZERO_WEBSEARCH_PROVIDER not forwarded: %#v", gotBody)
+		t.Fatalf("RUNE_WEBSEARCH_PROVIDER not forwarded: %#v", gotBody)
 	}
 	if gotBody["query"] != "q" {
 		t.Fatalf("query not forwarded: %#v", gotBody)
@@ -376,7 +376,7 @@ func TestWebSearchDomainsFilterRejectsBadArgType(t *testing.T) {
 func TestWebSearchRendersScoreWhenPresent(t *testing.T) {
 	backend := &fakeSearchBackend{results: []searchResult{
 		{Title: "ranked", URL: "https://react.dev/rsc", Score: 0.91},
-		{Title: "unranked", URL: "https://react.dev/other"}, // zero score, must be omitted
+		{Title: "unranked", URL: "https://react.dev/other"}, // rune score, must be omitted
 	}}
 	tool := newWebSearchToolWithBackend(backend)
 	res := tool.Run(context.Background(), map[string]any{"query": "x"})
@@ -386,9 +386,9 @@ func TestWebSearchRendersScoreWhenPresent(t *testing.T) {
 	if !strings.Contains(res.Output, "score 0.91") {
 		t.Errorf("expected 'score 0.91' in output, got: %s", res.Output)
 	}
-	// The zero-score row must NOT render "score 0.00" — that would be noisy.
+	// The rune-score row must NOT render "score 0.00" — that would be noisy.
 	if strings.Contains(res.Output, "score 0.00") {
-		t.Errorf("zero score must not be rendered, got: %s", res.Output)
+		t.Errorf("rune score must not be rendered, got: %s", res.Output)
 	}
 }
 
@@ -411,7 +411,7 @@ func TestHTTPSearchBackendParsesScoreField(t *testing.T) {
 		t.Errorf("first result Score = %v, want 0.77", results[0].Score)
 	}
 	if results[1].Score != 0 {
-		t.Errorf("absent score must be zero, got %v", results[1].Score)
+		t.Errorf("absent score must be rune, got %v", results[1].Score)
 	}
 }
 

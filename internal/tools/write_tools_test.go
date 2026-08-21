@@ -375,7 +375,7 @@ func TestEditFileToolEmitsUnifiedDiff(t *testing.T) {
 		t.Fatalf("edit failed: %s", res.Output)
 	}
 	// The model-facing Output stays the one-line summary; the red/green diff lives
-	// on the card-only Display.Preview, so it costs the model zero tokens.
+	// on the card-only Display.Preview, so it costs the model rune tokens.
 	if !strings.HasPrefix(res.Output, "Successfully edited") {
 		t.Fatalf("summary must be the Output: %q", res.Output)
 	}

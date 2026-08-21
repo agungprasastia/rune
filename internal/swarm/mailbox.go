@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/rune-ai/rune/internal/fsutil"
-	"github.com/rune-ai/rune/internal/lockutil"
+	"rune/internal/fsutil"
+	"rune/internal/lockutil"
 )
 
 // Mailbox is a per-agent, per-team message inbox persisted as a JSON array on

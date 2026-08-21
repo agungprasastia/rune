@@ -46,7 +46,7 @@ zero exec --output-format stream-json < turns.jsonl
 ### npm
 
 ```bash
-npm install -g @gitlawb/zero
+npm install -g @rune-ai/rune
 zero
 ```
 
@@ -65,13 +65,13 @@ how the package is put together.
 Linux/macOS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rune-ai/rune/main/scripts/install.sh | bash
 ```
 
 Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/rune-ai/rune/main/scripts/install.ps1 | iex
 ```
 
 ### From source
@@ -79,7 +79,7 @@ irm https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.ps1 | ie
 Source builds require Go 1.26.5+.
 
 ```bash
-git clone https://github.com/Gitlawb/zero.git
+git clone https://github.com/rune-ai/rune.git
 cd zero
 go run ./cmd/zero
 ```
@@ -352,10 +352,10 @@ manifest.
 | Control | Effect |
 |---|---|
 | `NO_COLOR=<anything>` | disables color output |
-| `ZERO_THEME=<name>` | selects the startup theme (`auto`, `dark`, `light`, or a color theme like `dracula`, `nord`, `gruvbox`, `tokyo-night`, `catppuccin`, `one-dark`, `solarized-dark`, `rose-pine`, `everforest`, `neon`, `solarized-light`, `dune`) |
+| `RUNE_THEME=<name>` | selects the startup theme (`auto`, `dark`, `light`, or a color theme like `dracula`, `nord`, `gruvbox`, `tokyo-night`, `catppuccin`, `one-dark`, `solarized-dark`, `rose-pine`, `everforest`, `neon`, `solarized-light`, `dune`) |
 | `--theme <name>` | selects the TUI theme from the CLI (same names) |
 | `/theme` | opens the theme picker inside the TUI (live preview; `/theme <name>` switches directly) |
-| `ZERO_NO_FADE=1` | disables streaming fade animation |
+| `RUNE_NO_FADE=1` | disables streaming fade animation |
 
 Meaning does not rely on color alone; diffs, permissions, and statuses also use
 text or glyph markers.
@@ -369,7 +369,7 @@ go run ./cmd/zero-release smoke
 go run ./cmd/zero-perf-bench
 ```
 
-Experimental: `ZERO_OPENAI_TURN_SESSION=1` enables the optimized OpenAI turn
+Experimental: `RUNE_OPENAI_TURN_SESSION=1` enables the optimized OpenAI turn
 session (background connection prewarm + request-prefix telemetry) for headless
 `zero exec` runs against official OpenAI profiles. Off by default; `0`/`false`
 disable. A/B-benchmark it by running the same `zero-perf-bench` suite with the
@@ -421,19 +421,19 @@ go run ./cmd/zero-release build --goos windows --goarch amd64 --output dist/zero
 Real-time chat happens on the [Discord server](https://discord.gg/CaQDS6wdFn).
 
 Questions, setup help, ideas, and sharing all live in
-[GitHub Discussions](https://github.com/Gitlawb/zero/discussions):
+[GitHub Discussions](https://github.com/rune-ai/rune/discussions):
 
 | Category | Use it for |
 |---|---|
-| [Q&A](https://github.com/Gitlawb/zero/discussions/categories/q-a) | Setup help, provider/model configuration, "how do I" questions |
-| [Ideas](https://github.com/Gitlawb/zero/discussions/categories/ideas) | Feature proposals and design discussion before any PR |
-| [Show and tell](https://github.com/Gitlawb/zero/discussions/categories/show-and-tell) | Your skills, plugins, MCP setups, themes, and workflows |
-| [Announcements](https://github.com/Gitlawb/zero/discussions/categories/announcements) | Releases and project news from the maintainers |
+| [Q&A](https://github.com/rune-ai/rune/discussions/categories/q-a) | Setup help, provider/model configuration, "how do I" questions |
+| [Ideas](https://github.com/rune-ai/rune/discussions/categories/ideas) | Feature proposals and design discussion before any PR |
+| [Show and tell](https://github.com/rune-ai/rune/discussions/categories/show-and-tell) | Your skills, plugins, MCP setups, themes, and workflows |
+| [Announcements](https://github.com/rune-ai/rune/discussions/categories/announcements) | Releases and project news from the maintainers |
 
 For a good Q&A answer fast, include `zero --version`, your OS and install
 method, the provider/model in use, and `zero doctor` output. See
 [SUPPORT.md](SUPPORT.md). Bugs belong in
-[issues](https://github.com/Gitlawb/zero/issues/new/choose); security reports
+[issues](https://github.com/rune-ai/rune/issues/new/choose); security reports
 follow [SECURITY.md](SECURITY.md), never a public thread.
 
 ## Contributing

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/plugins"
+	"rune/internal/hooks"
+	"rune/internal/mcp"
+	"rune/internal/plugins"
 )
 
 func TestMCPServerSnapshotFromServerStripsSecretsAndCountsMaps(t *testing.T) {
@@ -70,7 +70,7 @@ func TestMCPServerSnapshotWithCountsMergesRuntimeCounts(t *testing.T) {
 	server := mcp.Server{Name: "work", Type: mcp.ServerTypeStdio, Command: "npx"}
 	base := MCPServerSnapshotFromServer(server)
 	if base.ToolCount != 0 || base.AllowGranted != 0 || base.DenyGranted != 0 {
-		t.Fatalf("expected zero counts on base snapshot, got %#v", base)
+		t.Fatalf("expected rune counts on base snapshot, got %#v", base)
 	}
 
 	with := MCPServerSnapshotWithCounts(server, &MCPServerCounts{
@@ -84,7 +84,7 @@ func TestMCPServerSnapshotWithCountsMergesRuntimeCounts(t *testing.T) {
 
 	nilCounts := MCPServerSnapshotWithCounts(server, nil)
 	if nilCounts.ToolCount != 0 || nilCounts.AllowGranted != 0 || nilCounts.DenyGranted != 0 {
-		t.Fatalf("expected nil counts to leave snapshot zero, got %#v", nilCounts)
+		t.Fatalf("expected nil counts to leave snapshot rune, got %#v", nilCounts)
 	}
 }
 
@@ -365,9 +365,9 @@ func TestPluginSnapshotFromPluginCollapsesSlicesToCounts(t *testing.T) {
 		Description:  "  A demo plugin.  ",
 		Enabled:      true,
 		Source:       plugins.SourceCustom,
-		Root:         "  /home/user/.config/zero/plugins/example  ",
-		PluginDir:    "  /home/user/.config/zero/plugins/example/v1  ",
-		ManifestPath: "  /home/user/.config/zero/plugins/example/v1/manifest.json  ",
+		Root:         "  /home/user/.config/rune/plugins/example  ",
+		PluginDir:    "  /home/user/.config/rune/plugins/example/v1  ",
+		ManifestPath: "  /home/user/.config/rune/plugins/example/v1/manifest.json  ",
 		Tools: []plugins.ToolExtension{
 			{Name: "t1", Command: "echo", Args: []string{"t1"}},
 			{Name: "t2", Command: "echo", Args: []string{"t2"}},

@@ -1,11 +1,11 @@
 package selfverify
 
 import (
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/verify"
+	"rune/internal/redaction"
+	"rune/internal/verify"
 )
 
-const LoopContractVersion = "zero.selfverify.report.v1"
+const LoopContractVersion = "rune.selfverify.report.v1"
 
 type EventType string
 

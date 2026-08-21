@@ -7,16 +7,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/plugins"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/execution"
+	"rune/internal/hooks"
+	"rune/internal/plugins"
+	"rune/internal/tools"
 )
 
 // pluginActivation holds what plugin activation contributed to a bootstrap so the
 // later dispatcher + skill wiring can consume it: the plugin hook definitions and
-// the plugin skill search roots. The zero value (no plugins) still overlays the
+// the plugin skill search roots. The rune value (no plugins) still overlays the
 // multi-root skill tool (primary + ~/.agents/skills) so discovery is identical
 // with or without plugins. The embedded trustSkip reports whether the project
 // plugin layer was dropped for an untrusted workspace, so the caller can fold it
@@ -84,14 +84,14 @@ func activatePlugins(workspaceRoot string, registry *tools.Registry, deps appDep
 	return pluginActivation{hooks: result.Hooks, skillRoots: result.SkillRoots, trustSkip: skip}
 }
 
-// projectPluginsDirExists reports whether a ./.zero/plugins directory is present
+// projectPluginsDirExists reports whether a ./.rune/plugins directory is present
 // under workspaceRoot, so the caller only notices about config it actually
 // skipped.
 func projectPluginsDirExists(workspaceRoot string) bool {
 	if workspaceRoot == "" {
 		return false
 	}
-	info, err := os.Stat(filepath.Join(workspaceRoot, ".zero", "plugins"))
+	info, err := os.Stat(filepath.Join(workspaceRoot, ".rune", "plugins"))
 	return err == nil && info.IsDir()
 }
 
@@ -139,5 +139,5 @@ func writePluginActivationWarning(stderr io.Writer, message string) {
 	if stderr == nil {
 		return
 	}
-	_, _ = fmt.Fprintf(stderr, "[zero] WARNING: plugin activation: %s\n", message)
+	_, _ = fmt.Fprintf(stderr, "[rune] WARNING: plugin activation: %s\n", message)
 }

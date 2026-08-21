@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/testrunner"
-	"github.com/rune-ai/rune/internal/verify"
+	"rune/internal/testrunner"
+	"rune/internal/verify"
 )
 
 func TestSnapshotFromReportPreservesAttemptsAndRedactsRemediation(t *testing.T) {

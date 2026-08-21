@@ -6,8 +6,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/execution"
+	"rune/internal/tools"
 )
 
 // filesPanelTestModel is sidebarTestModel plus a couple of touched files: one

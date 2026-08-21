@@ -5,7 +5,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/redaction"
 )
 
 func RunLoop(ctx context.Context, plan Plan, options LoopOptions) LoopReport {

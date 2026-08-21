@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/zeroruntime"
 )
 
 // TestNewTurnSessionProviderForEveryKind asserts every current provider kind
@@ -31,7 +31,7 @@ func TestNewTurnSessionProviderForEveryKind(t *testing.T) {
 				// A model absent from the registry: resolution falls back to the
 				// raw id, so this test stays hermetic across catalog changes.
 				Model: "pr7-unregistered-model",
-			}, Options{UserAgent: "zero-turn-session-test"})
+			}, Options{UserAgent: "rune-turn-session-test"})
 			if err != nil {
 				t.Fatalf("NewTurnSessionProvider(%s): %v", kind, err)
 			}
@@ -107,7 +107,7 @@ func TestNewTurnSessionProviderProjectsRegistryCapabilities(t *testing.T) {
 		APIKey:       "sk-turn-session-test",
 		Model:        "pr7-caps-model",
 	}, Options{
-		UserAgent:     "zero-turn-session-test",
+		UserAgent:     "rune-turn-session-test",
 		ModelRegistry: &registry,
 	})
 	if err != nil {
@@ -174,7 +174,7 @@ func TestNewTurnSessionProviderUsesEffectiveReasoningEfforts(t *testing.T) {
 		APIKey:       "sk-turn-session-test",
 		Model:        "gpt-5-pr7-probe",
 	}, Options{
-		UserAgent:     "zero-turn-session-test",
+		UserAgent:     "rune-turn-session-test",
 		ModelRegistry: &registry,
 	})
 	if err != nil {

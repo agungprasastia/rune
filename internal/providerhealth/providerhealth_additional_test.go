@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 func TestProbeConfigOnlyValidProviderPassesWithoutNetwork(t *testing.T) {

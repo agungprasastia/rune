@@ -6,19 +6,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 // TestMain points userConfigDirForPrompt at an empty, package-wide temp
 // directory for every test in this package. Without this, buildSystemPrompt
 // falls back to the real config.UserConfigDir, so any developer with a
-// personal ~/.config/zero/ZERO.md would get its content folded into
+// personal ~/.config/rune/RUNE.md would get its content folded into
 // otherwise-unrelated prompt assertions, making test runs non-deterministic
 // across contributor machines. Tests that specifically exercise user
 // guidelines stub userConfigDirForPrompt themselves via
 // withSystemPromptTestUserConfigDir(Func) and restore this default on cleanup.
 func TestMain(m *testing.M) {
-	dir, err := os.MkdirTemp("", "zero-agent-tests-*")
+	dir, err := os.MkdirTemp("", "rune-agent-tests-*")
 	if err != nil {
 		panic(err)
 	}
@@ -76,7 +76,7 @@ func TestSystemPromptExplainsSandboxEscalationForHiddenHostState(t *testing.T) {
 
 func TestBuildSystemPromptIncludesWorkspaceSeedFromCwd(t *testing.T) {
 	cwd := t.TempDir()
-	writeSystemPromptTestFile(t, cwd, "go.mod", "module example.test/zero\n")
+	writeSystemPromptTestFile(t, cwd, "go.mod", "module example.test/rune\n")
 	writeSystemPromptTestFile(t, cwd, "AGENTS.md", "Use Go commands.\n")
 	writeSystemPromptTestFile(t, cwd, "cmd/rune/main.go", "package main\n")
 	writeSystemPromptTestFile(t, cwd, "internal/agent/loop.go", "package agent\n")
@@ -159,11 +159,11 @@ func systemPromptTestBlock(t *testing.T, prompt, start, end string) string {
 
 func TestBuildSystemPromptIncludesUserGuidelines(t *testing.T) {
 	configDir := t.TempDir()
-	writeSystemPromptTestFile(t, configDir, "zero/ZERO.md", "  Prefer concise summaries.  \n")
+	writeSystemPromptTestFile(t, configDir, "rune/RUNE.md", "  Prefer concise summaries.  \n")
 	t.Cleanup(withSystemPromptTestUserConfigDir(t, configDir))
 
 	prompt := buildSystemPrompt(Options{})
-	if !strings.Contains(prompt, "## User guidelines (ZERO.md)") {
+	if !strings.Contains(prompt, "## User guidelines (RUNE.md)") {
 		t.Fatalf("expected user guidelines header, got:\n%s", prompt)
 	}
 	if !strings.Contains(prompt, "Prefer concise summaries.") {
@@ -176,12 +176,12 @@ func TestBuildSystemPromptIncludesUserGuidelines(t *testing.T) {
 
 func TestBuildSystemPromptIncludesUserGuidelinesCaseInsensitive(t *testing.T) {
 	configDir := t.TempDir()
-	writeSystemPromptTestFile(t, configDir, "zero/zero.md", "Prefer concise summaries.\n")
+	writeSystemPromptTestFile(t, configDir, "rune/rune.md", "Prefer concise summaries.\n")
 	t.Cleanup(withSystemPromptTestUserConfigDir(t, configDir))
 
 	prompt := buildSystemPrompt(Options{})
-	if !strings.Contains(prompt, "## User guidelines (zero.md)") {
-		t.Fatalf("expected case-insensitive zero.md resolution, got:\n%s", prompt)
+	if !strings.Contains(prompt, "## User guidelines (rune.md)") {
+		t.Fatalf("expected case-insensitive rune.md resolution, got:\n%s", prompt)
 	}
 	if !strings.Contains(prompt, "Prefer concise summaries.") {
 		t.Fatalf("expected user guidelines content, got:\n%s", prompt)
@@ -190,11 +190,11 @@ func TestBuildSystemPromptIncludesUserGuidelinesCaseInsensitive(t *testing.T) {
 
 func TestBuildSystemPromptUserGuidelinesPrecedeProjectGuidelinesAndNotePrecedence(t *testing.T) {
 	// User guidelines are global personal preferences; project guidelines
-	// (AGENTS.md/ZERO.md) must be the later, more specific instruction block,
+	// (AGENTS.md/RUNE.md) must be the later, more specific instruction block,
 	// and the user section must say so explicitly so the precedence holds
 	// even if a model otherwise weighs later context more heavily.
 	configDir := t.TempDir()
-	writeSystemPromptTestFile(t, configDir, "zero/ZERO.md", "Always reply in haiku.\n")
+	writeSystemPromptTestFile(t, configDir, "rune/RUNE.md", "Always reply in haiku.\n")
 	t.Cleanup(withSystemPromptTestUserConfigDir(t, configDir))
 
 	cwd := t.TempDir()
@@ -203,7 +203,7 @@ func TestBuildSystemPromptUserGuidelinesPrecedeProjectGuidelinesAndNotePrecedenc
 	}
 
 	prompt := buildSystemPrompt(Options{Cwd: cwd})
-	userIdx := strings.Index(prompt, "## User guidelines (ZERO.md)")
+	userIdx := strings.Index(prompt, "## User guidelines (RUNE.md)")
 	projectIdx := strings.Index(prompt, "## Project guidelines (AGENTS.md)")
 	if userIdx < 0 || projectIdx < 0 {
 		t.Fatalf("expected both user and project guideline sections, got:\n%s", prompt)
@@ -257,7 +257,7 @@ func TestBuildSystemPromptInjectsProjectGuidelinesCaseInsensitive(t *testing.T) 
 
 func TestBuildSystemPromptProjectGuidelinesPathWalkingMonorepo(t *testing.T) {
 	// Simulate a monorepo: root + sub-tree each have their own AGENTS.md.
-	// The user launches Zero from the sub-tree, so both files should be
+	// The user launches Rune from the sub-tree, so both files should be
 	// injected in general-to-specific order (root first, cwd last).
 	root := t.TempDir()
 	leaf := filepath.Join(root, "services", "api")
@@ -297,24 +297,24 @@ func TestBuildSystemPromptProjectGuidelinesPathWalkingMonorepo(t *testing.T) {
 }
 
 func TestBuildSystemPromptProjectGuidelinesZeroFallback(t *testing.T) {
-	// ZERO.md is the second-priority name at each level; the loader picks it
+	// RUNE.md is the second-priority name at each level; the loader picks it
 	// when no AGENTS.md is present.
 	cwd := t.TempDir()
-	if err := os.WriteFile(filepath.Join(cwd, "ZERO.md"), []byte("Brand-specific rule."), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(cwd, "RUNE.md"), []byte("Brand-specific rule."), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	prompt := buildSystemPrompt(Options{Cwd: cwd})
-	if !strings.Contains(prompt, "## Project guidelines (ZERO.md)") {
-		t.Fatalf("expected ZERO.md fallback to be injected, got:\n%s", prompt)
+	if !strings.Contains(prompt, "## Project guidelines (RUNE.md)") {
+		t.Fatalf("expected RUNE.md fallback to be injected, got:\n%s", prompt)
 	}
 	if !strings.Contains(prompt, "Brand-specific rule.") {
-		t.Fatalf("expected ZERO.md content, got:\n%s", prompt)
+		t.Fatalf("expected RUNE.md content, got:\n%s", prompt)
 	}
 }
 
 func TestBuildSystemPromptProjectGuidelinesProjectLocalFallback(t *testing.T) {
 	cwd := t.TempDir()
-	dot := filepath.Join(cwd, ".zero")
+	dot := filepath.Join(cwd, ".rune")
 	if err := os.MkdirAll(dot, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -323,10 +323,10 @@ func TestBuildSystemPromptProjectGuidelinesProjectLocalFallback(t *testing.T) {
 	}
 	prompt := buildSystemPrompt(Options{Cwd: cwd})
 	// Without a git root, the label collapses to the basename; the test
-	// confirms the .zero/AGENTS.md file's content is the one injected, not
+	// confirms the .rune/AGENTS.md file's content is the one injected, not
 	// any other file.
 	if !strings.Contains(prompt, "Personal: use dark theme.") {
-		t.Fatalf("expected .zero/AGENTS.md content, got:\n%s", prompt)
+		t.Fatalf("expected .rune/AGENTS.md content, got:\n%s", prompt)
 	}
 	// The project guidelines block must be present (regardless of label).
 	if !strings.Contains(prompt, "## Project guidelines (") {

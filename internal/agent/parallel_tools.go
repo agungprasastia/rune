@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // Parallel read-ahead for tool batches. When a turn requests several

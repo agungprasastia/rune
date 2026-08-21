@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/execution"
 )
 
 // defaultHookTimeout bounds a single hook command so a hung or slow hook cannot
@@ -30,7 +30,7 @@ type DispatchInput struct {
 // DispatchOutcome reports what happened for one Dispatch call.
 type DispatchOutcome struct {
 	Ran       int    // hooks that executed
-	Blocked   bool   // a blocking-event hook exited non-zero, vetoing the action
+	Blocked   bool   // a blocking-event hook exited non-rune, vetoing the action
 	BlockedBy string // ID of the hook that blocked (empty unless Blocked)
 	Reason    string // the blocking hook's stderr/stdout, for surfacing to the model
 	// Messages collects the output (stdout, else stderr) of each hook that
@@ -43,7 +43,7 @@ type commandResult struct {
 	ExitCode int
 	Stdout   string
 	Stderr   string
-	Err      error // set when the command could not be executed (not a non-zero exit)
+	Err      error // set when the command could not be executed (not a non-rune exit)
 	TimedOut bool  // the hook started but its deadline/cancellation fired before it returned
 }
 
@@ -64,7 +64,7 @@ type DispatcherOptions struct {
 }
 
 // Dispatcher selects and runs the hooks configured for a lifecycle event,
-// recording each run to the audit store. A beforeTool hook that exits non-zero
+// recording each run to the audit store. A beforeTool hook that exits non-rune
 // blocks the tool; hooks for other events are advisory (failures are recorded
 // but do not interrupt the run).
 type Dispatcher struct {
@@ -77,7 +77,7 @@ type Dispatcher struct {
 	run     commandRunner
 }
 
-// NewDispatcher builds a Dispatcher. A zero/empty config yields a dispatcher that
+// NewDispatcher builds a Dispatcher. A rune/empty config yields a dispatcher that
 // runs nothing, so callers can always construct one unconditionally.
 func NewDispatcher(options DispatcherOptions) *Dispatcher {
 	timeout := options.Timeout
@@ -143,7 +143,7 @@ func executionCommandRunner(runner *execution.Runner) commandRunner {
 	}
 }
 
-// blocksOn reports whether a non-zero exit for this event should veto the action.
+// blocksOn reports whether a non-rune exit for this event should veto the action.
 // Only beforeTool gates the tool; other events are observational.
 func blocksOn(event Event) bool {
 	return event == EventBeforeTool
@@ -213,7 +213,7 @@ func (dispatcher *Dispatcher) runWithTimeout(ctx context.Context, hook Definitio
 }
 
 // classifyResult maps a command result to an audit status and whether it vetoes
-// the action. A command that ran and exited non-zero blocks a beforeTool hook; a
+// the action. A command that ran and exited non-rune blocks a beforeTool hook; a
 // command that could not be executed at all is an error but never blocks (a
 // missing hook binary must not wedge every tool call).
 func classifyResult(event Event, result commandResult) (AuditStatus, bool) {
@@ -262,7 +262,7 @@ func blockReason(result commandResult) string {
 			return trimmed
 		}
 	}
-	return "hook exited non-zero"
+	return "hook exited non-rune"
 }
 
 func (dispatcher *Dispatcher) recordStarted(hook Definition, input DispatchInput, command Command) {
@@ -294,7 +294,7 @@ func (dispatcher *Dispatcher) recordCompleted(hook Definition, input DispatchInp
 }
 
 // execCommandRunner runs a hook command directly (no shell), feeding the JSON
-// payload on stdin and capturing stdout/stderr. A non-zero exit is reported via
+// payload on stdin and capturing stdout/stderr. A non-rune exit is reported via
 // ExitCode (not Err); Err is reserved for commands that could not be launched.
 func execCommandRunner(ctx context.Context, command string, args []string, stdin []byte, cwd string, env []string) commandResult {
 	cmd := exec.CommandContext(ctx, command, args...)

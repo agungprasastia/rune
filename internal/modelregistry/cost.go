@@ -5,7 +5,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 const tokensPerMillion = 1_000_000

@@ -10,27 +10,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/errhint"
-	"github.com/rune-ai/rune/internal/execprofile"
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/imageinput"
-	"github.com/rune-ai/rune/internal/lsp"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/notify"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/providers"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/specmode"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/usage"
-	"github.com/rune-ai/rune/internal/worktrees"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/errhint"
+	"rune/internal/execprofile"
+	"rune/internal/execution"
+	"rune/internal/imageinput"
+	"rune/internal/lsp"
+	"rune/internal/modelregistry"
+	"rune/internal/notify"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/providers"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/specmode"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
+	"rune/internal/trace"
+	"rune/internal/usage"
+	"rune/internal/worktrees"
+	"rune/internal/zeroruntime"
 )
 
 const (
@@ -118,7 +118,7 @@ type execOptions struct {
 	// switcher).
 	allowEscalation bool
 	// selfCorrect opts the run into the post-edit verify-and-correct loop: after a
-	// mutating tool call ZERO runs the workspace verification plan and feeds
+	// mutating tool call RUNE runs the workspace verification plan and feeds
 	// failures back to the model to fix, bounded by an attempt ceiling and the
 	// autonomy gate. Off by default — a run without the flag wires a nil
 	// SelfCorrector, leaving the agent loop byte-identical to before.
@@ -135,7 +135,7 @@ type execOptions struct {
 	// the turn back ("the sandbox blocks network egress, approve it and I'll
 	// continue") is a COMPLETE answer, not an unfinished task, so the gate's
 	// self-report admission check and INCOMPLETE downgrade (exit 4) would only
-	// mislabel honest blocker reports. Default off: plain `zero exec` keeps the
+	// mislabel honest blocker reports. Default off: plain `rune exec` keeps the
 	// gate, preserving CI/cron semantics.
 	noCompletionGate bool
 	// addDirs holds directories passed via --add-dir that should be allowed as
@@ -144,7 +144,7 @@ type execOptions struct {
 	addDirs []string
 	// tracePath, when set, writes a per-turn NDJSON trace (agenteval-compatible)
 	// to the given file path — or to stderr when the value is "-". Falls back to
-	// the ZERO_TRACE env var when the flag is absent. Off by default: a run
+	// the RUNE_TRACE env var when the flag is absent. Off by default: a run
 	// without it leaves agent.Options.Trace nil and is byte-identical to before.
 	// The trace is pure observation — enabling it does not change agent behavior.
 	tracePath string
@@ -220,7 +220,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 		// When this run's own Prepare call took the worktree lock, its
 		// lifetime is bound to this function: release the lock once it returns
 		// so Clean can reclaim the worktree later if it goes stale. A reused
-		// worktree whose lock an external `zero worktrees prepare` caller
+		// worktree whose lock an external `rune worktrees prepare` caller
 		// still holds reports LockAcquired=false; releasing it here would
 		// clear that caller's lease and expose its workspace to Clean, so the
 		// matching release stays that caller's responsibility. A failed unlock
@@ -230,7 +230,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 		if preparedWorktree.LockAcquired {
 			defer func() {
 				if releaseErr := deps.releaseWorktree(context.Background(), worktrees.Options{Cwd: trustRoot}, preparedWorktree.Path); releaseErr != nil {
-					fmt.Fprintf(stderr, "zero: failed to release worktree lock on %s: %s\n", redactCLIString(preparedWorktree.Path), redactCLIString(releaseErr.Error()))
+					fmt.Fprintf(stderr, "rune: failed to release worktree lock on %s: %s\n", redactCLIString(preparedWorktree.Path), redactCLIString(releaseErr.Error()))
 				}
 			}()
 		}
@@ -287,7 +287,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 	// lookup in this exec run (model resolution, reasoning-effort advisory, and
 	// context-window sizing). DefaultRegistry builds the full catalog and
 	// compiles its match patterns, so rebuilding it per lookup is wasteful.
-	// modelRegistry is the zero Registry when the catalog fails to build; the
+	// modelRegistry is the rune Registry when the catalog fails to build; the
 	// helpers below degrade to safe no-op behavior in that case.
 	modelRegistry, _ := modelregistry.DefaultRegistry()
 
@@ -336,7 +336,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 	if notice, err := sandboxEngine.ConsumeGrantMigrationNotice(); err != nil {
 		return writeExecProviderError(stdout, stderr, options.outputFormat, "sandbox_error", "migrate sandbox grants: "+err.Error())
 	} else if notice != "" {
-		_, _ = fmt.Fprintln(stderr, "[zero] "+notice)
+		_, _ = fmt.Fprintln(stderr, "[rune] "+notice)
 	}
 	executionRunner.SetPreparer(sandboxEngine)
 	if permissionMode != agent.PermissionModePlan {
@@ -377,7 +377,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 	sessionTitle := execSessionTitle(options, prompt)
 
 	if !config.HasProviderProfile(resolved.Provider) {
-		return writeExecProviderError(stdout, stderr, options.outputFormat, "provider_error", "No provider configured. Run `zero setup` (guided), `zero auth` (OAuth providers), set a provider API key env var (e.g. OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY), or add .zero/config.json.")
+		return writeExecProviderError(stdout, stderr, options.outputFormat, "provider_error", "No provider configured. Run `rune setup` (guided), `rune auth` (OAuth providers), set a provider API key env var (e.g. OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY), or add .rune/config.json.")
 	}
 	// Activate deferred MCP-tool loading for this run only when the VISIBLE
 	// deferred-eligible count meets the resolved threshold; below threshold this
@@ -465,7 +465,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 		}
 	}
 
-	// Optimized OpenAI turn sessions (ZERO_OPENAI_TURN_SESSION, default off).
+	// Optimized OpenAI turn sessions (RUNE_OPENAI_TURN_SESSION, default off).
 	// nil when gated off or the profile is ineligible: agent.Run then wraps the
 	// provider in its default adapter — the exact code path of today. The
 	// session switcher is installed only when the run START is optimized, so
@@ -506,17 +506,17 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 		Mode:      notify.Mode(strings.TrimSpace(execNotifyMode(options, resolved))),
 		FocusMode: notify.FocusAlways,
 	})
-	// Opt-in webhook fan-out (ZERO_NOTIFY_WEBHOOK_URL). Headless runs can safely
+	// Opt-in webhook fan-out (RUNE_NOTIFY_WEBHOOK_URL). Headless runs can safely
 	// log a failed delivery to stderr (never stdout). The sink redacts before
 	// logging, so a token in the URL or message is masked.
 	notify.MaybeAddWebhookSink(notifier, os.Getenv, func(format string, args ...any) {
 		fmt.Fprintf(stderr, "[notify] "+format+"\n", args...)
 	})
 	// Spec-draft runs synthesize a prompt offline and never drive a model turn, so
-	// there is no per-turn trace to emit. Reject --trace / ZERO_TRACE up front with
+	// there is no per-turn trace to emit. Reject --trace / RUNE_TRACE up front with
 	// a clear error rather than silently accepting and writing nothing.
 	if options.useSpec && resolveTracePath(options) != "" {
-		return writeExecFormatUsageError(stdout, stderr, options.outputFormat, "--trace / ZERO_TRACE are not supported for spec-draft runs")
+		return writeExecFormatUsageError(stdout, stderr, options.outputFormat, "--trace / RUNE_TRACE are not supported for spec-draft runs")
 	}
 	if options.useSpec {
 		return runExecSpecDraft(execSpecDraftRun{
@@ -577,7 +577,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 	if err != nil {
 		return writeAppError(stderr, "failed to create run id: "+err.Error(), exitCrash)
 	}
-	// Per-turn tracing is opt-in (--trace <path> or ZERO_TRACE=<path>). The
+	// Per-turn tracing is opt-in (--trace <path> or RUNE_TRACE=<path>). The
 	// recorder is stamped throughout agent.Run and the providerio seam; the run
 	// itself is byte-identical to an untraced run. We finish the recorder at the
 	// agent.Run boundary (below) so the snapshot captures exactly one turn, then
@@ -591,7 +591,7 @@ func runExec(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) in
 		traceRecorder = trace.NewRecorder(preparedSession.Session.SessionID, runID, execProfile.Name)
 		defer func() {
 			if err := writeTraceSnapshot(traceSnapshot, tracePath, stderr); err != nil {
-				fmt.Fprintf(stderr, "[zero] failed to write trace: %s\n", err)
+				fmt.Fprintf(stderr, "[rune] failed to write trace: %s\n", err)
 			}
 		}()
 	}
@@ -930,7 +930,7 @@ func deferredEligibleCount(registry *tools.Registry, permissionMode agent.Permis
 // registerToolSearchIfEligible registers the tool_search tool only when deferral
 // is active for this run: the visible-deferred count (the same population the
 // agent loop's partition counts) meets the (positive) threshold. Below threshold
-// or with a zero/negative threshold, tool_search is never registered, so the
+// or with a rune/negative threshold, tool_search is never registered, so the
 // agent loop's partition stays inactive and tool advertising is byte-identical to
 // today. The permissionMode + enabled/disabled filters MUST match the values the
 // run passes to agent.Run so the registration gate and the activation gate count
@@ -1094,7 +1094,7 @@ func resolveExecPrompt(options execOptions, workspaceRoot string, stdin io.Reade
 
 	prompt := strings.TrimSpace(strings.Join(parts, "\n\n"))
 	if prompt == "" {
-		return "", nil, execUsageError{"Prompt required. Use `zero exec \"prompt\"` or `zero exec --file prompt.txt`."}
+		return "", nil, execUsageError{"Prompt required. Use `rune exec \"prompt\"` or `rune exec --file prompt.txt`."}
 	}
 	return prompt, nil, nil
 }
@@ -1123,7 +1123,7 @@ func resolveExecImages(paths []string, workspaceRoot string) ([]zeroruntime.Imag
 }
 
 func writeExecUsageError(stderr io.Writer, message string) int {
-	if _, err := fmt.Fprintf(stderr, "[zero] %s\n", message); err != nil {
+	if _, err := fmt.Fprintf(stderr, "[rune] %s\n", message); err != nil {
 		return exitCrash
 	}
 	return exitUsage
@@ -1156,14 +1156,14 @@ func writeExecProviderError(stdout io.Writer, stderr io.Writer, format execOutpu
 		}
 		return exitProvider
 	}
-	if _, err := fmt.Fprintf(stderr, "[zero] %s\n", message); err != nil {
+	if _, err := fmt.Fprintf(stderr, "[rune] %s\n", message); err != nil {
 		return exitCrash
 	}
 	// Append a one-line next step for recognized provider failures (auth /
 	// rate-limit / connectivity / …). The classifier gates on a provider-origin
 	// marker, so non-provider codes (sandbox_error, mcp_error) never draw a hint.
 	if hint := errhint.CLIHint(errors.New(message)); hint != "" {
-		if _, err := fmt.Fprintf(stderr, "[zero] %s\n", hint); err != nil {
+		if _, err := fmt.Fprintf(stderr, "[rune] %s\n", hint); err != nil {
 			return exitCrash
 		}
 	}
@@ -1458,13 +1458,13 @@ func execNotifyMode(options execOptions, resolved config.ResolvedConfig) string 
 }
 
 // resolveTracePath returns the trace destination for this run: the --trace flag
-// value when set, else the ZERO_TRACE env var, else "" (tracing off). A value of
+// value when set, else the RUNE_TRACE env var, else "" (tracing off). A value of
 // "-" means "write to stderr".
 func resolveTracePath(options execOptions) string {
 	if v := strings.TrimSpace(options.tracePath); v != "" {
 		return v
 	}
-	if v := strings.TrimSpace(os.Getenv("ZERO_TRACE")); v != "" {
+	if v := strings.TrimSpace(os.Getenv("RUNE_TRACE")); v != "" {
 		return v
 	}
 	return ""

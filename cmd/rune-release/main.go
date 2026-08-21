@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/release"
+	"rune/internal/release"
 )
 
 func main() {
@@ -54,7 +54,7 @@ func runBuild(args []string, stdout io.Writer, stderr io.Writer) int {
 	}
 	result, err := release.Build(context.Background(), options)
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Build failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Build failed: "+err.Error())
 		return 1
 	}
 	_, _ = fmt.Fprintf(stdout, "Built %s (%s/%s, version %s)\n", result.OutputPath, result.GOOS, result.GOARCH, result.Version)
@@ -75,7 +75,7 @@ func runPackage(args []string, stdout io.Writer, stderr io.Writer) int {
 	}
 	result, err := release.Package(context.Background(), options)
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Release packaging failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Release packaging failed: "+err.Error())
 		return 1
 	}
 	_, _ = fmt.Fprintf(stdout, "Packaged %s\n", result.ArchiveName)
@@ -97,7 +97,7 @@ func runSmoke(args []string, stdout io.Writer, stderr io.Writer) int {
 	}
 	result, err := release.Smoke(context.Background(), options)
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Smoke failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Smoke failed: "+err.Error())
 		return 1
 	}
 	_, _ = fmt.Fprintf(stdout, "%s smoke check passed (%s)\n", filepath.Base(result.BinaryPath), result.Version)
@@ -118,7 +118,7 @@ func runVerify(args []string, stdout io.Writer, stderr io.Writer) int {
 	}
 	results, err := release.VerifyReleaseChecksums(options)
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Release checksum verification failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Release checksum verification failed: "+err.Error())
 		return 1
 	}
 	for _, result := range results {
@@ -130,8 +130,8 @@ func runVerify(args []string, stdout io.Writer, stderr io.Writer) int {
 
 func parseBuildArgs(args []string, getenv func(string) string) (release.BuildOptions, bool, error) {
 	options := release.BuildOptions{
-		GOOS:   strings.TrimSpace(getenv("ZERO_BUILD_GOOS")),
-		GOARCH: strings.TrimSpace(getenv("ZERO_BUILD_GOARCH")),
+		GOOS:   strings.TrimSpace(getenv("RUNE_BUILD_GOOS")),
+		GOARCH: strings.TrimSpace(getenv("RUNE_BUILD_GOARCH")),
 	}
 	for index := 0; index < len(args); index++ {
 		arg := args[index]
@@ -357,7 +357,7 @@ Flags:
   -h, --help              Show this help
 
 Environment overrides:
-  ZERO_BUILD_GOOS, ZERO_BUILD_GOARCH
+  RUNE_BUILD_GOOS, RUNE_BUILD_GOARCH
 `)
 	return err
 }

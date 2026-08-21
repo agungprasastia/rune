@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func TestSpawnAndHandoffAgentTypeEnumReflectsRoster(t *testing.T) {

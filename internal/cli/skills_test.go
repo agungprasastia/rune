@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tui"
+	"rune/internal/tui"
 )
 
 func writeSkillFixture(t *testing.T, dir string, name string, content string) {

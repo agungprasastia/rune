@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 // denyReadFixture builds a workspace with an ordinary file and a secret subtree,

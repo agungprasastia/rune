@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 func main() {

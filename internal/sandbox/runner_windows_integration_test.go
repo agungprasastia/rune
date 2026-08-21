@@ -16,19 +16,19 @@ import (
 )
 
 func TestWindowsRestrictedTokenRealSandboxSmoke(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
 	}
-	setupExe := realSmokeExecutable(t, "ZERO_WINDOWS_SANDBOX_SETUP_EXE", WindowsSandboxSetupName)
-	runnerExe := realSmokeExecutable(t, "ZERO_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
+	setupExe := realSmokeExecutable(t, "RUNE_WINDOWS_SANDBOX_SETUP_EXE", WindowsSandboxSetupName)
+	runnerExe := realSmokeExecutable(t, "RUNE_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
 
 	root := t.TempDir()
-	sandboxHome := filepath.Join(root, ".zero-sandbox")
+	sandboxHome := filepath.Join(root, ".rune-sandbox")
 	profile := PermissionProfile{
 		FileSystem: FileSystemPolicy{
 			Kind:                 FileSystemRestricted,
 			ReadRoots:            []string{root},
-			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".zero", ".agents"}}},
+			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".rune", ".agents"}}},
 			IncludePlatformRoots: true,
 			AllowTemp:            true,
 		},
@@ -139,10 +139,10 @@ exit 0
 // restricted token, and a write outside every granted root is denied. Unlike
 // the elevated smoke above it needs no Administrator terminal.
 func TestWindowsUnelevatedRealSandboxSmoke(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
 	}
-	runnerExe := realSmokeExecutable(t, "ZERO_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
+	runnerExe := realSmokeExecutable(t, "RUNE_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
 
 	root := t.TempDir()
 	outside := t.TempDir()
@@ -155,12 +155,12 @@ func TestWindowsUnelevatedRealSandboxSmoke(t *testing.T) {
 		t.Fatalf("WriteFile secret: %v", err)
 	}
 
-	sandboxHome := filepath.Join(root, ".zero-sandbox")
+	sandboxHome := filepath.Join(root, ".rune-sandbox")
 	profile := PermissionProfile{
 		FileSystem: FileSystemPolicy{
 			Kind:                 FileSystemRestricted,
 			ReadRoots:            []string{root},
-			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".zero", ".agents"}}},
+			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".rune", ".agents"}}},
 			DenyRead:             []string{privateDir},
 			IncludePlatformRoots: true,
 			AllowTemp:            true,
@@ -219,18 +219,18 @@ func TestWindowsUnelevatedRealSandboxSmoke(t *testing.T) {
 // dance internally, so it reproduces the bug with no external dependency
 // beyond cmd.exe itself).
 func TestWindowsRestrictedTokenNestedPipeCapture(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
 	}
-	runnerExe := realSmokeExecutable(t, "ZERO_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
+	runnerExe := realSmokeExecutable(t, "RUNE_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
 
 	root := t.TempDir()
-	sandboxHome := filepath.Join(root, ".zero-sandbox")
+	sandboxHome := filepath.Join(root, ".rune-sandbox")
 	profile := PermissionProfile{
 		FileSystem: FileSystemPolicy{
 			Kind:                 FileSystemRestricted,
 			ReadRoots:            []string{root},
-			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".zero", ".agents"}}},
+			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".rune", ".agents"}}},
 			IncludePlatformRoots: true,
 			AllowTemp:            true,
 		},
@@ -272,15 +272,15 @@ func TestWindowsRestrictedTokenNestedPipeCapture(t *testing.T) {
 // initialization, a native pipeline (which creates IPC objects), UTF-8 output,
 // and workspace write enforcement.
 func TestWindowsRestrictedTokenPowerShell(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
 	}
-	runnerExe := realSmokeExecutable(t, "ZERO_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
+	runnerExe := realSmokeExecutable(t, "RUNE_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
 	powerShell := realSmokePowerShell(t)
 
 	root := t.TempDir()
 	outside := t.TempDir()
-	sandboxHome := filepath.Join(root, ".zero-sandbox")
+	sandboxHome := filepath.Join(root, ".rune-sandbox")
 	profile := PermissionProfile{
 		FileSystem: FileSystemPolicy{
 			Kind:                 FileSystemRestricted,
@@ -391,7 +391,7 @@ func runWindowsRealSmokeCommand(t *testing.T, runnerExe string, base WindowsSand
 //
 // A WRITE_RESTRICTED token runs TWO checks for a write and needs both to pass:
 // the normal one against its enabled SIDs, and a second against its RESTRICTED
-// SID list. The jail is built on the second check only succeeding where Zero has
+// SID list. The jail is built on the second check only succeeding where Rune has
 // explicitly ACL'd a capability SID. Putting the World SID (S-1-1-0) in the
 // restricted list breaks that globally — every principal is a member of
 // Everyone, so on a DACL that grants Everyone write, the restricted half passes
@@ -409,10 +409,10 @@ func runWindowsRealSmokeCommand(t *testing.T, runnerExe string, base WindowsSand
 // no symlink and no race. Checked and ruled out: C:\Users\Public\Documents
 // grants BATCH, not Everyone, so the common "public folder" case is not this.
 func TestWindowsRestrictedTokenDeniesWritesToEveryoneWritablePaths(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real Windows sandbox smoke tests")
 	}
-	runnerExe := realSmokeExecutable(t, "ZERO_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
+	runnerExe := realSmokeExecutable(t, "RUNE_WINDOWS_COMMAND_RUNNER_EXE", WindowsSandboxCommandRunnerName)
 
 	root := t.TempDir()
 	outside := t.TempDir()
@@ -438,7 +438,7 @@ func TestWindowsRestrictedTokenDeniesWritesToEveryoneWritablePaths(t *testing.T)
 	}
 	t.Cleanup(func() { _ = rollbackWindowsACLSnapshots([]windowsACLSnapshot{snapshot}) })
 
-	sandboxHome := filepath.Join(root, ".zero-sandbox")
+	sandboxHome := filepath.Join(root, ".rune-sandbox")
 	// No DenyRead on purpose: that is what makes the runner choose the
 	// WRITE_RESTRICTED token, which is the default posture and the one whose
 	// restricted-SID list this test is about.
@@ -446,7 +446,7 @@ func TestWindowsRestrictedTokenDeniesWritesToEveryoneWritablePaths(t *testing.T)
 		FileSystem: FileSystemPolicy{
 			Kind:                 FileSystemRestricted,
 			ReadRoots:            []string{root},
-			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".zero", ".agents"}}},
+			WriteRoots:           []WritableRoot{{Root: root, ProtectedMetadataNames: []string{".git", ".rune", ".agents"}}},
 			IncludePlatformRoots: true,
 			AllowTemp:            true,
 		},

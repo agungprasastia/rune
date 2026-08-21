@@ -9,8 +9,8 @@ import (
 func TestParseBuildArgsUsesEnvAndCliOverrides(t *testing.T) {
 	env := func(key string) string {
 		values := map[string]string{
-			"ZERO_BUILD_GOOS":   "linux",
-			"ZERO_BUILD_GOARCH": "arm64",
+			"RUNE_BUILD_GOOS":   "linux",
+			"RUNE_BUILD_GOARCH": "arm64",
 		}
 		return values[key]
 	}
@@ -71,7 +71,7 @@ func TestBuildHelpIncludesEnvironmentOverrides(t *testing.T) {
 		t.Fatalf("run build --help code = %d stderr = %q", code, stderr.String())
 	}
 	output := stdout.String()
-	for _, want := range []string{"rune-release build", "--goos", "--goarch", "ZERO_BUILD_GOOS"} {
+	for _, want := range []string{"rune-release build", "--goos", "--goarch", "RUNE_BUILD_GOOS"} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("build help missing %q: %s", want, output)
 		}

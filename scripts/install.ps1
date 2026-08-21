@@ -1,10 +1,10 @@
 [CmdletBinding()]
 param(
-  [string]$Version = $env:ZERO_VERSION,
-  [string]$Repository = $(if ($env:ZERO_REPO) { $env:ZERO_REPO } else { "Gitlawb/zero" }),
-  [string]$InstallDir = $env:ZERO_INSTALL_DIR,
-  [string]$GitHubApi = $(if ($env:ZERO_GITHUB_API) { $env:ZERO_GITHUB_API } else { "https://api.github.com" }),
-  [string]$GitHubBaseUrl = $(if ($env:ZERO_GITHUB_BASE_URL) { $env:ZERO_GITHUB_BASE_URL } else { "https://github.com" })
+  [string]$Version = $env:RUNE_VERSION,
+  [string]$Repository = $(if ($env:RUNE_REPO) { $env:RUNE_REPO } else { "rune-ai/rune" }),
+  [string]$InstallDir = $env:RUNE_INSTALL_DIR,
+  [string]$GitHubApi = $(if ($env:RUNE_GITHUB_API) { $env:RUNE_GITHUB_API } else { "https://api.github.com" }),
+  [string]$GitHubBaseUrl = $(if ($env:RUNE_GITHUB_BASE_URL) { $env:RUNE_GITHUB_BASE_URL } else { "https://github.com" })
 )
 
 $ErrorActionPreference = "Stop"
@@ -14,7 +14,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($InstallDir)) {
-  $InstallDir = Join-Path $env:LOCALAPPDATA "zero\bin"
+  $InstallDir = Join-Path $env:LOCALAPPDATA "rune\bin"
 }
 
 function Get-ZeroLatestTag {
@@ -114,7 +114,7 @@ if ($Version -eq "latest") {
 
 $releaseVersion = $tag -replace "^v", ""
 $arch = Get-ZeroArch
-$archiveName = "zero-v$releaseVersion-windows-$arch.zip"
+$archiveName = "rune-v$releaseVersion-windows-$arch.zip"
 $checksumName = "$archiveName.sha256"
 $releaseBase = $GitHubBaseUrl.TrimEnd([char[]]"/")
 $releaseUrl = "$releaseBase/$Repository/releases/download/$tag"
@@ -142,9 +142,9 @@ try {
 
   New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
   $requiredFiles = @(
-    "zero.exe",
-    "zero-windows-command-runner.exe",
-    "zero-windows-sandbox-setup.exe"
+    "rune.exe",
+    "rune-windows-command-runner.exe",
+    "rune-windows-sandbox-setup.exe"
   )
   foreach ($fileName in $requiredFiles) {
     $sourcePath = Find-ZeroExtractedFile -Root $extractDir -FileName $fileName
@@ -159,7 +159,7 @@ try {
     Copy-Item -Path $helpersPath -Destination $targetHelpersPath -Recurse -Force
   }
 
-  $targetPath = Join-Path $InstallDir "zero.exe"
+  $targetPath = Join-Path $InstallDir "rune.exe"
   Write-Host "Installed $targetPath"
 
   $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
@@ -167,10 +167,10 @@ try {
     try {
       $newUserPath = if ([string]::IsNullOrEmpty($userPath)) { $InstallDir } else { "$userPath;$InstallDir" }
       [Environment]::SetEnvironmentVariable("PATH", $newUserPath, "User")
-      Write-Host "Added $InstallDir to your user PATH. Restart your terminal to use 'zero'."
+      Write-Host "Added $InstallDir to your user PATH. Restart your terminal to use 'rune'."
     } catch {
       Write-Warning "Could not update your user PATH automatically: $_"
-      Write-Warning "Add $InstallDir to PATH manually to run zero from any directory."
+      Write-Warning "Add $InstallDir to PATH manually to run rune from any directory."
     }
   }
 

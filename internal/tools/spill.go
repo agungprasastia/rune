@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/secrets"
+	"rune/internal/redaction"
+	"rune/internal/secrets"
 )
 
 // Spill-to-disk for truncated tool output. When a command produces more than
@@ -26,16 +26,16 @@ const spillRetention = 7 * 24 * time.Hour
 // spillRootPath returns the spill directory path without creating or checking
 // it. Used by the read-path resolver to recognize spill files as readable.
 func spillRootPath() string {
-	name := "zero-tool-output"
+	name := "rune-tool-output"
 	if uid := os.Getuid(); uid >= 0 {
-		name = fmt.Sprintf("zero-tool-output-%d", uid)
+		name = fmt.Sprintf("rune-tool-output-%d", uid)
 	}
 	return filepath.Join(os.TempDir(), name)
 }
 
 // resolveSpillReadPath reports whether requestedPath is a file inside the
 // spill directory and, if so, returns its verified absolute path. Spill files
-// are zero-created, per-uid owned, and already secret-redacted, so letting the
+// are rune-created, per-uid owned, and already secret-redacted, so letting the
 // scoped read tools open them is what makes the truncation notice's
 // "read_file it" recovery actually work. Symlinks are resolved and the result
 // must still be inside the spill dir, so a planted link cannot smuggle an

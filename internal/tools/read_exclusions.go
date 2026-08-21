@@ -1,9 +1,9 @@
 package tools
 
-import "github.com/rune-ai/rune/internal/sandbox"
+import "rune/internal/sandbox"
 
 // readExcluder skips read-denied paths (the sandbox DenyRead policy) during a
-// search walk. The zero value (both funcs nil) excludes nothing, so a
+// search walk. The rune value (both funcs nil) excludes nothing, so a
 // non-sandboxed search behaves exactly as before — the exclusions are opt-in and
 // only ever REMOVE results, never add them.
 type readExcluder struct {

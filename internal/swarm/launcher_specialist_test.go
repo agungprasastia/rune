@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/specialist"
-	"github.com/rune-ai/rune/internal/streamjson"
+	"rune/internal/specialist"
+	"rune/internal/streamjson"
 )
 
 // TestSpecialistLauncherRunsUnregisteredSwarmAgent guards the fix for the swarm
@@ -16,11 +16,11 @@ import (
 // found". The launcher now runs the member from an inline manifest built from its
 // swarm definition, so an unregistered agent type executes end-to-end.
 func TestSpecialistLauncherRunsUnregisteredSwarmAgent(t *testing.T) {
-	zero := 0
+	rune := 0
 	var ran bool
 	var gotArgs []string
 	executor := specialist.Executor{
-		BinaryPath:   "/usr/local/bin/zero",
+		BinaryPath:   "/usr/local/bin/rune",
 		NewSessionID: func() (string, error) { return "member_task", nil },
 		// No "subagent" specialist is registered — the old name-lookup path failed.
 		Load: func(specialist.LoadOptions) (specialist.LoadResult, error) {
@@ -32,7 +32,7 @@ func TestSpecialistLauncherRunsUnregisteredSwarmAgent(t *testing.T) {
 			return specialist.ChildRunResult{Events: []streamjson.Event{
 				{Type: streamjson.EventRunStart, SessionID: "member_task"},
 				{Type: streamjson.EventFinal, Text: "member done"},
-				{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &zero},
+				{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &rune},
 			}}, nil
 		},
 	}
@@ -68,14 +68,14 @@ func TestSpecialistLauncherRunsUnregisteredSwarmAgent(t *testing.T) {
 	}
 }
 
-// A member whose child exits non-zero (e.g. exit 4 / max-turns) must be reported as
+// A member whose child exits non-rune (e.g. exit 4 / max-turns) must be reported as
 // a FAILURE — otherwise the swarm marks it [done] and the orchestrator trusts
 // incomplete work. The failed member keeps its session id (drill-in) and the child
 // report rides along as the failure message.
 func TestSpecialistLauncherMarksNonZeroExitAsFailed(t *testing.T) {
 	four := 4
 	executor := specialist.Executor{
-		BinaryPath:   "/usr/local/bin/zero",
+		BinaryPath:   "/usr/local/bin/rune",
 		NewSessionID: func() (string, error) { return "member_task", nil },
 		Load: func(specialist.LoadOptions) (specialist.LoadResult, error) {
 			return specialist.LoadResult{}, nil
@@ -105,7 +105,7 @@ func TestSpecialistLauncherMarksNonZeroExitAsFailed(t *testing.T) {
 	}
 	res, err := handle.Wait()
 	if err == nil {
-		t.Fatal("a member that exited non-zero must be reported as FAILED, got nil error")
+		t.Fatal("a member that exited non-rune must be reported as FAILED, got nil error")
 	}
 	if !strings.Contains(err.Error(), "exit 4") {
 		t.Fatalf("failure should carry the child report (exit 4), got %q", err.Error())

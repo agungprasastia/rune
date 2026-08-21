@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/background"
+	"rune/internal/tools"
 )
 
 type StopTool struct {
@@ -27,7 +27,7 @@ func (tool *StopTool) Name() string {
 }
 
 func (tool *StopTool) Description() string {
-	return "Stop a running background Zero specialist task."
+	return "Stop a running background Rune specialist task."
 }
 
 func (tool *StopTool) Parameters() tools.Schema {

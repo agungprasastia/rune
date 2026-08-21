@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // richMCPTool mimics a real MCP tool's schema (Exa/Firecrawl-style search): an

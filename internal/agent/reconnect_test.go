@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // flakyProvider fails the first failBefore connect attempts with failErr, then

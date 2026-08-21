@@ -14,14 +14,14 @@ Zero supports two distinct things people mean by "log in with OAuth":
 ## 1. OAuth login for a provider or gateway (built in)
 
 For any OAuth 2.0 / OIDC provider that returns a normal access token usable as
-`Authorization: Bearer …` on its API, configure it with `ZERO_OAUTH_<NAME>_*`
+`Authorization: Bearer …` on its API, configure it with `RUNE_OAUTH_<NAME>_*`
 env vars and log in:
 
 ```sh
-export ZERO_OAUTH_ACME_CLIENT_ID=…
-export ZERO_OAUTH_ACME_AUTHORIZE_URL=https://acme.example/oauth/authorize
-export ZERO_OAUTH_ACME_TOKEN_URL=https://acme.example/oauth/token
-export ZERO_OAUTH_ACME_SCOPES="openid profile"
+export RUNE_OAUTH_ACME_CLIENT_ID=…
+export RUNE_OAUTH_ACME_AUTHORIZE_URL=https://acme.example/oauth/authorize
+export RUNE_OAUTH_ACME_TOKEN_URL=https://acme.example/oauth/token
+export RUNE_OAUTH_ACME_SCOPES="openid profile"
 zero auth login acme            # browser (loopback); --device for headless
 zero auth status
 ```
@@ -30,7 +30,7 @@ When a login exists for a provider, the **OpenAI and Anthropic** providers send
 `Authorization: Bearer <fresh-token>` (auto-refreshed; one refresh-and-retry on a
 `401`) instead of the API key. With no login they use the API key exactly as
 before. Tokens are stored 0600 (or the OS keyring with
-`ZERO_OAUTH_STORAGE=keyring`) and never logged. See `zero auth --help`.
+`RUNE_OAUTH_STORAGE=keyring`) and never logged. See `zero auth --help`.
 
 ### In the setup wizard (`/provider`)
 
@@ -56,11 +56,11 @@ Pick **Sign in with OAuth** → the list of providers that do real OAuth → cho
   one-time OAuth-app registration (no secret needed for "public" apps); the
   preset pre-fills scopes, endpoints, and the OIDC issuer. The same chooser
   appears in first-run onboarding. (xAI uses an opt-in preset — set
-  `ZERO_OAUTH_ALLOW_PRESETS=1` or your own `ZERO_OAUTH_XAI_*`; see below.)
+  `RUNE_OAUTH_ALLOW_PRESETS=1` or your own `RUNE_OAUTH_XAI_*`; see below.)
 - **Device code (headless / SSH):** for a provider that supports it (xAI,
   Hugging Face), press **d** on the list to get a code to enter on another
   device instead of opening a browser. On an SSH session or headless Linux box
-  (no `DISPLAY`) device code is used automatically; set `ZERO_OAUTH_DEVICE=1`
+  (no `DISPLAY`) device code is used automatically; set `RUNE_OAUTH_DEVICE=1`
   to force it anywhere. The CLI equivalent is
   `zero auth login <name> --device`.
 - **ChatGPT / Claude are intentionally not in this list for the proxy path** —
@@ -79,11 +79,11 @@ Pick **Sign in with OAuth** → the list of providers that do real OAuth → cho
 - **xAI (Grok) — opt-in preset** — xAI's flow needs an OAuth `client_id`. Zero
   ships a built-in preset for the public Grok-CLI client, but to keep third-party
   client identities out of the default credential path it is **off by default**.
-  Enable it with `export ZERO_OAUTH_ALLOW_PRESETS=1`, then `zero auth login xai`
+  Enable it with `export RUNE_OAUTH_ALLOW_PRESETS=1`, then `zero auth login xai`
   (browser, or `--device` for headless) works one-click; the token is used directly
-  on `api.x.ai/v1`. Without the opt-in, set `ZERO_OAUTH_XAI_CLIENT_ID` (and
-  endpoints, or an issuer) yourself via `ZERO_OAUTH_XAI_*`. Either way the preset is
-  fully overridable by `ZERO_OAUTH_XAI_*` (env wins), and it requires a
+  on `api.x.ai/v1`. Without the opt-in, set `RUNE_OAUTH_XAI_CLIENT_ID` (and
+  endpoints, or an issuer) yourself via `RUNE_OAUTH_XAI_*`. Either way the preset is
+  fully overridable by `RUNE_OAUTH_XAI_*` (env wins), and it requires a
   SuperGrok / X Premium+ subscription; the client_id is an undocumented public
   Grok-CLI client that may change without notice.
 - **ChatGPT (Codex) — opt-in preset** — `zero auth chatgpt` opens a browser, you
@@ -96,7 +96,7 @@ Pick **Sign in with OAuth** → the list of providers that do real OAuth → cho
   authorization server), the Codex backend will 401 and `zero auth status chatgpt`
   will show the warning. Like xAI, the preset uses the publicly-shipped Codex CLI
   client identity (`app_EMoamEEZ73f0CkXaXp7hrann`) and is opt-in via
-  `ZERO_OAUTH_ALLOW_PRESETS=1`. As of mid-2026 the Codex backend is
+  `RUNE_OAUTH_ALLOW_PRESETS=1`. As of mid-2026 the Codex backend is
   Cloudflare-gated: requests from a non-Codex client can still be challenged, and
   the `chatgpt-proxy` route in §2 is the conservative fallback.
 - **Hugging Face — opt-in preset, BYO client_id** — `zero auth login huggingface`
@@ -106,12 +106,12 @@ Pick **Sign in with OAuth** → the list of providers that do real OAuth → cho
   globally-known client_id, so the preset ships endpoints + scopes + the OIDC
   issuer pre-filled; you must register a "public" OAuth app (no secret) at
   <https://huggingface.co/settings/applications/new> and set the resulting
-  `client_id` via `ZERO_OAUTH_HUGGINGFACE_CLIENT_ID`. Enable the preset with
-  `ZERO_OAUTH_ALLOW_PRESETS=1` (or omit it — the BYO client_id path uses
+  `client_id` via `RUNE_OAUTH_HUGGINGFACE_CLIENT_ID`. Enable the preset with
+  `RUNE_OAUTH_ALLOW_PRESETS=1` (or omit it — the BYO client_id path uses
   `client_credentials = none` and doesn't need the opt-in). Free tier has strict
   rate limits; Pro removes them.
 
-Any field of a preset is overridable via `ZERO_OAUTH_<NAME>_*`. For a fully custom
+Any field of a preset is overridable via `RUNE_OAUTH_<NAME>_*`. For a fully custom
 OAuth/OIDC provider, set those env vars (see `zero auth --help`) and
 `zero auth login <name>`.
 

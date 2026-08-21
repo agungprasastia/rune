@@ -1,6 +1,6 @@
 # npm packaging
 
-How `@gitlawb/zero` is put together on npm, why it is shaped this way, and the
+How `@rune-ai/rune` is put together on npm, why it is shaped this way, and the
 rules the release pipeline must follow. Read this before touching
 `package.json`, `bin/zero.js`, `scripts/postinstall.mjs`,
 `scripts/npm/build-platform-packages.mjs`, or the npm-publish steps of
@@ -8,7 +8,7 @@ rules the release pipeline must follow. Read this before touching
 
 ## Goals
 
-A `npm install -g @gitlawb/zero` must be **silent and self-contained**:
+A `npm install -g @rune-ai/rune` must be **silent and self-contained**:
 
 - No `EBADENGINE` warnings — ours or from any package in the dependency tree.
 - No install scripts anywhere in the tree, so npm's `allow-scripts` gating,
@@ -25,15 +25,15 @@ The model is the one used by Codex, esbuild, and Biome: a tiny wrapper package
 plus per-platform payloads carrying the native binaries.
 
 ```
-@gitlawb/zero                    <- wrapper: bin/zero.js + optionalDependencies
-├─ @gitlawb/zero-darwin-arm64 -> npm:@gitlawb/zero@{version}-darwin-arm64
-├─ @gitlawb/zero-darwin-x64   -> npm:@gitlawb/zero@{version}-darwin-x64
-├─ @gitlawb/zero-linux-arm64  -> npm:@gitlawb/zero@{version}-linux-arm64
-├─ @gitlawb/zero-linux-x64    -> npm:@gitlawb/zero@{version}-linux-x64
-└─ @gitlawb/zero-win32-x64    -> npm:@gitlawb/zero@{version}-win32-x64
+@rune-ai/rune                    <- wrapper: bin/zero.js + optionalDependencies
+├─ @rune-ai/rune-darwin-arm64 -> npm:@rune-ai/rune@{version}-darwin-arm64
+├─ @rune-ai/rune-darwin-x64   -> npm:@rune-ai/rune@{version}-darwin-x64
+├─ @rune-ai/rune-linux-arm64  -> npm:@rune-ai/rune@{version}-linux-arm64
+├─ @rune-ai/rune-linux-x64    -> npm:@rune-ai/rune@{version}-linux-x64
+└─ @rune-ai/rune-win32-x64    -> npm:@rune-ai/rune@{version}-win32-x64
 ```
 
-- The platform "packages" are **versions of the same `@gitlawb/zero` package**,
+- The platform "packages" are **versions of the same `@rune-ai/rune` package**,
   published at suffixed versions (`0.4.0-linux-x64`) and referenced through
   `npm:` aliases in `optionalDependencies`. One package name means one npm
   trusted-publisher configuration — no new publish credentials per platform.
@@ -56,7 +56,7 @@ plus per-platform payloads carrying the native binaries.
 
 ### Binary resolution in `bin/zero.js`
 
-1. Resolve `@gitlawb/zero-<platform>-<arch>` and exec the `zero` binary from
+1. Resolve `@rune-ai/rune-<platform>-<arch>` and exec the `zero` binary from
    it. This wins over any previously downloaded copy — the platform version is
    pinned to the wrapper release.
 2. Fall back to a binary previously downloaded next to the wrapper.
@@ -130,8 +130,8 @@ one is user-visible immediately.
    trusted-publisher configuration.
 
 `zero update` keeps working unchanged: it detects an npm install by finding a
-`package.json` named `@gitlawb/zero` next to the running binary — true inside
-a platform payload too — and updates via `npm install -g @gitlawb/zero@latest`.
+`package.json` named `@rune-ai/rune` next to the running binary — true inside
+a platform payload too — and updates via `npm install -g @rune-ai/rune@latest`.
 
 ## Runbook: bumping the vendored helpers
 

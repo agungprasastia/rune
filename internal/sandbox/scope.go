@@ -11,7 +11,7 @@ import (
 )
 
 // Scope is the shared set of directories the sandbox allows writes in: the
-// workspace root plus zero or more user-granted extra roots. One instance is
+// workspace root plus rune or more user-granted extra roots. One instance is
 // created per run and shared by the policy engine, the OS command runners, and
 // the file tools, so a mid-session Add is immediately visible to every layer.
 type Scope struct {

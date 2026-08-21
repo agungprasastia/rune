@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/streamjson"
+	"rune/internal/redaction"
+	"rune/internal/sandbox"
+	"rune/internal/streamjson"
 )
 
 type Registry struct {
@@ -28,7 +28,7 @@ type RunOptions struct {
 	Cwd               string
 	// FileTracker, when set, records the version of each file read or written this
 	// session so write_file/edit_file can refuse to clobber a file that changed on
-	// disk outside Zero since it was last read. nil disables the feature entirely
+	// disk outside Rune since it was last read. nil disables the feature entirely
 	// (the read/write tools behave exactly as before).
 	FileTracker *FileTracker
 	// DeferFileObservationCommit lets a caller with an additional output layer

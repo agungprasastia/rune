@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/localcontrol"
+	"rune/internal/localcontrol"
 )
 
 func NewLocalDesktopTools(options localcontrol.DesktopOptions) []Tool {

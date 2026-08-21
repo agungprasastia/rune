@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // codexRequest captures the headers + body of one outgoing Codex request so a
@@ -214,7 +214,7 @@ func TestCodexProviderBrandsUserAgent(t *testing.T) {
 			BaseURL: srv.URL,
 			Model:   "gpt-5",
 			// openai Options.UserAgent overridden by CodexOptions.UserAgent below.
-			UserAgent: "zero/dev",
+			UserAgent: "rune/dev",
 		},
 		// CodexOptions.UserAgent wins over openai Options.UserAgent.
 		UserAgent: "codex_cli_rs/0.1",
@@ -538,7 +538,7 @@ func TestCodexProviderNormalizesServiceTier(t *testing.T) {
 func TestCodexProviderStreamsReasoningSummaryDeltas(t *testing.T) {
 	// reasoning_summary_text deltas must surface as StreamEventReasoning (live
 	// "thinking"), in order, alongside the normal text output. Without this a long
-	// reasoning phase produces zero visible output and reads as a hang.
+	// reasoning phase produces rune visible output and reads as a hang.
 	var rec codexRequest
 	srv := newCodexResponsesServer(t, &rec,
 		`{"type":"response.created","response":{"id":"resp-1","status":"in_progress"}}`,

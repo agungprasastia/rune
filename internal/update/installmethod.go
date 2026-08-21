@@ -7,13 +7,13 @@ import (
 )
 
 // npmPackageName is the published package name for the npm distribution of
-// zero (see package.json). scripts/postinstall.mjs downloads the native
+// rune (see package.json). scripts/postinstall.mjs downloads the native
 // binary into the same directory as package.json and leaves a
-// ".zero-binary-version" marker file next to it — both are reliable signals
+// ".rune-binary-version" marker file next to it — both are reliable signals
 // that a given executable came from an npm install.
-const npmPackageName = "@gitlawb/zero"
+const npmPackageName = "@rune-ai/rune"
 
-// InstallMethod identifies how the running zero binary was installed.
+// InstallMethod identifies how the running rune binary was installed.
 type InstallMethod string
 
 const (
@@ -25,7 +25,7 @@ const (
 // npm-install markers left by scripts/postinstall.mjs.
 func DetectInstallMethod(executablePath string) InstallMethod {
 	dir := filepath.Dir(executablePath)
-	if _, err := os.Stat(filepath.Join(dir, ".zero-binary-version")); err == nil {
+	if _, err := os.Stat(filepath.Join(dir, ".rune-binary-version")); err == nil {
 		return InstallMethodNpm
 	}
 	data, err := os.ReadFile(filepath.Join(dir, "package.json"))
@@ -43,7 +43,7 @@ func DetectInstallMethod(executablePath string) InstallMethod {
 	}
 	// The native platform package is inert and constrained to one OS/CPU. The
 	// repository's wrapper package has the same name but carries a bin entry and
-	// broad platform lists, so name alone would misclassify `go build -o zero`
+	// broad platform lists, so name alone would misclassify `go build -o rune`
 	// from the repository root as an npm-managed install.
 	if pkg.Name == npmPackageName && len(pkg.OS) == 1 && len(pkg.CPU) == 1 && len(pkg.Bin) == 0 {
 		return InstallMethodNpm

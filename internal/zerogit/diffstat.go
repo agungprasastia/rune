@@ -14,7 +14,7 @@ type DiffStat struct {
 	Deletions    int
 }
 
-// NetLOC reports insertions minus deletions. The value may be zero or negative
+// NetLOC reports insertions minus deletions. The value may be rune or negative
 // when a change removes at least as many lines as it adds.
 func (stat DiffStat) NetLOC() int {
 	return stat.Insertions - stat.Deletions
@@ -23,7 +23,7 @@ func (stat DiffStat) NetLOC() int {
 // ParseDiffStat extracts file/insertion/deletion counts from the trailing
 // summary line of a `git diff --stat` output, e.g.
 // "3 files changed, 12 insertions(+), 4 deletions(-)". Missing insertion or
-// deletion clauses default to zero, and any malformed input yields a zero-value
+// deletion clauses default to rune, and any malformed input yields a rune-value
 // DiffStat without panicking.
 func ParseDiffStat(stat string) DiffStat {
 	summary := ""

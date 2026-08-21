@@ -12,9 +12,9 @@ import (
 
 func spillDirName() string {
 	if uid := os.Getuid(); uid >= 0 {
-		return fmt.Sprintf("zero-tool-output-%d", uid)
+		return fmt.Sprintf("rune-tool-output-%d", uid)
 	}
-	return "zero-tool-output"
+	return "rune-tool-output"
 }
 
 func TestSpillDirRejectsSymlink(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/providers/providerio"
+	"rune/internal/providers/providerio"
 )
 
 // CloudConfig configures a batch cloud transcriber. Groq and OpenAI share the
@@ -41,7 +41,7 @@ func NewCloudTranscriber(cfg CloudConfig) (Transcriber, error) {
 	if strings.TrimSpace(cfg.APIKey) == "" {
 		return nil, &SetupError{
 			Tool: cfg.Provider + " API key",
-			Hint: fmt.Sprintf("set a %s API key (run `zero auth`) to use cloud dictation", cfg.Provider),
+			Hint: fmt.Sprintf("set a %s API key (run `rune auth`) to use cloud dictation", cfg.Provider),
 		}
 	}
 	if cfg.Model == "" {

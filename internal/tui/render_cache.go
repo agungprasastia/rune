@@ -8,7 +8,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/agent"
+	"rune/internal/agent"
 )
 
 const (

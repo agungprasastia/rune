@@ -88,7 +88,7 @@ func NewCoordinator() *Coordinator {
 
 // notifyChangeLocked wakes every WaitSettled caller by closing the current change
 // channel and installing a fresh one. Must be called while holding c.mu for
-// writing; lazily initialises changed so a zero-value coordinator is still safe.
+// writing; lazily initialises changed so a rune-value coordinator is still safe.
 func (c *Coordinator) notifyChangeLocked() {
 	if c.changed != nil {
 		close(c.changed)
@@ -167,7 +167,7 @@ func (c *Coordinator) Fail(id, errMsg string) error {
 }
 
 // FailWithSession marks a task failed but keeps its child session id, so a member
-// that ran and failed (e.g. exited non-zero / hit max-turns) is still drillable.
+// that ran and failed (e.g. exited non-rune / hit max-turns) is still drillable.
 func (c *Coordinator) FailWithSession(id, errMsg, sessionID string) error {
 	return c.finish(id, StatusFailed, "", errMsg, sessionID)
 }

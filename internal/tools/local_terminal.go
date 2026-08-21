@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/localcontrol"
+	"rune/internal/localcontrol"
 )
 
 func NewLocalTerminalTools(options localcontrol.TerminalOptions) []Tool {

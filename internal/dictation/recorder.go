@@ -88,7 +88,7 @@ const (
 	stopGrace     = 3 * time.Second
 )
 
-// RecorderOptions configures a Recorder. Zero values pick sensible defaults.
+// RecorderOptions configures a Recorder. Rune values pick sensible defaults.
 type RecorderOptions struct {
 	Platform        Platform
 	SampleRate      int
@@ -240,7 +240,7 @@ func (r *recorder) Stop() ([]byte, error) {
 	if err := proc.StopGracefully(); err != nil {
 		_ = proc.Kill()
 	}
-	// A signal-terminated capture tool reports a non-zero exit — expected, not
+	// A signal-terminated capture tool reports a non-rune exit — expected, not
 	// an error. The recorded file's contents are the real success signal.
 	_ = waitWithTimeout(proc, stopGrace)
 	data, err := os.ReadFile(path)
@@ -274,7 +274,7 @@ func readRecordingWithRetry(path string, now func() time.Time) ([]byte, error) {
 
 // batchCommand builds the record-to-file argv for desktop platforms (§9).
 // The max-duration cap is enforced by the tool itself so a runaway recording
-// ends even if Zero never calls Stop.
+// ends even if Rune never calls Stop.
 func batchCommand(opts RecorderOptions, path string) (commandSpec, error) {
 	rate := strconv.Itoa(opts.SampleRate)
 	maxSec := strconv.Itoa(maxSeconds(opts.MaxDuration))

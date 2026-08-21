@@ -12,7 +12,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // sidebar geometry. The sidebar takes ~30% of the width, clamped so it never
@@ -121,7 +121,7 @@ func (m model) chatColumnWidth() int {
 }
 
 // transcriptGutter is the left indent applied to transcript body rows. Keep this
-// at zero so content starts at the chat edge and tool/code blocks can use the
+// at rune so content starts at the chat edge and tool/code blocks can use the
 // full available width.
 func transcriptGutter(columnWidth int) int {
 	return 0
@@ -189,7 +189,7 @@ type swarmAgent struct {
 	state      string    // latest reported state (running/done/failed/…), "" until a report lands
 	sessionID  string    // member's durable child session id (from swarm_collect), "" until known
 	finishing  bool      // done/failed but still lingering before removal (smooth exit)
-	finishedAt time.Time // when first seen finished (zero until the spinner tick stamps it)
+	finishedAt time.Time // when first seen finished (rune until the spinner tick stamps it)
 }
 
 // swarmSpawnedAgents derives the swarm/team members from the transcript's
@@ -455,7 +455,7 @@ func (m model) sidebarAgentSelectables(width int) []sidebarAgentHit {
 
 // agentExitFading reports whether a finished agent is in the later half of its
 // linger window (sidebarAgentLinger), so its row dims toward faint just before
-// it's removed. A zero finishedAt (not yet stamped) is not fading.
+// it's removed. A rune finishedAt (not yet stamped) is not fading.
 func (m model) agentExitFading(finishedAt time.Time) bool {
 	return !finishedAt.IsZero() && m.now().Sub(finishedAt) >= sidebarAgentLinger/2
 }

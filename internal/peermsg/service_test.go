@@ -77,7 +77,7 @@ func TestFreshSessionIsDiscoverableBeforeItsFirstPrompt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(peers) != 1 || !strings.HasPrefix(peers[0].SessionID, "live-") || displayPeer(peers[0]) != "Zero session ["+peers[0].Ref+"]" {
+	if len(peers) != 1 || !strings.HasPrefix(peers[0].SessionID, "live-") || displayPeer(peers[0]) != "Rune session ["+peers[0].Ref+"]" {
 		t.Fatalf("fresh peer = %#v", peers)
 	}
 	if receiver.Self().SessionID != peers[0].SessionID {
@@ -306,7 +306,7 @@ func TestReceiverAdmissionAndLoopGuardsFailClosed(t *testing.T) {
 
 func TestUntitledPeerAddressResolvesByNeutralNameAndRef(t *testing.T) {
 	peer := Peer{Identity: Identity{SessionID: "zero_opaque"}, Ref: "22222222"}
-	resolved, err := resolvePeer([]Peer{peer}, "Zero session [22222222]")
+	resolved, err := resolvePeer([]Peer{peer}, "Rune session [22222222]")
 	if err != nil {
 		t.Fatal(err)
 	}

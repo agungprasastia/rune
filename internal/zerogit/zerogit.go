@@ -15,7 +15,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/redaction"
 )
 
 type Runner func(context.Context, string, ...string) (CommandResult, error)
@@ -384,7 +384,7 @@ func gitResultOutput(result CommandResult, err error) (string, error) {
 }
 
 func stagedSnapshotDiff(ctx context.Context, runGit EnvRunner, root string) (string, string, error) {
-	tempDir, err := os.MkdirTemp("", "zero-git-index-")
+	tempDir, err := os.MkdirTemp("", "rune-git-index-")
 	if err != nil {
 		return "", "", fmt.Errorf("prepare preview index: %w", err)
 	}
@@ -538,7 +538,7 @@ type PushOptions struct {
 	Branch string
 	Force  bool
 	DryRun bool
-	// RequireNewRemoteBranch guards this push with a zero-value
+	// RequireNewRemoteBranch guards this push with a rune-value
 	// --force-with-lease, so it is rejected instead of fast-forwarding if
 	// Branch already exists on Remote. CreateBranch's collision probe reads
 	// the remote's branches before this push runs, leaving a window in which
@@ -622,7 +622,7 @@ func Push(ctx context.Context, options PushOptions) (PushResult, error) {
 
 	// git push -u can create the remote branch and still exit 0 when it cannot
 	// write branch.<name>.remote/merge (for example .git/config.lock held by
-	// another process). Zero must not report that as a full success: without
+	// another process). Rune must not report that as a full success: without
 	// the local upstream, a later ensureFeatureBranch retry would reassert
 	// --force-with-lease=<branch>: against a branch that already exists.
 	// Dry-run never publishes and never writes branch.<name>.remote/merge, so
@@ -1081,7 +1081,7 @@ func RemoteHasBranch(ctx context.Context, cwd, remote, branch string, runGit Run
 
 // UpstreamRef returns the full upstream reference name for branch (e.g.
 // "origin/feature-1" or "upstream/main"), or the empty string if no upstream or
-// the ref cannot be resolved. Callers that need to know whether Zero's own
+// the ref cannot be resolved. Callers that need to know whether Rune's own
 // `push -u` published exactly <remote>/<branch> compare this string rather than
 // reading branch.<name>.remote alone: with branch.autoSetupMerge=inherit,
 // `git checkout -b` copies remote=origin and merge=refs/heads/main from the

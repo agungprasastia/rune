@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func (m model) execSessionController() (tools.ExecSessionController, bool) {

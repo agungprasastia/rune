@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 type fakeExecSessionTool struct {

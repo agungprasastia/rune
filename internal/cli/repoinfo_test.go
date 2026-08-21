@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/repoinfo"
+	"rune/internal/repoinfo"
 )
 
 func TestParseRepoInfoArgs(t *testing.T) {

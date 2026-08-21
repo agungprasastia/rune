@@ -24,7 +24,7 @@ func TestAnalyzeCommand(t *testing.T) {
 		{name: "rm without force", script: "rm file.txt", destructive: false},
 		{name: "rm inside quoted arg", script: `git commit -m "rm -rf /"`, destructive: false},
 		{name: "rm end-of-options literal filename", script: "rm -- -rf", destructive: false},
-		{name: "dd", script: "dd if=/dev/zero of=/dev/disk2", destructive: true},
+		{name: "dd", script: "dd if=/dev/rune of=/dev/disk2", destructive: true},
 		{name: "find delete", script: "find . -type f -delete", destructive: true},
 
 		// Wrappers are unwrapped to the real payload, not classified on the launcher.

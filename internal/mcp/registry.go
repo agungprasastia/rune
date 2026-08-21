@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/config"
+	"rune/internal/execution"
+	"rune/internal/tools"
 )
 
 // defaultConnectTimeout bounds how long startup waits for ONE MCP server to
@@ -24,7 +24,7 @@ type RegisterOptions struct {
 	PermissionStore *PermissionStore
 	Autonomy        PermissionAutonomy
 	ClientFactory   func(context.Context, Server) (ToolClient, error)
-	// ConnectTimeout bounds the per-server connect+list at startup. Zero uses
+	// ConnectTimeout bounds the per-server connect+list at startup. Rune uses
 	// defaultConnectTimeout.
 	ConnectTimeout time.Duration
 	Execution      *execution.Runner
@@ -333,13 +333,13 @@ func (tool registryTool) Run(ctx context.Context, args map[string]any) tools.Res
 	//
 	// It says retrying cannot RECOVER the payload rather than that a retry
 	// returns the same thing. Each retry is a fresh call, so the server may well
-	// answer differently; what cannot change is that Zero still has nowhere to
+	// answer differently; what cannot change is that Rune still has nowhere to
 	// put a non-text block. Claiming the response would be identical would be a
 	// promise this code is in no position to make.
 	if dropped := DroppedContentSummary(result.Content); dropped != "" {
-		note := "[zero] this server also returned " + dropped + ", which Zero cannot forward yet. Retrying cannot recover this payload."
+		note := "[rune] this server also returned " + dropped + ", which Rune cannot forward yet. Retrying cannot recover this payload."
 		if output == "" {
-			note = "[zero] this server returned " + dropped + ", which Zero cannot forward yet. Retrying cannot recover this payload."
+			note = "[rune] this server returned " + dropped + ", which Rune cannot forward yet. Retrying cannot recover this payload."
 		}
 		output = strings.TrimSpace(output + "\n\n" + note)
 	}

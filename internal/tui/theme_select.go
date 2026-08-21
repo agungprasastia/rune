@@ -3,7 +3,7 @@ package tui
 import (
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 // themeMode is the operator's palette preference.
@@ -34,7 +34,7 @@ func selectableThemeNames() []string {
 
 // resolveThemeMode picks the first accepted preference from candidates in
 // precedence order — the caller passes them highest-first: the --theme flag, then
-// ZERO_THEME, then the persisted config theme. A value is accepted if it is
+// RUNE_THEME, then the persisted config theme. A value is accepted if it is
 // `system`, the legacy `auto` alias, or names a registered theme. Unrecognized/
 // blank values are skipped, and an empty list (or all-unrecognized) falls back to
 // system.
@@ -68,7 +68,7 @@ func validThemeMode(s string) bool {
 	return ok
 }
 
-// ValidThemeArg reports whether s is an acceptable --theme / ZERO_THEME value.
+// ValidThemeArg reports whether s is an acceptable --theme / RUNE_THEME value.
 // It accepts retired dark/light preferences so existing scripts and environment
 // variables migrate to System, while validThemeMode keeps them out of the picker.
 func ValidThemeArg(s string) bool {

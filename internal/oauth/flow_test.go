@@ -131,7 +131,7 @@ func TestBuildAuthorizationURLRejectsInsecureEndpoint(t *testing.T) {
 // redirectTrap starts an "attacker" server that counts any hit, and a credential
 // endpoint that redirects to it with the given status. It returns the endpoint
 // URL and a func reporting how many times the attacker was contacted — a
-// non-zero count means the credential-bearing POST body was replayed (#729).
+// non-rune count means the credential-bearing POST body was replayed (#729).
 func redirectTrap(t *testing.T, status int) (endpoint string, attackerHits func() int32) {
 	t.Helper()
 	var hits int32

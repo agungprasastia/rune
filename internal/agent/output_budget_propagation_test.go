@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/hooks"
+	"rune/internal/tools"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 type propagationOutputTool struct {
@@ -20,7 +20,7 @@ type propagationOutputTool struct {
 
 func TestOutputBudgetHookHelperProcess(t *testing.T) {
 	for index, arg := range os.Args {
-		if arg == "--zero-output-budget-hook-repeat" && index+1 < len(os.Args) {
+		if arg == "--rune-output-budget-hook-repeat" && index+1 < len(os.Args) {
 			repeats, err := strconv.Atoi(os.Args[index+1])
 			if err != nil {
 				os.Exit(2)
@@ -30,7 +30,7 @@ func TestOutputBudgetHookHelperProcess(t *testing.T) {
 			}
 			os.Exit(0)
 		}
-		if arg != "--zero-output-budget-hook" || index+1 >= len(os.Args) {
+		if arg != "--rune-output-budget-hook" || index+1 >= len(os.Args) {
 			continue
 		}
 		if _, err := os.Stdout.WriteString(os.Args[index+1]); err != nil {
@@ -49,14 +49,14 @@ func outputBudgetHookDispatcherFor(toolName string, repeats int) *hooks.Dispatch
 	hookArgs := []string{
 		"-test.run=TestOutputBudgetHookHelperProcess",
 		"--",
-		"--zero-output-budget-hook",
+		"--rune-output-budget-hook",
 		feedback,
 	}
 	if repeats > 1_000 {
 		hookArgs = []string{
 			"-test.run=TestOutputBudgetHookHelperProcess",
 			"--",
-			"--zero-output-budget-hook-repeat",
+			"--rune-output-budget-hook-repeat",
 			strconv.Itoa(repeats),
 		}
 	}
@@ -103,7 +103,7 @@ func TestExecuteToolCallCommitsReadObservationAfterFinalBoundary(t *testing.T) {
 }
 
 func TestExecuteToolCallDoesNotCommitReadObservationBeforeHookBudget(t *testing.T) {
-	t.Setenv("ZERO_TOOL_OUTPUT_CEILING_TOKENS", "80")
+	t.Setenv("RUNE_TOOL_OUTPUT_CEILING_TOKENS", "80")
 	root := t.TempDir()
 	targetPath := filepath.Join(root, "target.txt")
 	if err := os.WriteFile(targetPath, []byte("known content\n"), 0o600); err != nil {
@@ -151,7 +151,7 @@ func (tool propagationOutputTool) Run(context.Context, map[string]any) tools.Res
 
 func TestExecuteToolCallPropagatesOutputTruncation(t *testing.T) {
 	t.Setenv("TMPDIR", t.TempDir())
-	t.Setenv("ZERO_TOOL_OUTPUT_CEILING_TOKENS", "80")
+	t.Setenv("RUNE_TOOL_OUTPUT_CEILING_TOKENS", "80")
 	registry := tools.NewRegistry()
 	registry.Register(propagationOutputTool{output: strings.Repeat("large output\n", 1000)})
 
@@ -200,7 +200,7 @@ func TestRecordOutputBudgetTraceUsesOnlyCompactMetadata(t *testing.T) {
 }
 
 func TestExecuteToolCallRebudgetsOversizedAfterToolFeedback(t *testing.T) {
-	t.Setenv("ZERO_TOOL_OUTPUT_CEILING_TOKENS", "80")
+	t.Setenv("RUNE_TOOL_OUTPUT_CEILING_TOKENS", "80")
 	registry := tools.NewRegistry()
 	registry.Register(propagationOutputTool{output: "tool output"})
 	dispatcher := largeOutputBudgetHookDispatcher()
@@ -222,7 +222,7 @@ func TestExecuteToolCallRebudgetsOversizedAfterToolFeedback(t *testing.T) {
 }
 
 func TestRunTraceReflectsPostHookBudget(t *testing.T) {
-	t.Setenv("ZERO_TOOL_OUTPUT_CEILING_TOKENS", "80")
+	t.Setenv("RUNE_TOOL_OUTPUT_CEILING_TOKENS", "80")
 	registry := tools.NewRegistry()
 	registry.Register(propagationOutputTool{output: "tool output"})
 	dispatcher := largeOutputBudgetHookDispatcher()

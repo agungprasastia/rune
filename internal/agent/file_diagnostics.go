@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/lsp"
+	"rune/internal/lsp"
 )
 
 // fileDiagnosticsTimeout bounds one inline post-edit diagnostics check so a

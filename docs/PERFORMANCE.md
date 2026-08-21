@@ -55,16 +55,16 @@ go run ./cmd/zero-perf-bench --cold-start-warn-ms=350 --first-output-warn-ms=600
 Or with environment variables:
 
 ```bash
-ZERO_PERF_COLD_START_WARN_MS=350 go run ./cmd/zero-perf-bench
+RUNE_PERF_COLD_START_WARN_MS=350 go run ./cmd/zero-perf-bench
 ```
 
 Supported environment variables:
 
-- `ZERO_PERF_ITERATIONS`
-- `ZERO_PERF_WARMUP_ITERATIONS`
-- `ZERO_PERF_COLD_START_WARN_MS`
-- `ZERO_PERF_FIRST_OUTPUT_WARN_MS`
-- `ZERO_PERF_HARNESS_END_RSS_WARN_MB`
+- `RUNE_PERF_ITERATIONS`
+- `RUNE_PERF_WARMUP_ITERATIONS`
+- `RUNE_PERF_COLD_START_WARN_MS`
+- `RUNE_PERF_FIRST_OUTPUT_WARN_MS`
+- `RUNE_PERF_HARNESS_END_RSS_WARN_MB`
 
 ## CI Behavior
 

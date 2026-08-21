@@ -3,9 +3,9 @@ package tools
 import (
 	"context"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/execution"
+	"rune/internal/sandbox"
+	"rune/internal/zeroruntime"
 )
 
 type SideEffect string
@@ -199,7 +199,7 @@ type Display struct {
 	Kind    string // e.g. file, diff, search, shell
 	// Preview is a multi-line, card-only body (e.g. a unified diff or file head)
 	// for the TUI. It is NEVER sent to the model — Output stays the short summary
-	// the model sees — so a rich code preview costs zero model tokens.
+	// the model sees — so a rich code preview costs rune model tokens.
 	Preview string
 }
 
@@ -234,7 +234,7 @@ type baseTool struct {
 	description  string
 	parameters   Schema
 	safety       Safety
-	capabilities ToolCapabilities // zero value = EffectUnknown, not thread-safe
+	capabilities ToolCapabilities // rune value = EffectUnknown, not thread-safe
 	deferred     bool
 }
 

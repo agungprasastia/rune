@@ -4,7 +4,7 @@ package repomap
 import (
 	"io/fs"
 
-	"github.com/rune-ai/rune/internal/workspaceindex"
+	"rune/internal/workspaceindex"
 )
 
 func handleWalkError(cleanRoot string, current string, entry fs.DirEntry, walkErr error, truncated *bool) (bool, error) {

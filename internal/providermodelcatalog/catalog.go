@@ -3,8 +3,8 @@ package providermodelcatalog
 import (
 	"strings"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/modelregistry"
+	"rune/internal/providercatalog"
 )
 
 type Model struct {

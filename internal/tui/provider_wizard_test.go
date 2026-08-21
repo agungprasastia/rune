@@ -16,11 +16,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/aimlapi"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/aimlapi"
+	"rune/internal/config"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/zeroruntime"
 )
 
 func TestProviderCommandOpensOnboardingWizard(t *testing.T) {
@@ -201,7 +201,7 @@ func TestProviderWizardAdvancesProviderAPIKeyAndModelSteps(t *testing.T) {
 	} {
 		assertContains(t, view, want)
 	}
-	assertNotContains(t, view, "zero providers add anthropic")
+	assertNotContains(t, view, "rune providers add anthropic")
 
 	updated, cmd := next.Update(testKey(tea.KeyEnter))
 	next = updated.(model)
@@ -247,7 +247,7 @@ func TestProviderWizardAdvancesProviderAPIKeyAndModelSteps(t *testing.T) {
 	} {
 		assertContains(t, view, want)
 	}
-	assertNotContains(t, view, "zero providers check")
+	assertNotContains(t, view, "rune providers check")
 }
 
 func TestProviderWizardSupportsLeftAndGuardedRightNavigation(t *testing.T) {
@@ -662,8 +662,8 @@ func TestProviderWizardAppliesPastedKeyToCurrentSession(t *testing.T) {
 func TestProviderWizardPersistsPastedKeyToUserConfig(t *testing.T) {
 	const secret = "ollama-secret-123"
 	// Encrypted-file backend in the temp config dir keeps the test off the real keychain.
-	t.Setenv("ZERO_CRED_STORAGE", "encrypted-file")
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	t.Setenv("RUNE_CRED_STORAGE", "encrypted-file")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	var captured config.ProviderProfile
 	m := newModel(context.Background(), Options{
 		UserConfigPath: configPath,
@@ -722,7 +722,7 @@ func TestProviderWizardPersistsPastedKeyToUserConfig(t *testing.T) {
 func TestProviderWizardUsesAPIKeyEnvForCurrentSessionWithoutPersistingSecret(t *testing.T) {
 	const secret = "ollama-env-secret"
 	t.Setenv("OLLAMA_API_KEY", secret)
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	var captured config.ProviderProfile
 	m := newModel(context.Background(), Options{
 		UserConfigPath: configPath,
@@ -1133,8 +1133,8 @@ func TestWizardProviderStoredKey(t *testing.T) {
 }
 
 func TestProviderWizardManageKeyRemove(t *testing.T) {
-	t.Setenv("ZERO_CRED_STORAGE", "encrypted-file")
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	t.Setenv("RUNE_CRED_STORAGE", "encrypted-file")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -1376,8 +1376,8 @@ func TestProviderWizardAimlapiPartnerOverrideOnlyOnCanonicalEndpoint(t *testing.
 }
 
 func TestExistingAimlapiConfigurationResolvesStoredKey(t *testing.T) {
-	t.Setenv("ZERO_CRED_STORAGE", "encrypted-file")
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	t.Setenv("RUNE_CRED_STORAGE", "encrypted-file")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -1556,7 +1556,7 @@ func containsString(values []string, want string) bool {
 }
 
 // Applying the wizard switches the live provider, so it must export
-// ZERO_PROVIDER exactly like the /model and /provider switch paths — a stale
+// RUNE_PROVIDER exactly like the /model and /provider switch paths — a stale
 // value from an earlier switch would otherwise win over config in every
 // spawned child (applyEnv) and pin specialists/swarm members to the OLD
 // provider's credentials.
@@ -1599,11 +1599,11 @@ func TestApplyProviderWizardExportsActiveProviderEnv(t *testing.T) {
 
 // On a config PERSIST failure, applyProviderWizard must leave live state fully
 // unchanged — the chat must NOT already be running on the new provider while the
-// status line and the ZERO_PROVIDER export (which pins spawned children) still
+// status line and the RUNE_PROVIDER export (which pins spawned children) still
 // point at the old one. Build and persist are staged into locals; nothing is
 // committed unless both succeed.
 func TestApplyProviderWizardPersistFailureLeavesLiveStateUnchanged(t *testing.T) {
-	t.Setenv("ZERO_CRED_STORAGE", "encrypted-file") // never touch the real OS keychain: apiKey is secured before the persist fails
+	t.Setenv("RUNE_CRED_STORAGE", "encrypted-file") // never touch the real OS keychain: apiKey is secured before the persist fails
 	t.Setenv(config.ActiveProviderEnv, "old-provider")
 
 	// A config path whose parent is a regular FILE, so writeConfigFile's MkdirAll
@@ -1744,7 +1744,7 @@ func TestProviderSearchEmptyMatchEnterIsNoop(t *testing.T) {
 	updated, _ := m.Update(testKeyText("zzzzz"))
 	next := updated.(model)
 	if len(next.providerWizard.filteredProviders()) != 0 {
-		t.Fatal("expected zero filtered providers")
+		t.Fatal("expected rune filtered providers")
 	}
 
 	// Enter should be a no-op.

@@ -13,8 +13,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/rune-ai/rune/internal/config"
 	"golang.org/x/sys/windows"
+	"rune/internal/config"
 )
 
 const (
@@ -289,7 +289,7 @@ var recoveryCleanupStateDir = func() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(root, "zero", "update-recovery"), nil
+	return filepath.Join(root, "rune", "update-recovery"), nil
 }
 
 func recoveryCleanupRecordPath(targetPath string) (string, error) {
@@ -310,7 +310,7 @@ func validUpdaterRecoveryPath(targetPath string, recoveryPath string) bool {
 		return false
 	}
 	name := strings.ToLower(filepath.Base(recoveryPath))
-	prefix := strings.ToLower(filepath.Base(targetPath)) + ".zero-update-"
+	prefix := strings.ToLower(filepath.Base(targetPath)) + ".rune-update-"
 	if !strings.HasPrefix(name, prefix) || !strings.HasSuffix(name, ".old") {
 		return false
 	}

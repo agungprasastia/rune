@@ -5,15 +5,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/plugins"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/hooks"
+	"rune/internal/mcp"
+	"rune/internal/plugins"
+	"rune/internal/redaction"
 )
 
 // MCPServerSnapshot is the typed view of a single configured MCP
 // server as it is exposed to the TUI render path, the headless
-// `zero mcp` command, and PR/CI automation. The snapshot strips
+// `rune mcp` command, and PR/CI automation. The snapshot strips
 // every field that can carry a secret. Command arguments are
 // preserved because the tool surface (path, flags) is the part a
 // maintainer needs to see when triaging an MCP failure. Environment
@@ -35,7 +35,7 @@ type MCPServerSnapshot struct {
 }
 
 // HookSnapshot is the typed view of a single configured hook as it
-// is exposed to the TUI render path, the headless `zero hooks`
+// is exposed to the TUI render path, the headless `rune hooks`
 // command, and PR/CI automation. The command and arguments are
 // preserved because they are the operator's primary tool for
 // understanding which shell command will run. The matcher is
@@ -53,7 +53,7 @@ type HookSnapshot struct {
 }
 
 // PluginSnapshot is the typed view of a single loaded plugin as it
-// is exposed to the TUI render path, the headless `zero plugins`
+// is exposed to the TUI render path, the headless `rune plugins`
 // command, and PR/CI automation. The path fields are preserved
 // because the operator needs to know where the manifest came from
 // when triaging a load failure. Counts replace the full slice of
@@ -77,8 +77,8 @@ type PluginSnapshot struct {
 
 // BackendLifecycleSnapshot bundles the typed snapshots for the
 // three backend surfaces that the WorkSplit PRD places in Gnanam's
-// lane: MCP servers, hooks, and plugins. `zero doctor` and the
-// headless `zero config` command can return one of these to give
+// lane: MCP servers, hooks, and plugins. `rune doctor` and the
+// headless `rune config` command can return one of these to give
 // the operator a single payload describing the full extensibility
 // surface. The three inner slices are always non-nil so JSON
 // output is `[]` and never `null`.

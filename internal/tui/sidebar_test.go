@@ -9,8 +9,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/sessions"
+	"rune/internal/tools"
 )
 
 // TestSidebarActivityLines: the ACTIVITY feed is a bounded, newest-first list of
@@ -38,7 +38,7 @@ func TestSidebarActivityLines(t *testing.T) {
 		t.Errorf("activity must strip the 'tool result:' prefix:\n%s", joined)
 	}
 	if got := m.sidebarActivityLines(40, 0); got != nil {
-		t.Errorf("zero budget: want nil, got %v", got)
+		t.Errorf("rune budget: want nil, got %v", got)
 	}
 
 	// Active + quiet run -> a live "generating…" pulse.
@@ -380,7 +380,7 @@ func TestSwarmAgentDropsOnOwnCompletionEvenMidRun(t *testing.T) {
 	m := sidebarTestModel()
 	m.now = func() time.Time { return base }
 	m.pending = true  // run STILL going — a member must still drop on its OWN completion
-	m.activeRunID = 7 // exercise the run-scoped filter with a non-zero id
+	m.activeRunID = 7 // exercise the run-scoped filter with a non-rune id
 	m.transcript = append(m.transcript,
 		transcriptRow{kind: rowToolCall, tool: "swarm_spawn", detail: "build homepage", runID: 7},
 		transcriptRow{kind: rowToolResult, tool: "swarm_spawn", detail: "Spawned subagent as task subagent-1 on team default.", runID: 7},

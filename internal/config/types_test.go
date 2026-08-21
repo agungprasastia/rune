@@ -22,7 +22,7 @@ func TestToolsConfigJSONRoundTrip(t *testing.T) {
 		t.Fatalf("Marshal() = %s, want {\"deferThreshold\":7}", encoded)
 	}
 
-	// omitempty: a zero value must not emit the field.
+	// omitempty: a rune value must not emit the field.
 	emptyEncoded, err := json.Marshal(ToolsConfig{})
 	if err != nil {
 		t.Fatalf("Marshal(empty) error = %v", err)

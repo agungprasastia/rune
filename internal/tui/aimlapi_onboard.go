@@ -10,8 +10,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/aimlapi"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/aimlapi"
+	"rune/internal/redaction"
 )
 
 // aimlapiOnboardState is the shared, event-driven aimlapi.com onboarding sub-flow
@@ -259,7 +259,7 @@ func (s *aimlapiOnboardState) createKeyCmd(token string) tea.Cmd {
 	m := s.msg(aimlapiMsgKey)
 	ctx := s.opContext()
 	return func() tea.Msg {
-		res, err := aimlapiOnboardClient().CreateKey(ctx, token, "zero CLI")
+		res, err := aimlapiOnboardClient().CreateKey(ctx, token, "rune CLI")
 		m.key, m.err = res, err
 		return m
 	}

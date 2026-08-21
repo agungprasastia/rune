@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/cron"
+	"rune/internal/cron"
 )
 
 func testCronStore(t *testing.T) *cron.Store {
@@ -69,7 +69,7 @@ func TestCronAddRejectsBadExpr(t *testing.T) {
 	var out, errb bytes.Buffer
 	now := func() time.Time { return time.Now() }
 	if code := runCronWith(store, now, []string{"add", "99 * * * *", "--prompt", "x"}, &out, &errb); code == 0 {
-		t.Fatal("expected non-zero exit for invalid cron expr")
+		t.Fatal("expected non-rune exit for invalid cron expr")
 	}
 	if !strings.Contains(errb.String(), "minute") {
 		t.Fatalf("error should name the bad field, got %q", errb.String())
@@ -124,7 +124,7 @@ func TestCronAddRejectsExtraArgs(t *testing.T) {
 	now := func() time.Time { return time.Date(2026, 6, 9, 8, 0, 0, 0, time.UTC) }
 	var out, errb bytes.Buffer
 	if code := runCronWith(store, now, []string{"add", "0 9 * * *", "extra", "--prompt", "x"}, &out, &errb); code == 0 {
-		t.Fatal("expected non-zero exit for extra positional args")
+		t.Fatal("expected non-rune exit for extra positional args")
 	}
 	jobs, err := store.List()
 	if err != nil {

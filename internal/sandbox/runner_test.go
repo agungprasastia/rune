@@ -130,7 +130,7 @@ func TestBuildCommandPlanDegradesUnavailableFallback(t *testing.T) {
 // unscrubbed.
 func TestBuildCommandPlanDegradedFallbackScrubsInheritedEnv(t *testing.T) {
 	t.Setenv("COMPANY_LLM_SECRET", "custom-secret")
-	t.Setenv("ZERO_OAUTH_ACME_CLIENT_SECRET", "oauth-secret")
+	t.Setenv("RUNE_OAUTH_ACME_CLIENT_SECRET", "oauth-secret")
 	t.Setenv("SAFE_VAR", "hello")
 
 	root := t.TempDir()
@@ -154,7 +154,7 @@ func TestBuildCommandPlanDegradedFallbackScrubsInheritedEnv(t *testing.T) {
 	}
 	for _, entry := range plan.Env {
 		key, _, _ := strings.Cut(entry, "=")
-		if strings.EqualFold(key, "COMPANY_LLM_SECRET") || strings.EqualFold(key, "ZERO_OAUTH_ACME_CLIENT_SECRET") {
+		if strings.EqualFold(key, "COMPANY_LLM_SECRET") || strings.EqualFold(key, "RUNE_OAUTH_ACME_CLIENT_SECRET") {
 			t.Fatalf("degraded plan.Env retained sensitive key %q: %v", key, plan.Env)
 		}
 	}
@@ -472,7 +472,7 @@ func TestSeatbeltProfileProtectsMetadataAndDenyOrdering(t *testing.T) {
 			WriteRoots: []WritableRoot{{
 				Root:                   "/repo",
 				ReadOnlySubpaths:       []string{"/repo/vendor"},
-				ProtectedMetadataNames: []string{".git", ".zero"},
+				ProtectedMetadataNames: []string{".git", ".rune"},
 			}},
 			DenyRead:  []string{"/repo/secret-read"},
 			DenyWrite: []string{"/repo/secret-write"},
@@ -490,7 +490,7 @@ func TestSeatbeltProfileProtectsMetadataAndDenyOrdering(t *testing.T) {
 		`(deny file-write* (literal "/repo/vendor"))`,
 		`(deny file-write* (subpath "/repo/vendor"))`,
 		`(deny file-write* (regex #"^/repo/\.git(/.*)?$"))`,
-		`(deny file-write* (regex #"^/repo/\.zero(/.*)?$"))`,
+		`(deny file-write* (regex #"^/repo/\.rune(/.*)?$"))`,
 		denySecretReadRule,
 		denySecretReadUnlinkRule,
 		denySecretWriteRule,
@@ -515,7 +515,7 @@ func TestSeatbeltProfileProtectsMetadataAndDenyOrdering(t *testing.T) {
 // readable again on macOS), and a DenyReadCarveouts entry must be re-allowed
 // AFTER it, since SBPL is last-match-wins.
 func TestSeatbeltProfileRendersCredentialBaselineAndCarveouts(t *testing.T) {
-	credentialDir := filepath.Join(t.TempDir(), "zero")
+	credentialDir := filepath.Join(t.TempDir(), "rune")
 	pluginRoot := filepath.Join(credentialDir, "plugins")
 	if err := os.MkdirAll(pluginRoot, 0o700); err != nil {
 		t.Fatal(err)
@@ -548,7 +548,7 @@ func TestSeatbeltProfileRendersCredentialBaselineAndCarveouts(t *testing.T) {
 }
 
 func TestSeatbeltProfileReappliesCredentialDeniesInsideCarveouts(t *testing.T) {
-	credentialDir := filepath.Join(t.TempDir(), "zero")
+	credentialDir := filepath.Join(t.TempDir(), "rune")
 	var carveouts []string
 	var denied []string
 	for _, name := range []string{"plugins", "specialists", "commands"} {
@@ -599,7 +599,7 @@ func TestSeatbeltProfileDoesNotRenderSymlinkCarveout(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlink creation is not reliably available on Windows CI")
 	}
-	credentialDir := filepath.Join(t.TempDir(), "zero")
+	credentialDir := filepath.Join(t.TempDir(), "rune")
 	if err := os.MkdirAll(credentialDir, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -706,7 +706,7 @@ func TestSeatbeltCompatibilityProfileUsesCredentialEnvironment(t *testing.T) {
 		t.Skip("Windows credential deny-read is tracked separately")
 	}
 	override := filepath.Join(t.TempDir(), "mcp-tokens.json")
-	t.Setenv("ZERO_MCP_OAUTH_TOKENS_PATH", override)
+	t.Setenv("RUNE_MCP_OAUTH_TOKENS_PATH", override)
 
 	profile := seatbeltCompatibilityPermissionProfile([]string{"/ws"}, DefaultPolicy())
 	for _, want := range []string{
@@ -797,7 +797,7 @@ func TestLinuxHelperPlanPreservesRealExtraRootCwd(t *testing.T) {
 	extra := tempDirOutsideDefaultTemp(t)
 	credentialHome := filepath.Join(workspace, "credential-home")
 	configHome := filepath.Join(credentialHome, "config")
-	if err := os.MkdirAll(filepath.Join(configHome, "zero"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(configHome, "rune"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	scope, err := NewScope(workspace, []string{extra})
@@ -847,12 +847,12 @@ func TestScrubSensitiveEnv(t *testing.T) {
 		// Both forms of the daemon bridge token. The inline one was already
 		// scrubbed; the file form was not, which left a sandboxed command the
 		// path to read it from (#677).
-		"ZERO_DAEMON_REMOTE_TOKEN=bridge-token-inline",
-		"ZERO_DAEMON_REMOTE_TOKEN_FILE=/home/user/.zero/remote-token",
+		"RUNE_DAEMON_REMOTE_TOKEN=bridge-token-inline",
+		"RUNE_DAEMON_REMOTE_TOKEN_FILE=/home/user/.rune/remote-token",
 		"COMPANY_LLM_SECRET=custom-secret",
-		"ZERO_OAUTH_MY_SVC_CLIENT_SECRET=oauth-secret",
-		"zero_oauth_second_client_secret=case-insensitive-secret",
-		"ZERO_OAUTH_CLIENT_SECRET=not-a-provider-secret",
+		"RUNE_OAUTH_MY_SVC_CLIENT_SECRET=oauth-secret",
+		"rune_oauth_second_client_secret=case-insensitive-secret",
+		"RUNE_OAUTH_CLIENT_SECRET=not-a-provider-secret",
 		"AWS_PROFILE=staging",
 		"SAFE_VAR=hello",
 	}
@@ -861,7 +861,7 @@ func TestScrubSensitiveEnv(t *testing.T) {
 		"PATH":                     "/usr/bin",
 		"SAFE_VAR":                 "hello",
 		"AWS_PROFILE":              "staging",
-		"ZERO_OAUTH_CLIENT_SECRET": "not-a-provider-secret",
+		"RUNE_OAUTH_CLIENT_SECRET": "not-a-provider-secret",
 	}
 	actual := make(map[string]string, len(scrubbed))
 	for _, entry := range scrubbed {
@@ -889,7 +889,7 @@ func TestEngineScrubsConfiguredSensitiveEnvKeys(t *testing.T) {
 		Env: []string{
 			"PATH=/usr/bin",
 			"COMPANY_LLM_SECRET=custom-secret",
-			"ZERO_OAUTH_CUSTOM_CLIENT_SECRET=oauth-secret",
+			"RUNE_OAUTH_CUSTOM_CLIENT_SECRET=oauth-secret",
 			"SAFE_VAR=hello",
 		},
 	})
@@ -898,7 +898,7 @@ func TestEngineScrubsConfiguredSensitiveEnvKeys(t *testing.T) {
 	}
 	for _, entry := range plan.Env {
 		key, _, _ := strings.Cut(entry, "=")
-		if strings.EqualFold(key, "COMPANY_LLM_SECRET") || strings.EqualFold(key, "ZERO_OAUTH_CUSTOM_CLIENT_SECRET") {
+		if strings.EqualFold(key, "COMPANY_LLM_SECRET") || strings.EqualFold(key, "RUNE_OAUTH_CUSTOM_CLIENT_SECRET") {
 			t.Fatalf("plan.Env retained sensitive key %q: %v", key, plan.Env)
 		}
 	}

@@ -10,9 +10,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/zeroruntime"
 )
 
 // managerTestModel builds a model with two saved providers, a seeded config
@@ -24,8 +24,8 @@ func managerTestModel(t *testing.T) model {
 	// and the file backend keeps the OS keychain out of tests entirely.
 	home := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", home)
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", filepath.Join(home, "oauth-tokens.json"))
-	t.Setenv("ZERO_CRED_STORAGE", "encrypted-file")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", filepath.Join(home, "oauth-tokens.json"))
+	t.Setenv("RUNE_CRED_STORAGE", "encrypted-file")
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	seed := config.FileConfig{
 		ActiveProvider: "opengateway",
@@ -370,7 +370,7 @@ func TestProviderManagerDescriptionClearPersists(t *testing.T) {
 
 // TestProviderManagerDeleteHintNamesActualOAuthLogin: after a rename the token
 // lives under the catalog id, not the profile name — the cleanup hint must name
-// the entry `zero auth logout` would actually delete (PR #560 review, P3).
+// the entry `rune auth logout` would actually delete (PR #560 review, P3).
 func TestProviderManagerDeleteHintNamesActualOAuthLogin(t *testing.T) {
 	m := managerTestModel(t)
 	// Reshape "backup" into a renamed OAuth catalog profile: keyless, named
@@ -406,7 +406,7 @@ func TestProviderManagerDeleteHintNamesActualOAuthLogin(t *testing.T) {
 	// goroutine; drain it into the model like the runtime would.
 	next = drainProviderManagerCmds(t, next, cmd)
 	status := next.providerWizard.manageStatus
-	if !strings.Contains(status, "zero auth logout chatgpt") {
+	if !strings.Contains(status, "rune auth logout chatgpt") {
 		t.Fatalf("hint must name the stored login (chatgpt), got %q", status)
 	}
 	if strings.Contains(status, "logout codex") {

@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/specmode"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/specmode"
+	"rune/internal/tools"
 )
 
 var toolNamePattern = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)

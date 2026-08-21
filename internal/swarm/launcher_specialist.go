@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/rune-ai/rune/internal/specialist"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/specialist"
+	"rune/internal/tools"
 )
 
 // NewSpecialistLauncher adapts internal/specialist.Executor into a
@@ -62,7 +62,7 @@ func NewSpecialistLauncher(executor specialist.Executor) MemberLauncher {
 			return MemberResult{SessionID: res.SessionID}, err
 		}
 		if res.Result.Status == tools.StatusError {
-			// The child ran but its task FAILED (e.g. non-zero exit / max-turns).
+			// The child ran but its task FAILED (e.g. non-rune exit / max-turns).
 			// Surface it as a member failure so the swarm marks it [failed], not
 			// [done] — otherwise the orchestrator (which can't see the AGENTS panel)
 			// trusts incomplete work. Keep the session id so the failed member is

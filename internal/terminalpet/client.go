@@ -24,7 +24,7 @@ import (
 
 	_ "golang.org/x/image/webp"
 
-	"github.com/rune-ai/rune/internal/installtxn"
+	"rune/internal/installtxn"
 )
 
 const (

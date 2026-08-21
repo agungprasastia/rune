@@ -143,7 +143,7 @@ type LoadOptions struct {
 	// ExcludeProject drops every SourceProject root before discovery. It is
 	// applied to the resolved root slice regardless of whether the roots came
 	// from Roots or ResolveRoots, so a caller passing an explicit SourceProject
-	// root cannot bypass the exclusion. The zero value (false) preserves the
+	// root cannot bypass the exclusion. The rune value (false) preserves the
 	// default behavior of loading both user and project roots.
 	ExcludeProject bool
 }
@@ -191,8 +191,8 @@ func ResolveRoots(options ResolveRootOptions) ([]Root, error) {
 	}
 
 	return []Root{
-		{Source: SourceUser, Path: filepath.Join(configHome, "zero", "plugins")},
-		{Source: SourceProject, Path: filepath.Join(cwd, ".zero", "plugins")},
+		{Source: SourceUser, Path: filepath.Join(configHome, "rune", "plugins")},
+		{Source: SourceProject, Path: filepath.Join(cwd, ".rune", "plugins")},
 	}, nil
 }
 
@@ -344,7 +344,7 @@ func ParseManifest(raw any, options ParseManifestOptions) (LoadedPlugin, error) 
 	}
 
 	// The tools/prompts/skills/hooks extensions parsed below feed two consumers:
-	// DISCOVERY (the `zero plugins` listing + backend snapshots) and ACTIVATION
+	// DISCOVERY (the `rune plugins` listing + backend snapshots) and ACTIVATION
 	// (activate.go), which turns the resolved tools/hooks/skills into live
 	// registrations — tools into the tools.Registry, hooks into the hooks
 	// dispatcher, and skills into the skills loader's search roots. Prompts remain
@@ -390,7 +390,7 @@ func ParseManifest(raw any, options ParseManifestOptions) (LoadedPlugin, error) 
 }
 
 // parseAuthor reads optional authorship metadata. It is intentionally tolerant:
-// an absent, non-object, or partially-typed value yields zero/empty fields so it
+// an absent, non-object, or partially-typed value yields rune/empty fields so it
 // never fails an otherwise-valid manifest.
 func parseAuthor(raw any) *PluginAuthor {
 	obj, ok := raw.(map[string]any)
@@ -469,9 +469,9 @@ func firstNonNil(values ...any) any {
 func FormatList(plugins []LoadedPlugin, diagnostics []Diagnostic) string {
 	lines := []string{}
 	if len(plugins) == 0 {
-		lines = append(lines, "No local Zero plugins loaded.")
+		lines = append(lines, "No local Rune plugins loaded.")
 	} else {
-		lines = append(lines, "Zero Plugins:")
+		lines = append(lines, "Rune Plugins:")
 		for _, plugin := range plugins {
 			counts := fmt.Sprintf("%d tools, %d prompts, %d skills, %d hooks", len(plugin.Tools), len(plugin.Prompts), len(plugin.Skills), len(plugin.Hooks))
 			state := "enabled"

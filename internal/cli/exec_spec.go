@@ -7,18 +7,18 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/notify"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/specmode"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/usage"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/execution"
+	"rune/internal/modelregistry"
+	"rune/internal/notify"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/specmode"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
+	"rune/internal/usage"
+	"rune/internal/zeroruntime"
 )
 
 type execSpecDraftRun struct {
@@ -313,7 +313,7 @@ func formatExecSpecDraftSummary(info execSpecDraftInfo) string {
 		"  spec: " + redact(info.SpecID),
 		"  path: " + redact(path),
 		"  draft session: " + redact(info.DraftSessionID),
-		"Next: zero spec show " + redact(info.SpecID) + "; zero spec approve " + redact(info.SpecID),
+		"Next: rune spec show " + redact(info.SpecID) + "; rune spec approve " + redact(info.SpecID),
 	}
 	return strings.Join(lines, "\n")
 }

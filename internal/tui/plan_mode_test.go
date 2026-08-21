@@ -9,10 +9,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // TestPlanCommandEntersAndExitsPlanMode drives /plan on then /plan off and

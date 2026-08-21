@@ -10,12 +10,12 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/sandbox"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 // ansiPattern strips SGR styling and OSC sequences (hyperlinks) so
@@ -123,12 +123,12 @@ func TestAskUserQuestionnaireNamesWaitingForAnswer(t *testing.T) {
 		request: agent.AskUserRequest{
 			Header: "Quick question",
 			Questions: []agent.AskUserQuestion{{
-				Question: "Which task should Zero handle first?",
+				Question: "Which task should Rune handle first?",
 				Options:  []string{"Work helper"},
 			}},
 		},
 		states: newAskUserStates([]agent.AskUserQuestion{{
-			Question: "Which task should Zero handle first?",
+			Question: "Which task should Rune handle first?",
 			Options:  []string{"Work helper"},
 		}}),
 	}
@@ -971,7 +971,7 @@ func TestRunningToolCardShowsHeadAndSpinnerSlot(t *testing.T) {
 func TestResolvedToolCallCollapsesIntoResultCard(t *testing.T) {
 	rows := []transcriptRow{
 		{kind: rowToolCall, id: "call_1", tool: "read_file", detail: "README.md"},
-		{kind: rowToolResult, id: "call_1", tool: "read_file", status: tools.StatusOK, detail: "File: README.md\n\n1: # Zero"},
+		{kind: rowToolResult, id: "call_1", tool: "read_file", status: tools.StatusOK, detail: "File: README.md\n\n1: # Rune"},
 	}
 	rc := buildRowContext(rows)
 	if !rc.skip(rows[0]) {
@@ -1205,10 +1205,10 @@ func TestExecCommandCardBodyShowsSessionAndExit(t *testing.T) {
 func TestLocalControlCardsUseFriendlyCompactLabels(t *testing.T) {
 	m := limeTestModel()
 
-	open := transcriptRow{kind: rowToolResult, id: "call_1", tool: "browser_open", status: tools.StatusOK, detail: "✓ ZERO - terminal agent\nhttp://localhost:8080/"}
+	open := transcriptRow{kind: rowToolResult, id: "call_1", tool: "browser_open", status: tools.StatusOK, detail: "✓ RUNE - terminal agent\nhttp://localhost:8080/"}
 	openRC := buildRowContext([]transcriptRow{{kind: rowToolCall, id: "call_1", tool: "browser_open", detail: "http://localhost:8080"}})
 	got := plainRender(t, m.renderRow(open, 100, openRC))
-	for _, want := range []string{"Opened", "http://localhost:8080", "ZERO - terminal agent"} {
+	for _, want := range []string{"Opened", "http://localhost:8080", "RUNE - terminal agent"} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("browser_open card missing %q:\n%s", want, got)
 		}
@@ -1229,7 +1229,7 @@ func TestLocalControlCardsUseFriendlyCompactLabels(t *testing.T) {
 		t.Fatalf("browser_snapshot card should stay compact and friendly:\n%s", got)
 	}
 
-	artifact := transcriptRow{kind: rowToolResult, id: "call_3", tool: "capture_artifact", status: tools.StatusOK, detail: "Artifact captured: /tmp/zero-artifacts/page.png\n\nhelper wrote screenshot"}
+	artifact := transcriptRow{kind: rowToolResult, id: "call_3", tool: "capture_artifact", status: tools.StatusOK, detail: "Artifact captured: /tmp/rune-artifacts/page.png\n\nhelper wrote screenshot"}
 	got = plainRender(t, m.renderRow(artifact, 100, buildRowContext(nil)))
 	for _, want := range []string{"Captured", "page.png"} {
 		if !strings.Contains(got, want) {
@@ -1320,11 +1320,11 @@ func TestBashCardBodyShowsShellIssueHint(t *testing.T) {
 		"stderr:",
 		"The syntax of the command is incorrect.",
 		"exit_code: 1",
-		"[zero] shell issue: Windows cmd.exe rejected the command syntax.",
+		"[rune] shell issue: Windows cmd.exe rejected the command syntax.",
 		"Suggestion: Use the cwd argument instead of cd.",
 	}, "\n")
 	row := transcriptRow{kind: rowToolResult, id: "call_1", tool: "bash", status: tools.StatusError, detail: detail}
-	rc := buildRowContext([]transcriptRow{{kind: rowToolCall, id: "call_1", tool: "bash", detail: "cd /d/tmp/zero-pr-158 && ls -la"}})
+	rc := buildRowContext([]transcriptRow{{kind: rowToolCall, id: "call_1", tool: "bash", detail: "cd /d/tmp/rune-pr-158 && ls -la"}})
 	got := plainRender(t, m.renderRow(row, 96, rc))
 	for _, want := range []string{"shell issue", "Windows cmd.exe", "Suggestion:", "cwd"} {
 		if !strings.Contains(got, want) {
@@ -1544,15 +1544,15 @@ func TestStatusLineOmitsEffortWhenAuto(t *testing.T) {
 func TestTitleBarShowsWorkspaceAndModel(t *testing.T) {
 	m := limeTestModel()
 	m.width = 120
-	m.cwd = "/workspace/zero"
+	m.cwd = "/workspace/rune"
 	m.gitBranch = "main"
 	got := plainRender(t, m.titleBar(120))
-	for _, want := range []string{" main", "/workspace/zero", "test-provider/test-model"} {
+	for _, want := range []string{" main", "/workspace/rune", "test-provider/test-model"} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("title bar = %q, missing %q", got, want)
 		}
 	}
-	for _, notWant := range []string{" 0 ", "zero /"} {
+	for _, notWant := range []string{" 0 ", "rune /"} {
 		if strings.Contains(got, notWant) {
 			t.Fatalf("title bar = %q, should not include old brand cluster %q", got, notWant)
 		}
@@ -1567,12 +1567,12 @@ func TestTitleBarHighlightsBranchOverWorkspace(t *testing.T) {
 	})
 
 	m := limeTestModel()
-	m.cwd = "/workspace/zero"
+	m.cwd = "/workspace/rune"
 	m.gitBranch = "main"
 	got := m.titleWorkspaceSegment()
 
 	highlightedBranch := zeroTheme.muted.Render("") + " " + zeroTheme.muted.Render("main")
-	recessedWorkspace := zeroTheme.faint.Render("/workspace/zero")
+	recessedWorkspace := zeroTheme.faint.Render("/workspace/rune")
 	for _, want := range []string{highlightedBranch, recessedWorkspace} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("title workspace segment = %q, missing styled segment %q", got, want)
@@ -1661,7 +1661,7 @@ func TestToolResultCardRendersInlineWithoutRail(t *testing.T) {
 		id:     "c",
 		tool:   "read_file",
 		status: tools.StatusOK,
-		detail: "File: README.md\n\n1: # Zero\n2: line two",
+		detail: "File: README.md\n\n1: # Rune\n2: line two",
 	}
 	card := plainRender(t, m.renderRow(row, 80, buildRowContext(nil)))
 	lines := strings.Split(card, "\n")
@@ -1925,10 +1925,10 @@ func TestModelPickerItemsCarryProviderTag(t *testing.T) {
 
 func TestSpecReviewCardShowsBadgePathAndKeys(t *testing.T) {
 	got := plainRender(t, renderFocusedSpecReviewPrompt(pendingSpecReviewPrompt{
-		SpecFilePath: "/repo/specs/zero-1.md",
-		RelativePath: "specs/zero-1.md",
+		SpecFilePath: "/repo/specs/rune-1.md",
+		RelativePath: "specs/rune-1.md",
 	}, 80))
-	for _, want := range []string{"SPEC REVIEW", "specs/zero-1.md", "[a] approve", "[r] reject", "[e] edit file", "[esc] cancel"} {
+	for _, want := range []string{"SPEC REVIEW", "specs/rune-1.md", "[a] approve", "[r] reject", "[e] edit file", "[esc] cancel"} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("spec review card = %q, missing %q", got, want)
 		}

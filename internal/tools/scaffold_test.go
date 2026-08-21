@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/plugins"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/plugins"
+	"rune/internal/tools"
 )
 
 func TestScaffoldCreatesManifestAndStub(t *testing.T) {

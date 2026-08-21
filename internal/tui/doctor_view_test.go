@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/doctor"
-	"github.com/rune-ai/rune/internal/zerocommands"
+	"rune/internal/doctor"
+	"rune/internal/zerocommands"
 )
 
 func TestDoctorCommandOutputMapsOverallStatus(t *testing.T) {
@@ -90,8 +90,8 @@ func TestDoctorCommandOutputGroupsProviderAndPlatformChecks(t *testing.T) {
 		doctorCheck("provider.model", doctor.StatusWarn, "Provider model is not configured."),
 		doctorCheck("provider.connectivity", doctor.StatusFail, "Provider connectivity failed."),
 		doctorCheck("sandbox.backend", doctor.StatusWarn, "Native sandbox backend unavailable on windows: Windows sandbox command runner is not available."),
-		doctorCheck("runtime.go", doctor.StatusPass, "Zero Go runtime is available."),
-		doctorCheck("config.files", doctor.StatusPass, "Zero config file inputs are available."),
+		doctorCheck("runtime.go", doctor.StatusPass, "Rune Go runtime is available."),
+		doctorCheck("config.files", doctor.StatusPass, "Rune config file inputs are available."),
 	}}, nil)
 
 	provider := doctorSection(output, "Provider")
@@ -114,8 +114,8 @@ func TestDoctorCommandOutputIsProblemFirstDiagnosticCenter(t *testing.T) {
 		doctorCheck("provider.config", doctor.StatusPass, "Provider config loaded."),
 		doctorCheck("provider.model", doctor.StatusWarn, "Provider model is not configured."),
 		doctorCheck("provider.connectivity", doctor.StatusWarn, "Connectivity probe skipped."),
-		doctorCheck("runtime.go", doctor.StatusPass, "Zero Go runtime is available."),
-		doctorCheck("config.files", doctor.StatusPass, "Zero config files are available."),
+		doctorCheck("runtime.go", doctor.StatusPass, "Rune Go runtime is available."),
+		doctorCheck("config.files", doctor.StatusPass, "Rune config files are available."),
 		doctorCheck("lsp.servers", doctor.StatusWarn, "2 language server(s) missing from PATH."),
 	}}, nil)
 
@@ -157,7 +157,7 @@ func TestDoctorCommandOutputAddsActionableHints(t *testing.T) {
 			Status:  doctor.StatusWarn,
 			Message: "Native sandbox backend unavailable on windows: Windows sandbox setup helper is not available.",
 			Details: map[string]any{
-				"remedy": "install the Windows sandbox command runner and setup helper together, then run `zero sandbox setup`",
+				"remedy": "install the Windows sandbox command runner and setup helper together, then run `rune sandbox setup`",
 			},
 		},
 		doctorCheck("lsp.servers", doctor.StatusWarn, "2 language server(s) missing from PATH; affected files degrade to text-only edits."),
@@ -167,7 +167,7 @@ func TestDoctorCommandOutputAddsActionableHints(t *testing.T) {
 	for _, want := range []string{
 		"/provider",
 		"/doctor --connectivity",
-		"zero sandbox setup",
+		"rune sandbox setup",
 		"install missing language servers",
 	} {
 		if !strings.Contains(text, want) {

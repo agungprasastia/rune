@@ -68,7 +68,7 @@ func (tool editFileTool) RunWithOptions(ctx context.Context, args map[string]any
 	if err != nil {
 		return errorResult("Error reading " + relativePath + ": " + err.Error())
 	}
-	// Refuse to edit a file that changed on disk outside Zero since it was last
+	// Refuse to edit a file that changed on disk outside Rune since it was last
 	// read: the model's old_string was formed against a stale view, so applying it
 	// now could silently corrupt the newer content.
 	if cerr := options.FileTracker.CheckConflict(absolutePath, contentBytes); cerr != nil {
@@ -158,7 +158,7 @@ func (tool editFileTool) RunWithOptions(ctx context.Context, args map[string]any
 		return errorResult("Error writing " + relativePath + ": " + err.Error())
 	}
 	modelKnownContent := updated
-	// Optional format-on-write (ZERO_FORMAT_ON_WRITE). Must run BEFORE the
+	// Optional format-on-write (RUNE_FORMAT_ON_WRITE). Must run BEFORE the
 	// FileTracker re-baseline: recording pre-format content would make the very
 	// next edit look like an external modification and trip the conflict guard.
 	updated = maybeFormatWrittenFile(ctx, absolutePath, updated)
@@ -185,7 +185,7 @@ func (tool editFileTool) RunWithOptions(ctx context.Context, args map[string]any
 	result := okResult(summary)
 	result.ChangedFiles = []string{relativePath}
 	// Card-only preview (Display.Preview): the model's Output stays the one-line
-	// summary, so the red/green diff costs zero model tokens.
+	// summary, so the red/green diff costs rune model tokens.
 	result.Display = Display{Summary: fmt.Sprintf("Edited %s", relativePath), Kind: "diff", Preview: boundedUnifiedDiff(relativePath, content, updated)}
 	return result
 }

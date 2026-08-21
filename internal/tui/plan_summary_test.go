@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func TestRenderPlanUpdateCardUsesTranscriptChecklist(t *testing.T) {

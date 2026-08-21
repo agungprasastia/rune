@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/peermsg"
+	"rune/internal/peermsg"
 )
 
 type fakePeerSessionService struct {

@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/release"
+	"rune/internal/release"
 )
 
 const SchemaVersion = 3
@@ -228,7 +228,7 @@ func EvaluateWarnings(metrics Metrics, thresholds Thresholds) []Warning {
 
 func FormatSummary(result Result) string {
 	lines := []string{
-		fmt.Sprintf("Zero performance benchmark (%s/%s, Go %s)", result.Platform.OS, result.Platform.Arch, result.Platform.GoVersion),
+		fmt.Sprintf("Rune performance benchmark (%s/%s, Go %s)", result.Platform.OS, result.Platform.Arch, result.Platform.GoVersion),
 		"command: " + FormatCommand(result.ColdStartCommand),
 		"first-output command: " + FormatCommand(result.FirstOutputCommand),
 		fmt.Sprintf("iterations: %d measured, %d warmup", result.Iterations, result.WarmupIterations),
@@ -250,7 +250,7 @@ func FormatSummary(result Result) string {
 
 func EmitWarnings(w io.Writer, result Result) {
 	for _, warning := range result.Warnings {
-		_, _ = fmt.Fprintf(w, "::warning title=Zero performance::%s\n", EscapeActionCommand(warning.Message))
+		_, _ = fmt.Fprintf(w, "::warning title=Rune performance::%s\n", EscapeActionCommand(warning.Message))
 	}
 }
 
@@ -466,8 +466,8 @@ func appendNoColor(env []string) []string {
 
 func offlineBenchmarkEnv(env []string) []string {
 	remove := map[string]bool{
-		"ZERO_PROVIDER_COMMAND": true,
-		"ZERO_PROVIDER":         true,
+		"RUNE_PROVIDER_COMMAND": true,
+		"RUNE_PROVIDER":         true,
 		"OPENAI_API_KEY":        true,
 		"OPENAI_BASE_URL":       true,
 		"OPENAI_MODEL":          true,

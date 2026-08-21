@@ -10,16 +10,16 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/credstore"
-	"github.com/rune-ai/rune/internal/doctor"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodelcatalog"
-	"github.com/rune-ai/rune/internal/providers"
-	"github.com/rune-ai/rune/internal/redaction"
-	zsearch "github.com/rune-ai/rune/internal/search"
+	"rune/internal/config"
+	"rune/internal/credstore"
+	"rune/internal/doctor"
+	"rune/internal/modelregistry"
+	"rune/internal/oauth"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodelcatalog"
+	"rune/internal/providers"
+	"rune/internal/redaction"
+	zsearch "rune/internal/search"
 )
 
 const doctorStatusRowID = "doctor/status"
@@ -176,7 +176,7 @@ func doctorFixLines(report doctor.Report) []string {
 			if remedy := doctorCheckDetailString(check, "remedy"); remedy != "" {
 				lines = append(lines, "native sandbox: "+remedy)
 			} else {
-				lines = append(lines, "native sandbox: run zero sandbox policy --effective to inspect backend status")
+				lines = append(lines, "native sandbox: run rune sandbox policy --effective to inspect backend status")
 			}
 		case "lsp.servers":
 			lines = append(lines, "language servers: install missing LSP binaries on PATH")
@@ -198,7 +198,7 @@ func doctorFixLines(report doctor.Report) []string {
 func (m model) doctorConnectivityRunningText() string {
 	return strings.Join([]string{
 		"Checking provider",
-		"Zero is probing the active endpoint. Keep typing; messages will queue until the check finishes.",
+		"Rune is probing the active endpoint. Keep typing; messages will queue until the check finishes.",
 		m.doctorAnimationLine(),
 		"provider: " + displayValue(m.providerName, displayValue(m.providerProfile.Name, "unknown")),
 		"model: " + displayValue(m.modelName, displayValue(m.providerProfile.Model, "unknown")),
@@ -412,7 +412,7 @@ func (m model) handleModelCommand(args string) (model, string) {
 	}
 	target, ok := m.resolveModelSwitchTarget(registry, args)
 	if !ok {
-		return m, "Model\nunknown Zero model " + strconv.Quote(args)
+		return m, "Model\nunknown Rune model " + strconv.Quote(args)
 	}
 	if !config.HasProviderProfile(m.providerProfile) {
 		return m, "Model\nNo provider profile is available for TUI model switching."
@@ -551,7 +551,7 @@ func (m model) switchProviderModel(providerName, modelID string) (model, string,
 	// keyless on purpose so newProvider attaches the bearer resolver + login key.
 	if strings.TrimSpace(target.APIKey) == "" && strings.TrimSpace(target.AuthHeaderValue) == "" &&
 		(!hasDescriptor || !descriptor.Local) && !oauthLoginAvailable(target) {
-		return m, "Model\nprovider " + strconv.Quote(providerName) + " has no usable credential — run setup or `zero auth login " + providerName + "`.", false, nil
+		return m, "Model\nprovider " + strconv.Quote(providerName) + " has no usable credential — run setup or `rune auth login " + providerName + "`.", false, nil
 	}
 	next, err := m.newProvider(target)
 	if err != nil {
@@ -656,7 +656,7 @@ func oauthLoginAvailable(profile config.ProviderProfile) bool {
 // oauthLoginName resolves WHICH stored login serves this profile — the same
 // FirstStored selection the runtime makes. User-facing hints must name this
 // entry, not the profile: after a rename ({name:"codex", catalogID:"chatgpt"})
-// the token lives under the catalog id, and `zero auth logout codex` would
+// the token lives under the catalog id, and `rune auth logout codex` would
 // delete nothing while the real login stays behind.
 func oauthLoginName(profile config.ProviderProfile) (string, bool) {
 	candidates := profile.OAuthLoginCandidates()

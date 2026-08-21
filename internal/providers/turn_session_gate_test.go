@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/zeroruntime"
 )
 
 func openaiEligibleProfile() config.ProviderProfile {
@@ -20,7 +20,7 @@ func openaiEligibleProfile() config.ProviderProfile {
 
 func buildGateProvider(t *testing.T, profile config.ProviderProfile) zeroruntime.Provider {
 	t.Helper()
-	provider, err := New(profile, Options{UserAgent: "zero-gate-test"})
+	provider, err := New(profile, Options{UserAgent: "rune-gate-test"})
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}

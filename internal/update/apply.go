@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/release"
+	"rune/internal/release"
 )
 
 // ErrTargetPossiblyTampered reports that an executable path may hold content
@@ -42,7 +42,7 @@ type ApplyResult struct {
 
 // windowsOptionalBinaries/linuxOptionalBinaries mirror the helper binary
 // names scripts/postinstall.mjs copies alongside the main binary when
-// present, so `zero upgrade` refreshes them too instead of leaving them stale.
+// present, so `rune upgrade` refreshes them too instead of leaving them stale.
 var (
 	windowsOptionalBinaries = []string{"rune-windows-command-runner.exe", "rune-windows-sandbox-setup.exe"}
 	linuxOptionalBinaries   = []string{"rune-linux-sandbox", "rune-seccomp"}
@@ -109,7 +109,7 @@ func FormatApply(result ApplyResult) string {
 		return Format(result.Result)
 	}
 	lines := []string{
-		fmt.Sprintf("[zero] %s (%s -> %s)", result.Message, result.CurrentVersion, result.LatestVersion),
+		fmt.Sprintf("[rune] %s (%s -> %s)", result.Message, result.CurrentVersion, result.LatestVersion),
 		"Binary: " + result.BinaryPath,
 	}
 	for _, warning := range result.Warnings {
@@ -138,7 +138,7 @@ func applyStandaloneUpdate(ctx context.Context, result Result, executablePath st
 		return nil, fmt.Errorf("release asset for %s-%s could not be verified", asset.Platform, asset.Arch)
 	}
 
-	tempDir, err := os.MkdirTemp("", "zero-update-*")
+	tempDir, err := os.MkdirTemp("", "rune-update-*")
 	if err != nil {
 		return nil, err
 	}
@@ -169,11 +169,11 @@ func applyStandaloneUpdate(ctx context.Context, result Result, executablePath st
 		return nil, fmt.Errorf("extract release archive: %w", err)
 	}
 
-	binaryName := "zero"
+	binaryName := "rune"
 	optionalBinaries := linuxOptionalBinaries
 	switch runtime.GOOS {
 	case "windows":
-		binaryName = "zero.exe"
+		binaryName = "rune.exe"
 		optionalBinaries = windowsOptionalBinaries
 	case "darwin":
 		optionalBinaries = nil
@@ -355,7 +355,7 @@ func downloadFile(ctx context.Context, url string, destPath string) error {
 	if err != nil {
 		return err
 	}
-	request.Header.Set("User-Agent", "zero/update")
+	request.Header.Set("User-Agent", "rune/update")
 	response, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return err

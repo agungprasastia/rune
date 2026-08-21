@@ -8,8 +8,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func TestEnterWhilePendingQueuesPromptWithoutStartingRun(t *testing.T) {

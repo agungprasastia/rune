@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/providers/providerio"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/providers/providerio"
+	"rune/internal/zeroruntime"
 )
 
 const defaultBaseURL = "https://api.openai.com/v1"
@@ -41,12 +41,12 @@ type Options struct {
 	// is preferred over APIKey; a nil resolver (or one that yields ok=false) uses
 	// the API key. See providerio.SendWithAuthRetry.
 	OAuthResolver providerio.TokenResolver
-	// MaxTokens caps the model's output tokens. Zero omits the cap (the model's
+	// MaxTokens caps the model's output tokens. Rune omits the cap (the model's
 	// own default applies). Resolved from the model registry by the factory.
 	MaxTokens int
 	// StreamIdleTimeout aborts the stream if no data arrives for this long.
-	// When unset, Zero uses providerio.ResolveStreamIdleTimeout — the
-	// ZERO_STREAM_IDLE_TIMEOUT override or providerio.DefaultStreamIdleTimeout.
+	// When unset, Rune uses providerio.ResolveStreamIdleTimeout — the
+	// RUNE_STREAM_IDLE_TIMEOUT override or providerio.DefaultStreamIdleTimeout.
 	StreamIdleTimeout time.Duration
 	// ParseThinkTags converts streamed <think>...</think> content into reasoning
 	// events for OpenAI-compatible models known to emit that legacy format.
@@ -62,7 +62,7 @@ type Options struct {
 	// caller supplies a session identity. Used for openai-compatible gateways
 	// (NVIDIA NIM, strict local proxies, …) that validate and reject unknown
 	// request fields instead of ignoring them. Official OpenAI keeps the field
-	// enabled; the ZERO_DISABLE_PROMPT_CACHE_KEY env kill switch still applies
+	// enabled; the RUNE_DISABLE_PROMPT_CACHE_KEY env kill switch still applies
 	// on top for any endpoint.
 	DisablePromptCacheKey bool
 }
@@ -474,7 +474,7 @@ func (provider *Provider) openAIRequest(request zeroruntime.CompletionRequest) c
 	// cache routing. Official OpenAI accepts it; many openai-compatible
 	// gateways (NVIDIA NIM, strict local proxies) reject unknown fields with a
 	// 400. Those providers are constructed with DisablePromptCacheKey, and any
-	// endpoint can still force-omit via ZERO_DISABLE_PROMPT_CACHE_KEY=1.
+	// endpoint can still force-omit via RUNE_DISABLE_PROMPT_CACHE_KEY=1.
 	if key := strings.TrimSpace(request.PromptCacheKey); key != "" && !provider.disablePromptCacheKey && !promptCacheKeyDisabled() {
 		mapped.PromptCacheKey = key
 	}
@@ -509,12 +509,12 @@ func normalizeToolParameters(parameters map[string]any) map[string]any {
 	return normalized
 }
 
-// promptCacheKeyDisabled reports whether the ZERO_DISABLE_PROMPT_CACHE_KEY
+// promptCacheKeyDisabled reports whether the RUNE_DISABLE_PROMPT_CACHE_KEY
 // kill switch is set to a truthy value. "0" and "false" (any case) are
-// no-ops, matching how ZERO_FORMAT_ON_WRITE parses boolean flags, so an
+// no-ops, matching how RUNE_FORMAT_ON_WRITE parses boolean flags, so an
 // explicitly-disabled toggle never flips the behavior it names.
 func promptCacheKeyDisabled() bool {
-	value := strings.TrimSpace(os.Getenv("ZERO_DISABLE_PROMPT_CACHE_KEY"))
+	value := strings.TrimSpace(os.Getenv("RUNE_DISABLE_PROMPT_CACHE_KEY"))
 	return value != "" && value != "0" && !strings.EqualFold(value, "false")
 }
 

@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/selfverify"
-	"github.com/rune-ai/rune/internal/testrunner"
-	"github.com/rune-ai/rune/internal/verify"
-	"github.com/rune-ai/rune/internal/worktrees"
-	"github.com/rune-ai/rune/internal/zerogit"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/redaction"
+	"rune/internal/selfverify"
+	"rune/internal/testrunner"
+	"rune/internal/verify"
+	"rune/internal/worktrees"
+	"rune/internal/zerogit"
+	"rune/internal/zeroruntime"
 )
 
 type worktreeCommandOptions struct {
@@ -109,8 +109,8 @@ func runWorktrees(args []string, stdout io.Writer, stderr io.Writer, deps appDep
 	return exitSuccess
 }
 
-// runWorktreesRelease unlocks a worktree `zero worktrees prepare` created, so
-// Zero's automatic Clean pass can reclaim it once it goes stale. Prepare locks
+// runWorktreesRelease unlocks a worktree `rune worktrees prepare` created, so
+// Rune's automatic Clean pass can reclaim it once it goes stale. Prepare locks
 // every worktree it creates and nothing else in that command's own lifetime
 // unlocks it (its process exits right after printing the path, long before
 // whatever external caller actually finishes using the worktree), so that
@@ -606,7 +606,7 @@ func parseChangesArgs(args []string, command string) (changesCommandOptions, boo
 		}
 	}
 	if command != "commit" && options.hasMessage {
-		return options, false, execUsageError{"--message is only valid with `zero changes commit`"}
+		return options, false, execUsageError{"--message is only valid with `rune changes commit`"}
 	}
 	if command == "commit" && options.hasMessage && options.auto {
 		return options, false, execUsageError{"cannot specify both --message and --auto"}
@@ -620,13 +620,13 @@ func parseChangesArgs(args []string, command string) (changesCommandOptions, boo
 		return options, false, execUsageError{"--auto is only valid with commit, push, or pr"}
 	}
 	if command != "inspect" && options.baseRef != "" {
-		return options, false, execUsageError{"--base is only valid with `zero changes inspect`"}
+		return options, false, execUsageError{"--base is only valid with `rune changes inspect`"}
 	}
 	if command != "push" && command != "pr" && (options.remote != "" || options.force) {
 		return options, false, execUsageError{"--remote and --force are only valid with push or pr"}
 	}
 	if command != "pr" && (options.title != "" || options.body != "" || options.fill || options.draft) {
-		return options, false, execUsageError{"--title, --body, --fill, and --draft are only valid with `zero changes pr`"}
+		return options, false, execUsageError{"--title, --body, --fill, and --draft are only valid with `rune changes pr`"}
 	}
 	if command != "push" && command != "pr" && options.yes {
 		return options, false, execUsageError{"--yes is only valid with push or pr"}
@@ -731,7 +731,7 @@ func redactCLIString(value string) string {
 
 func formatWorktreeResult(result worktrees.Result) string {
 	lines := []string{
-		"Zero worktree ready",
+		"Rune worktree ready",
 		"name: " + result.Name,
 		"path: " + result.Path,
 		"repo: " + result.RepoRoot,
@@ -750,7 +750,7 @@ func formatWorktreeResult(result worktrees.Result) string {
 
 func formatVerifyReport(report verify.Report) string {
 	lines := []string{
-		"Zero verification",
+		"Rune verification",
 		"root: " + report.Root,
 		fmt.Sprintf("summary: %d total, %d passed, %d failed, %d errors", report.Summary.Total, report.Summary.Passed, report.Summary.Failed, report.Summary.Errors),
 	}
@@ -790,7 +790,7 @@ func formatVerifyTestSummary(summary *testrunner.Summary) string {
 
 func formatVerifyLoopReport(report selfverify.Report) string {
 	lines := []string{
-		"Zero self-verification",
+		"Rune self-verification",
 	}
 	if report.Root != "" {
 		lines = append(lines, "root: "+report.Root)
@@ -833,7 +833,7 @@ func formatRemediation(remediation selfverify.Remediation) string {
 
 func formatChangeSummary(summary zerogit.ChangeSummary) string {
 	lines := []string{
-		"Zero changes",
+		"Rune changes",
 		"root: " + summary.Root,
 		fmt.Sprintf("files: %d changed", len(summary.Files)),
 	}
@@ -858,7 +858,7 @@ func formatChangeSummary(summary zerogit.ChangeSummary) string {
 
 func formatCommitResult(result zerogit.CommitResult) string {
 	lines := []string{
-		"Zero changes commit",
+		"Rune changes commit",
 		"root: " + result.Root,
 		"message: " + result.Message,
 		fmt.Sprintf("dry-run: %t", result.DryRun),
@@ -873,12 +873,12 @@ func formatCommitResult(result zerogit.CommitResult) string {
 
 func writeWorktreesHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero worktrees prepare [flags] [name]
-  zero worktrees release [flags] <path>
+  rune worktrees prepare [flags] [name]
+  rune worktrees release [flags] <path>
 
-Prepares an isolated git worktree for a Zero task.
+Prepares an isolated git worktree for a Rune task.
 
-prepare locks the worktree it creates so Zero's automatic cleanup never
+prepare locks the worktree it creates so Rune's automatic cleanup never
 removes it out from under you. release unlocks a worktree prepare created,
 once you are done with it, so cleanup can reclaim it later if it goes stale.
 If the worktree directory was deleted by hand, run release with -C pointing
@@ -886,7 +886,7 @@ at the source repository so the orphaned lock can still be cleared.
 
 prepare flags:
       --name <name>       Worktree name; defaults to a timestamped task name
-      --dir <path>        Base directory for Zero worktrees
+      --dir <path>        Base directory for Rune worktrees
   -C, --cwd <path>        Source repository directory
       --json              Print JSON output
   -h, --help              Show this help
@@ -902,7 +902,7 @@ release flags:
 
 func writeVerifyHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero verify [flags]
+  rune verify [flags]
 
 Detects and runs local verification checks for the workspace.
 
@@ -919,10 +919,10 @@ Flags:
 
 func writeChangesHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero changes inspect [flags]
-  zero changes commit [flags]
-  zero changes push [flags]
-  zero changes pr [flags]
+  rune changes inspect [flags]
+  rune changes commit [flags]
+  rune changes push [flags]
+  rune changes pr [flags]
 
 Inspects, commits, pushes, and creates pull requests for local git changes.
 
@@ -930,7 +930,7 @@ Flags:
   -C, --cwd <path>        Workspace directory
       --base <ref>        Diff against <ref>...HEAD instead of the working tree
       --diff-bytes <n>    Maximum diff bytes to include
-  -m, --message <text>    Commit message for `+"`zero changes commit`"+`
+  -m, --message <text>    Commit message for `+"`rune changes commit`"+`
       --dry-run           Preview commit metadata / push without mutating git state
       --remote <name>     Remote to push to (defaults to upstream tracked branch or origin)
       --force             Use force-with-lease when pushing
@@ -1280,7 +1280,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 	// already contacted the remote for its symref check, but the tracking ref
 	// commitsAhead reads from is only a local cache (written at clone or the
 	// last fetch) and can sit behind the remote's live tip. Left stale, a real
-	// publishable range could look like zero commits ahead, and the diff
+	// publishable range could look like rune commits ahead, and the diff
 	// derived below (which reuses this same ref as its base) would be stale
 	// too. A failure here (offline, or a genuinely unborn remote with no such
 	// ref to fetch yet) is folded into the same fail-closed path as an
@@ -1300,7 +1300,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 	pushRemote := firstNonEmptyString(requestedRemote, remote)
 	if deps.isUnbornRemote != nil {
 		if unbornDest, unbornDestErr := deps.isUnbornRemote(ctx, workspaceRoot, pushRemote); unbornDestErr == nil && unbornDest {
-			return branchPushPlan{}, fmt.Errorf("remote %s has no branches yet; push the initial default branch first with --yes (`zero changes push --yes`), then use auto-branching for subsequent work", pushRemote)
+			return branchPushPlan{}, fmt.Errorf("remote %s has no branches yet; push the initial default branch first with --yes (`rune changes push --yes`), then use auto-branching for subsequent work", pushRemote)
 		}
 	}
 
@@ -1320,7 +1320,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 			unbornRemote, unbornErr = deps.isUnbornRemote(ctx, workspaceRoot, trackingRemote)
 		}
 		if unbornErr == nil && unbornRemote {
-			return branchPushPlan{}, fmt.Errorf("remote %s has no branches yet; push the initial default branch first with --yes (`zero changes push --yes`), then use auto-branching for subsequent work", trackingRemote)
+			return branchPushPlan{}, fmt.Errorf("remote %s has no branches yet; push the initial default branch first with --yes (`rune changes push --yes`), then use auto-branching for subsequent work", trackingRemote)
 		}
 		cause := aheadErr
 		if cause == nil {
@@ -1409,7 +1409,7 @@ func resolveBranchPushPlan(ctx context.Context, stdout io.Writer, workspaceRoot 
 	}, nil
 }
 
-// ensureFeatureBranch is the branch-naming step `zero changes push`/`pr` run
+// ensureFeatureBranch is the branch-naming step `rune changes push`/`pr` run
 // before pushing: pushing straight to the default branch is refused deeper in
 // zerogit.Push, so rather than surface that as a dead end, create and switch
 // to a conventionally named "<user>/<slug>" branch first. It returns the

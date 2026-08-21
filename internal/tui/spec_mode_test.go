@@ -9,11 +9,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/specmode"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/sessions"
+	"rune/internal/specmode"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func TestSpecCommandCreatesDraftReview(t *testing.T) {
@@ -39,7 +39,7 @@ func TestSpecCommandCreatesDraftReview(t *testing.T) {
 	if next.activeSession.SessionKind != sessions.SessionKindSpecDraft || next.activeSession.SpecStatus != sessions.SpecStatusDraft {
 		t.Fatalf("unexpected active spec session: %#v", next.activeSession)
 	}
-	if !strings.Contains(next.pendingSpecReview.RelativePath, ".zero/specs/") {
+	if !strings.Contains(next.pendingSpecReview.RelativePath, ".rune/specs/") {
 		t.Fatalf("spec path not recorded: %#v", next.pendingSpecReview)
 	}
 	if !providerRequestIncludesTool(provider.requests[0], specmode.SubmitToolName) {
@@ -103,7 +103,7 @@ func TestSpecApproveStartsImplementationSession(t *testing.T) {
 
 func TestSpecReviewBlocksShiftTabModeCycle(t *testing.T) {
 	m := newModel(context.Background(), Options{PermissionMode: agent.PermissionModeAuto})
-	m.pendingSpecReview = &pendingSpecReviewPrompt{SpecID: "spec", SpecFilePath: ".zero/specs/spec.md"}
+	m.pendingSpecReview = &pendingSpecReviewPrompt{SpecID: "spec", SpecFilePath: ".rune/specs/spec.md"}
 
 	updated, _ := m.Update(testKeyShift(tea.KeyTab))
 	next := updated.(model)
@@ -121,7 +121,7 @@ func TestSpecReviewCancelLaunchesQueuedPrompt(t *testing.T) {
 		{Type: zeroruntime.StreamEventDone},
 	}}}
 	m := newSpecModeTestModel(t.TempDir(), provider, testSessionStore(t))
-	m.pendingSpecReview = &pendingSpecReviewPrompt{SpecID: "spec", SpecFilePath: ".zero/specs/spec.md"}
+	m.pendingSpecReview = &pendingSpecReviewPrompt{SpecID: "spec", SpecFilePath: ".rune/specs/spec.md"}
 	m.queuedMessage = "continue after cancel"
 
 	updated, cmd := m.Update(testKey(tea.KeyEsc))
@@ -268,7 +268,7 @@ func TestSpecLaunchesSeedElapsedClock(t *testing.T) {
 	if next.pendingSpecReview == nil {
 		t.Fatal("expected pending spec review")
 	}
-	next.turnStartedAt = time.Time{} // zero it to prove the impl path re-seeds independently
+	next.turnStartedAt = time.Time{} // rune it to prove the impl path re-seeds independently
 
 	// Approval launches the implementation run, which must also seed the clock.
 	updated, cmd = next.Update(testKeyText("a"))

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // probeTool records execution overlap and ordering so tests can assert what

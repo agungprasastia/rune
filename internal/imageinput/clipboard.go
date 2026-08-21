@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // ReadClipboardImage returns the raw image bytes and media type from the OS
@@ -76,7 +76,7 @@ func readClipboardImageWindows() ([]byte, error) {
 	// PowerShell stdout can't reliably emit raw binary — $ms.ToArray() prints
 	// a .NET byte array as space-separated text, not raw bytes. A temp file
 	// is the correct binary-safe path.
-	tmpFile, err := os.CreateTemp("", "zero-clipboard-*.png")
+	tmpFile, err := os.CreateTemp("", "rune-clipboard-*.png")
 	if err != nil {
 		return nil, nil
 	}

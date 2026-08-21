@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/modelregistry"
+	"rune/internal/sessions"
+	"rune/internal/zeroruntime"
 )
 
 func usageEvent(t *testing.T, sessionID string, sequence int, createdAt string, prompt int, completion int) sessions.Event {
@@ -144,7 +144,7 @@ func TestBuildReportPricesFromEventModelWhenPresent(t *testing.T) {
 		t.Fatalf("CalculateCost: %v", err)
 	}
 	if want.TotalCost <= 0 {
-		t.Fatalf("precondition: expected non-zero cost for the event model")
+		t.Fatalf("precondition: expected non-rune cost for the event model")
 	}
 	if report.Total.TotalCost != want.TotalCost {
 		t.Fatalf("cost = %v, want %v (must price from the event's model, not the empty session model)", report.Total.TotalCost, want.TotalCost)

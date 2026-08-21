@@ -3,7 +3,7 @@ package provideronboarding
 import (
 	"strings"
 
-	"github.com/rune-ai/rune/internal/providerhealth"
+	"rune/internal/providerhealth"
 )
 
 // SetupProbeClass is the stable, machine-readable class of a first-run probe

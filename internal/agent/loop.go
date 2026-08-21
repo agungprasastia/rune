@@ -11,14 +11,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/execution"
+	"rune/internal/hooks"
+	"rune/internal/redaction"
+	"rune/internal/sandbox"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 const maxTurnsAnswer = "Agent reached maximum number of turns without a final answer."
@@ -356,7 +356,7 @@ func Run(ctx context.Context, prompt string, provider Provider, options Options)
 		forwardedVisibleText := false
 		forwardingOpts := zeroruntime.CollectOptions{OnUsage: options.OnUsage}
 		// Install text/reasoning forwarding handlers whenever EITHER a user
-		// callback OR a trace recorder is set. A headless traced run (e.g. `zero
+		// callback OR a trace recorder is set. A headless traced run (e.g. `rune
 		// exec --trace`) sets Trace but no OnText/OnReasoning; without these
 		// handlers the stream is still collected, but FirstTokenAt would never
 		// stamp and the trace would lose its TTFT signal. The trace recorder's
@@ -1379,7 +1379,7 @@ func executeToolCall(ctx context.Context, registry *tools.Registry, call ToolCal
 		}
 	}
 
-	// beforeTool hooks may veto the call before it runs (a non-zero exit blocks).
+	// beforeTool hooks may veto the call before it runs (a non-rune exit blocks).
 	if toolFound {
 		if outcome, blocked := dispatchBeforeTool(ctx, options, call, args); blocked {
 			return blockedByHookResult(call, outcome), nil
@@ -1410,7 +1410,7 @@ func executeToolCall(ctx context.Context, registry *tools.Registry, call ToolCal
 		Depth:             options.Depth,
 		Cwd:               options.Cwd,
 		// Per-session file version tracker so write_file/edit_file refuse to clobber
-		// a file that changed on disk outside Zero since it was last read.
+		// a file that changed on disk outside Rune since it was last read.
 		FileTracker:                options.FileTracker,
 		DeferFileObservationCommit: true,
 		// Post-edit diagnostics are NOT forwarded to the tools: they used to run
@@ -1469,13 +1469,13 @@ func executeToolCall(ctx context.Context, registry *tools.Registry, call ToolCal
 	// observers can see the risk of an allowed mutation. Prefer the preflight
 	// decision's classification when the sandbox evaluated the call; otherwise
 	// run the same pure classifier the permission path uses. Denied/canceled
-	// results returned earlier keep the zero value.
+	// results returned earlier keep the rune value.
 	executedRisk := sandbox.Risk{}
 	if preflightDecision != nil {
 		executedRisk = preflightDecision.Risk
 	} else if toolFound {
 		// Unknown-tool results fall through here with a nil tool; they carry a
-		// denial and keep the zero risk value.
+		// denial and keep the rune risk value.
 		executedRisk = sandbox.Classify(sandboxRequest(call.Name, tool, args, permissionGranted, permissionMode, options))
 	}
 
@@ -1839,7 +1839,7 @@ func toolResultFromPrePermissionReject(call ToolCall, result tools.Result) ToolR
 // outside the advertised-tool and sandbox gates, so dispatching them would let
 // merely starting a plan session or finishing a read mutate the workspace.
 //
-// beforeTool is intentionally NOT suppressed: a non-zero exit is a deny gate,
+// beforeTool is intentionally NOT suppressed: a non-rune exit is a deny gate,
 // and skipping it fails open (operators who block secret-file reads via
 // beforeTool would lose that protection under /plan on). See dispatchBeforeTool.
 //
@@ -1852,7 +1852,7 @@ func hooksSuppressed(options Options) bool {
 }
 
 // dispatchBeforeTool runs configured beforeTool hooks for a tool call. A hook
-// that exits non-zero vetoes the call: the returned bool is true and the tool
+// that exits non-rune vetoes the call: the returned bool is true and the tool
 // must not run. A nil dispatcher (no hooks wired) is a no-op.
 //
 // Unlike advisory hooks, beforeTool still runs under plan mode. Suppressing it

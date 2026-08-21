@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/sessions"
 )
 
 // subchatState manages the drill-in view for a specialist's child session.

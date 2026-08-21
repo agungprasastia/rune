@@ -7,7 +7,7 @@ import (
 
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/rune-ai/rune/internal/terminalpet"
+	"rune/internal/terminalpet"
 )
 
 const (

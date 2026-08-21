@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
 // escalatingEngine allows unsandboxed escalation: no denied reads, so

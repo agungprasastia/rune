@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/execprofile"
+	"rune/internal/execprofile"
 )
 
 func TestApplyExecProfileFillsOnlyUnset(t *testing.T) {

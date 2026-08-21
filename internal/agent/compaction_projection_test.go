@@ -5,7 +5,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestClipBytesHandlesTinyLimitsOnRuneBoundaries(t *testing.T) {

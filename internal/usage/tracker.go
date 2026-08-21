@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/modelregistry"
+	"rune/internal/zeroruntime"
 )
 
 type Normalized struct {

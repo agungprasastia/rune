@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
+	"rune/internal/agent"
 )
 
 func TestExpandSpecialistMention(t *testing.T) {

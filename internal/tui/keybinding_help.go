@@ -1,4 +1,4 @@
-// keybinding_help.go renders the `?` keyboard-shortcut overlay. Zero has a
+// keybinding_help.go renders the `?` keyboard-shortcut overlay. Rune has a
 // rich set of chord bindings (Ctrl+T effort, drill-in subchat,
 // Shift+Tab permission mode, …) that are otherwise invisible — only learnable
 // by reading the source. A single-key `?` overlay (opened on an empty composer)

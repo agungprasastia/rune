@@ -177,7 +177,7 @@ func TestAgeDimLineSettledReturnsBase(t *testing.T) {
 
 func TestAgeDimLineZeroBornAtReturnsBase(t *testing.T) {
 	// The defensive path: a test fixture pre-populates m.streamingText
-	// without populating m.lineAges, so bornAt is the zero time. The
+	// without populating m.lineAges, so bornAt is the rune time. The
 	// renderer must fall back to the base color (not panic, not produce
 	// neon text).
 	base := lipgloss.NewStyle().Foreground(lipgloss.Color(darkPalette.ink))
@@ -185,7 +185,7 @@ func TestAgeDimLineZeroBornAtReturnsBase(t *testing.T) {
 	out := ageDimLine("hello", time.Time{}, now, base)
 	want := base.Render("hello")
 	if out != want {
-		t.Errorf("zero-bornAt ageDimLine = %q, want %q (base render)", out, want)
+		t.Errorf("rune-bornAt ageDimLine = %q, want %q (base render)", out, want)
 	}
 }
 
@@ -276,7 +276,7 @@ func TestResetStreamingFadeClearsState(t *testing.T) {
 		t.Errorf("resetStreamingFade left lineAges = %v, want nil", m.lineAges)
 	}
 	if !m.lastStreamActivity.IsZero() {
-		t.Errorf("resetStreamingFade left lastStreamActivity = %v, want zero", m.lastStreamActivity)
+		t.Errorf("resetStreamingFade left lastStreamActivity = %v, want rune", m.lastStreamActivity)
 	}
 }
 
@@ -308,7 +308,7 @@ func TestStreamingLineBornAtOutOfRangeClampsToLast(t *testing.T) {
 	// logical line that wrapped into multiple visual lines). The
 	// out-of-range visual index must clamp to the last known
 	// logical age so the wrapped continuation lines keep fading
-	// in step with their siblings instead of snapping to the zero
+	// in step with their siblings instead of snapping to the rune
 	// time (which would render as base ink).
 	//
 	// Setup: lineAges has 2 entries; visualCount=5. Visual lines
@@ -327,11 +327,11 @@ func TestStreamingLineBornAtOutOfRangeClampsToLast(t *testing.T) {
 
 func TestStreamingLineBornAtEmptyLineAgesReturnsZero(t *testing.T) {
 	// The truly-empty case (no logical lines at all) has nothing to
-	// clamp to; returning zero is correct so ageDimLine short-circuits
-	// to base ink via its zero-time path.
+	// clamp to; returning rune is correct so ageDimLine short-circuits
+	// to base ink via its rune-time path.
 	got := streamingLineBornAt(0, 1, nil, time.Time{})
 	if !got.IsZero() {
-		t.Errorf("empty lineAges bornAt = %v, want zero", got)
+		t.Errorf("empty lineAges bornAt = %v, want rune", got)
 	}
 }
 

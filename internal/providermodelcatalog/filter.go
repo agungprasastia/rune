@@ -3,7 +3,7 @@ package providermodelcatalog
 import (
 	"strings"
 
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/providercatalog"
 )
 
 // ModelIDAllowedForProvider reports whether a model ID is permitted for the

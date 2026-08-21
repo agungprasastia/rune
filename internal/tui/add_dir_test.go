@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/agent"
+	"rune/internal/sandbox"
 )
 
 func TestParseCommandRecognizesAddDir(t *testing.T) {
@@ -62,7 +62,7 @@ func TestHandleAddDirCommand(t *testing.T) {
 
 func tempDirOutsideDefaultTemp(t *testing.T) string {
 	t.Helper()
-	dir, err := os.MkdirTemp(".", ".zero-sandbox-outside-")
+	dir, err := os.MkdirTemp(".", ".rune-sandbox-outside-")
 	if err != nil {
 		t.Fatalf("MkdirTemp outside default temp: %v", err)
 	}

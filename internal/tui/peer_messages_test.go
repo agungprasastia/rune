@@ -9,11 +9,11 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/peermsg"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/peermsg"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func TestPeerMessagePreservesUserDraftStateAndPersistsProvenance(t *testing.T) {
@@ -118,7 +118,7 @@ func TestPermissionMismatchHoldsPeerMessageForExplicitDecision(t *testing.T) {
 		"Message body (this is what will be delivered):",
 		"«Run the blocked command.»",
 		"Deny — drop this message",
-		"Deliver this message to Zero",
+		"Deliver this message to Rune",
 	} {
 		if !strings.Contains(plain, want) {
 			t.Fatalf("held message panel missing %q:\n%s", want, plain)
@@ -230,7 +230,7 @@ func TestResumedPeerMessageRendersAsPeerNotUser(t *testing.T) {
 }
 
 func TestPeerDisplayNameUsesNeutralBoundedFallback(t *testing.T) {
-	if got := peerDisplayName(peermsg.Peer{Ref: "abcd1234"}); got != "Zero session [abcd1234]" {
+	if got := peerDisplayName(peermsg.Peer{Ref: "abcd1234"}); got != "Rune session [abcd1234]" {
 		t.Fatalf("fallback = %q", got)
 	}
 	long := strings.Repeat("界", peerDisplayNameLimit+10)

@@ -15,36 +15,36 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/localcontrol"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/observability"
-	"github.com/rune-ai/rune/internal/peermsg"
-	"github.com/rune-ai/rune/internal/plugins"
-	"github.com/rune-ai/rune/internal/providerhealth"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/provideroauth"
-	"github.com/rune-ai/rune/internal/provideronboarding"
-	"github.com/rune-ai/rune/internal/providers"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/selfverify"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/skills"
-	"github.com/rune-ai/rune/internal/specialist"
-	"github.com/rune-ai/rune/internal/swarm"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/tui"
-	"github.com/rune-ai/rune/internal/update"
-	"github.com/rune-ai/rune/internal/verify"
-	"github.com/rune-ai/rune/internal/worktrees"
-	"github.com/rune-ai/rune/internal/zerogit"
-	"github.com/rune-ai/rune/internal/zeroruntime"
 	"github.com/charmbracelet/x/term"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/execution"
+	"rune/internal/hooks"
+	"rune/internal/localcontrol"
+	"rune/internal/mcp"
+	"rune/internal/modelregistry"
+	"rune/internal/observability"
+	"rune/internal/peermsg"
+	"rune/internal/plugins"
+	"rune/internal/providerhealth"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/provideroauth"
+	"rune/internal/provideronboarding"
+	"rune/internal/providers"
+	"rune/internal/redaction"
+	"rune/internal/sandbox"
+	"rune/internal/selfverify"
+	"rune/internal/sessions"
+	"rune/internal/skills"
+	"rune/internal/specialist"
+	"rune/internal/swarm"
+	"rune/internal/tools"
+	"rune/internal/tui"
+	"rune/internal/update"
+	"rune/internal/verify"
+	"rune/internal/worktrees"
+	"rune/internal/zerogit"
+	"rune/internal/zeroruntime"
 )
 
 var version = "dev"
@@ -63,7 +63,7 @@ type appDeps struct {
 	exportActiveProvider func(providerName string)
 	// getenv reads a process environment variable (production: os.Getenv, set in
 	// defaultAppDeps — deliberately NOT filled by fillAppDeps, so tests are hermetic
-	// against ambient vars like ZERO_PROVIDER unless they inject it). nil ⇒ empty.
+	// against ambient vars like RUNE_PROVIDER unless they inject it). nil ⇒ empty.
 	getenv                       func(string) string
 	probeProviderHealth          func(context.Context, providerhealth.Options) providerhealth.Result
 	discoverProviderModels       func(context.Context, config.ProviderProfile) ([]providermodeldiscovery.Model, error)
@@ -263,11 +263,11 @@ func defaultAppDeps() appDeps {
 }
 
 func userAgent() string {
-	return "zero/" + version
+	return "rune/" + version
 }
 
 // defaultUserPluginsDir resolves the user-scoped plugins root
-// ($XDG_CONFIG_HOME/zero/plugins) used as the install target for `plugin add`
+// ($XDG_CONFIG_HOME/rune/plugins) used as the install target for `plugin add`
 // and the toolbox for `tools make`. It is the SourceUser root from
 // plugins.ResolveRoots; an empty string is returned only if it cannot be
 // resolved, which the command layer surfaces as an error.
@@ -286,7 +286,7 @@ func defaultUserPluginsDir() string {
 
 func runWithDeps(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) (exitCode int) {
 	// Self-dispatch as the Windows sandbox helper. When no standalone helper .exe
-	// is shipped (dev / plain `go build`), the sandbox launches the running zero
+	// is shipped (dev / plain `go build`), the sandbox launches the running rune
 	// binary with one of these hidden subcommands instead of a separate
 	// executable (see resolveWindowsSandboxHelper). Routed before crash-recover,
 	// dep-fill, and --add-dir splitting so it can never collide with a real
@@ -317,7 +317,7 @@ func runWithDeps(args []string, stdout io.Writer, stderr io.Writer, deps appDeps
 	}
 	// --theme <name> selects the TUI palette non-interactively (auto or any registered
 	// theme; populates tui.Options.Theme, which resolveThemeMode prefers over
-	// ZERO_THEME). Re-split --add-dir afterward so it may appear on either side of --theme.
+	// RUNE_THEME). Re-split --add-dir afterward so it may appear on either side of --theme.
 	theme, args, err := splitLeadingThemeFlag(args)
 	if err != nil {
 		return writeAppError(stderr, err.Error(), 1)
@@ -383,11 +383,11 @@ func runWithDeps(args []string, stdout io.Writer, stderr io.Writer, deps appDeps
 		}
 		// This path launches the interactive TUI, which takes no positional prompt or
 		// subcommand. Reject any remaining trailing arg loudly instead of silently
-		// dropping it, so `zero --skip-permissions-unsafe "fix bug"` doesn't appear to
+		// dropping it, so `rune --skip-permissions-unsafe "fix bug"` doesn't appear to
 		// hang in the TUI with the prompt discarded. (AUDIT-L3)
 		for _, arg := range rest {
 			if strings.TrimSpace(arg) != "" {
-				return writeAppError(stderr, "--skip-permissions-unsafe launches the interactive TUI and takes no prompt or subcommand; for a one-shot unsafe run use `zero exec --skip-permissions-unsafe -p \"...\"`", 1)
+				return writeAppError(stderr, "--skip-permissions-unsafe launches the interactive TUI and takes no prompt or subcommand; for a one-shot unsafe run use `rune exec --skip-permissions-unsafe -p \"...\"`", 1)
 			}
 		}
 		return runInteractiveTUI(stderr, deps, agent.PermissionModeUnsafe, append(append([]string{}, addDirs...), moreDirs...), skipTheme)
@@ -399,23 +399,23 @@ func runWithDeps(args []string, stdout io.Writer, stderr io.Writer, deps appDeps
 	case "-v", "--version", "version":
 		for _, a := range args[1:] {
 			if a == "-h" || a == "--help" {
-				if _, err := fmt.Fprintln(stdout, "Usage: zero version\n\nPrint the Zero CLI version. Takes no flags."); err != nil {
+				if _, err := fmt.Fprintln(stdout, "Usage: rune version\n\nPrint the Rune CLI version. Takes no flags."); err != nil {
 					return 1
 				}
 				return 0
 			}
 		}
 		// Pipes and redirects keep the machine-readable contract exactly as it
-		// was: a single "zero <version>" line. Scripts, command substitutions,
+		// was: a single "rune <version>" line. Scripts, command substitutions,
 		// and the NPM wrapper smoke check all parse that record, so the banner
 		// is strictly a TTY affordance.
 		if !stdoutIsTerminal(stdout) {
-			if _, err := fmt.Fprintf(stdout, "zero %s\n", version); err != nil {
+			if _, err := fmt.Fprintf(stdout, "rune %s\n", version); err != nil {
 				return 1
 			}
 			return 0
 		}
-		if _, err := fmt.Fprintf(stdout, "%s\n\nzero %s\n", tui.Wordmark(), version); err != nil {
+		if _, err := fmt.Fprintf(stdout, "%s\n\nrune %s\n", tui.Wordmark(), version); err != nil {
 			return 1
 		}
 		return 0
@@ -425,7 +425,7 @@ func runWithDeps(args []string, stdout io.Writer, stderr io.Writer, deps appDeps
 		}
 		// Forward leading --add-dir occurrences so exec's own parser collects them.
 		// Use the inline --prompt=<value> form so a prompt whose first character is a
-		// dash (e.g. `zero -p "-foo"`) is taken verbatim instead of being mistaken for
+		// dash (e.g. `rune -p "-foo"`) is taken verbatim instead of being mistaken for
 		// a flag and rejected with "--prompt requires a value" (matches the cron path).
 		execArgs := append(addDirFlagArgs(addDirs), "--prompt="+args[1])
 		execArgs = append(execArgs, args[2:]...)
@@ -505,15 +505,15 @@ func runWithDeps(args []string, stdout io.Writer, stderr io.Writer, deps appDeps
 		if _, err := fmt.Fprintf(stderr, "unknown command %q\n", args[0]); err != nil {
 			return 1
 		}
-		// First-run users reach for `zero login`/`zero logout` (reported in the
+		// First-run users reach for `rune login`/`rune logout` (reported in the
 		// wild); point them at the real command instead of a bare usage pointer.
 		switch strings.ToLower(args[0]) {
 		case "login", "logout":
-			if _, err := fmt.Fprintf(stderr, "did you mean %q?\n", "zero auth "+strings.ToLower(args[0])); err != nil {
+			if _, err := fmt.Fprintf(stderr, "did you mean %q?\n", "rune auth "+strings.ToLower(args[0])); err != nil {
 				return 1
 			}
 		}
-		if _, err := fmt.Fprintln(stderr, "Run zero --help for usage."); err != nil {
+		if _, err := fmt.Fprintln(stderr, "Run rune --help for usage."); err != nil {
 			return 1
 		}
 		return 2
@@ -716,10 +716,10 @@ func runInteractiveTUIWithSetup(stderr io.Writer, deps appDeps, permissionMode a
 		// can onboard/repair, instead of exiting with an error they can only fix
 		// by hand-editing config.json. That covers a missing/unresolvable active
 		// provider and an active provider without a model (custom endpoints have
-		// no catalog default) — previously the second shape bricked bare `zero`
-		// and `zero setup`, the exact commands that could have fixed it. Any
+		// no catalog default) — previously the second shape bricked bare `rune`
+		// and `rune setup`, the exact commands that could have fixed it. Any
 		// other error (malformed JSON, directory conflict, etc.) is still fatal,
-		// and headless commands (zero config / zero exec) still fail with the
+		// and headless commands (rune config / rune exec) still fail with the
 		// actionable message.
 		if !errors.Is(err, config.ErrNoActiveProvider) && !errors.Is(err, config.ErrProviderRequiresModel) {
 			return writeAppError(stderr, err.Error(), 1)
@@ -761,7 +761,7 @@ func runInteractiveTUIWithSetup(stderr io.Writer, deps appDeps, permissionMode a
 		// The active provider lacks a usable credential, but if another saved
 		// provider already has one, fall back to it instead of forcing onboarding
 		// again. Saved logins persist across launches; switch the active provider
-		// any time with `zero provider use <name>`. Onboarding only runs when no
+		// any time with `rune provider use <name>`. Onboarding only runs when no
 		// configured provider is usable (a genuinely fresh setup).
 		if usable, ok := firstUsableProvider(resolved.Providers); ok {
 			resolved.Provider = usable
@@ -798,7 +798,7 @@ func runInteractiveTUIWithSetup(stderr io.Writer, deps appDeps, permissionMode a
 	if notice, err := sandboxStore.ConsumeMigrationNotice(); err != nil {
 		return writeAppError(stderr, "failed to migrate sandbox grants: "+err.Error(), 1)
 	} else if notice != "" {
-		_, _ = fmt.Fprintln(stderr, "[zero] "+notice)
+		_, _ = fmt.Fprintln(stderr, "[rune] "+notice)
 	}
 	sandboxBackend := deps.selectSandboxBackend(sandbox.BackendOptions{})
 	sandboxEngine := sandbox.NewEngine(sandbox.EngineOptions{
@@ -817,7 +817,7 @@ func runInteractiveTUIWithSetup(stderr io.Writer, deps appDeps, permissionMode a
 	defer closeSpecialistRuntime(stderr, specialistRuntime)
 	// The TUI has no --worktree reassignment, so trustRoot == workspaceRoot here.
 	// Gate the project MCP layer behind the workspace-trust check (fail-closed): an
-	// untrusted workspace must not spawn its ./.zero/config.json stdio MCP servers.
+	// untrusted workspace must not spawn its ./.rune/config.json stdio MCP servers.
 	// Keep the store-read error so the notice below can distinguish a fail-closed
 	// store error from a clean untrusted verdict.
 	mcpExcludeProject, mcpTrustErrored := resolveTrust(workspaceRoot)
@@ -835,7 +835,7 @@ func runInteractiveTUIWithSetup(stderr io.Writer, deps appDeps, permissionMode a
 	}
 	mcpTokenStore, err := deps.newMCPTokenStore()
 	if err != nil {
-		_, _ = fmt.Fprintf(stderr, "[zero] warning: failed to initialize MCP OAuth tokens: %s\n", err)
+		_, _ = fmt.Fprintf(stderr, "[rune] warning: failed to initialize MCP OAuth tokens: %s\n", err)
 		mcpTokenStore = nil
 		err = nil
 	}
@@ -920,9 +920,9 @@ func runInteractiveTUIWithSetup(stderr io.Writer, deps appDeps, permissionMode a
 	sttServerManager := newDictationServerManager(resolved.STT)
 	// Keep STT downloads in the SAME config tree the rest of the TUI uses. Deriving
 	// from userConfigPath (rather than config.UserConfigDir()) matters when the config
-	// root is overridden — e.g. in tests or a custom ZERO config dir — so the two
-	// don't diverge. userConfigPath points at .../zero/config.json, so its dir is the
-	// zero config dir.
+	// root is overridden — e.g. in tests or a custom RUNE config dir — so the two
+	// don't diverge. userConfigPath points at .../rune/config.json, so its dir is the
+	// rune config dir.
 	sttDownloadRoot := ""
 	if userConfigPath != "" {
 		sttDownloadRoot = filepath.Join(filepath.Dir(userConfigPath), "stt")
@@ -1056,7 +1056,7 @@ func buildProvider(resolved config.ResolvedConfig, deps appDeps) (zeroruntime.Pr
 	// Pin spawned children (sub-agents / swarm members inherit the environment) to
 	// THIS run's provider from launch, not only after an in-session switch. Without
 	// the launch-time export a child re-resolves config.json at spawn time, so a
-	// provider switch persisted by ANOTHER zero process mid-session would silently
+	// provider switch persisted by ANOTHER rune process mid-session would silently
 	// move new children onto a different provider (and different credentials) than
 	// the parent is running. Runtime switches (/model, /provider, wizard,
 	// onboarding) re-export on commit, keeping the pin current. Injected via deps
@@ -1152,7 +1152,7 @@ func localTerminalOptionsFromConfig(cfg config.LocalControlConfig) localcontrol.
 func localArtifactsDirFromConfig(workspaceRoot string, cfg config.LocalControlConfig) string {
 	dir := strings.TrimSpace(cfg.ArtifactsDir)
 	if dir == "" {
-		dir = filepath.Join(".zero", "artifacts")
+		dir = filepath.Join(".rune", "artifacts")
 	}
 	if filepath.IsAbs(dir) {
 		return dir
@@ -1196,7 +1196,7 @@ func registerSpecialistTools(registry *tools.Registry, workspaceRoot string, max
 	// lives under the workspace so its files fall within the sandbox write rules.
 	// MaxTeamSize (0 => the swarm's default of 8) caps concurrent members per team.
 	sw, err := swarm.New(swarm.Options{
-		BaseDir:     filepath.Join(workspaceRoot, ".zero", "swarm"),
+		BaseDir:     filepath.Join(workspaceRoot, ".rune", "swarm"),
 		Launcher:    swarm.NewSpecialistLauncher(executor),
 		MaxTeamSize: maxTeamSize,
 	})
@@ -1252,7 +1252,7 @@ func closeMCPRuntime(stderr io.Writer, runtime mcpToolRuntime) {
 		return
 	}
 	if err := runtime.Close(); err != nil {
-		_, _ = fmt.Fprintf(stderr, "[zero] mcp_close_error: %s\n", err)
+		_, _ = fmt.Fprintf(stderr, "[rune] mcp_close_error: %s\n", err)
 	}
 }
 
@@ -1265,7 +1265,7 @@ func closeSpecialistRuntime(stderr io.Writer, runtime *agentToolRuntime) {
 	}
 	if runtime.specialist != nil {
 		if err := runtime.specialist.Close(); err != nil {
-			_, _ = fmt.Fprintf(stderr, "[zero] specialist_cleanup_error: %s\n", err)
+			_, _ = fmt.Fprintf(stderr, "[rune] specialist_cleanup_error: %s\n", err)
 		}
 	}
 }
@@ -1282,7 +1282,7 @@ func stdoutIsTerminal(w io.Writer) bool {
 }
 
 func writeAppError(stderr io.Writer, message string, exitCode int) int {
-	if _, err := fmt.Fprintf(stderr, "[zero] %s\n", message); err != nil {
+	if _, err := fmt.Fprintf(stderr, "[rune] %s\n", message); err != nil {
 		return 1
 	}
 	return exitCode
@@ -1293,10 +1293,10 @@ func writeUsageError(stderr io.Writer, message string) int {
 }
 
 func writeHelp(w io.Writer) error {
-	_, err := fmt.Fprint(w, `ZERO terminal coding agent
+	_, err := fmt.Fprint(w, `RUNE terminal coding agent
 
 Usage:
-  zero [command]
+  rune [command]
 
 Commands:
   exec       Run a one-shot prompt through the Go agent runtime
@@ -1304,26 +1304,26 @@ Commands:
   daemon     Manage the local background worker daemon (start/stop/status/run/attach)
   setup      Guide first-run provider setup
   config     Inspect resolved Go configuration without leaking secrets
-  models     List Zero model registry entries
+  models     List Rune model registry entries
   providers  Inspect resolved provider profiles
   doctor     Run backend health checks for config and provider setup
   context    Report workspace context budget usage
   repo-map   Build a deterministic repository map for agent context
-  search     Search persisted local Zero session events
+  search     Search persisted local Rune session events
   find       Alias for search
-  sessions   Inspect local Zero session lineage
+  sessions   Inspect local Rune session lineage
   spec       Review and approve saved spec-mode drafts
-  specialist Manage local Zero specialist profiles
-  plugins    Inspect, install, and remove local Zero plugins
+  specialist Manage local Rune specialist profiles
+  plugins    Inspect, install, and remove local Rune plugins
   backends   Inspect MCP, hook, and plugin backend lifecycle state
-  skills     Inspect, install, and remove local Zero skills
-  tools      Scaffold and list local Zero plugin-tools
-  hooks      Inspect Zero hook configuration
+  skills     Inspect, install, and remove local Rune skills
+  tools      Scaffold and list local Rune plugin-tools
+  hooks      Inspect Rune hook configuration
   mcp        Manage MCP backend settings
   auth       Log in to model providers via OAuth
   sandbox    Inspect sandbox policy and persistent grants
-  update     Check or apply Zero CLI updates (requires --check or --apply)
-  upgrade    Download, verify, and install available Zero CLI updates
+  update     Check or apply Rune CLI updates (requires --check or --apply)
+  upgrade    Download, verify, and install available Rune CLI updates
   worktrees  Prepare isolated git worktrees
   verify     Detect and run local verification checks
   eval       Validate offline agent eval suites
@@ -1331,7 +1331,7 @@ Commands:
   usage      Summarize token usage and estimated cost
   cron       Schedule agent jobs (foreground, file-backed)
   repo-info  Characterize the current repository (local git only)
-  serve      Run Zero protocol servers
+  serve      Run Rune protocol servers
   acp        Serve the Agent Client Protocol over stdio (editor backend)
   help       Show this help
   version    Print version
@@ -1358,7 +1358,7 @@ func addDirFlagArgs(addDirs []string) []string {
 }
 
 // splitLeadingAddDirFlags strips leading --add-dir flags from the root
-// argument list (zero --add-dir <path> [--add-dir <path>] [subcommand …]).
+// argument list (rune --add-dir <path> [--add-dir <path>] [subcommand …]).
 // Subcommands like exec parse their own --add-dir occurrences.
 func splitLeadingAddDirFlags(args []string) ([]string, []string, error) {
 	addDirs := []string{}
@@ -1463,7 +1463,7 @@ func baseURLIsLoopback(baseURL string) bool {
 }
 
 func writePromptRequired(stderr io.Writer) int {
-	if _, err := fmt.Fprintln(stderr, "[zero] Prompt required. Use `zero exec \"prompt\"` or `zero exec --file prompt.txt`."); err != nil {
+	if _, err := fmt.Fprintln(stderr, "[rune] Prompt required. Use `rune exec \"prompt\"` or `rune exec --file prompt.txt`."); err != nil {
 		return 1
 	}
 	return 2
@@ -1471,7 +1471,7 @@ func writePromptRequired(stderr io.Writer) int {
 
 func writeExecHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero exec [flags] [prompt]
+  rune exec [flags] [prompt]
 
 Runs a one-shot prompt through the Go agent runtime.
 

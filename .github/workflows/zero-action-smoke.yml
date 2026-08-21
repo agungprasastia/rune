@@ -71,13 +71,13 @@ jobs:
           run_zero = next((step for step in steps if step.get("name") == "Run ZERO"), None)
           assert run_zero is not None, "action.yml must contain a Run ZERO step"
           run_zero_script = run_zero.get("run") or ""
-          assert 'export "${ZERO_INPUT_API_KEY_ENV}=${ZERO_INPUT_API_KEY}"' in run_zero_script, \
+          assert 'export "${RUNE_INPUT_API_KEY_ENV}=${RUNE_INPUT_API_KEY}"' in run_zero_script, \
               "Run ZERO must export the provider key for the current step"
           assert "later steps inherit" not in action_raw.lower(), \
               "provider keys must not be documented as inherited by later steps"
           for line in run_zero_script.splitlines():
               if "GITHUB_ENV" in line and (
-                  "ZERO_INPUT_API_KEY" in line or "ZERO_INPUT_API_KEY_ENV" in line
+                  "RUNE_INPUT_API_KEY" in line or "RUNE_INPUT_API_KEY_ENV" in line
               ):
                   raise AssertionError("provider key must not be persisted to GITHUB_ENV")
 

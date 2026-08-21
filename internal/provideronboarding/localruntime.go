@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/providercatalog"
 )
 
-// LocalRuntime describes a local, OpenAI-compatible model server that ZERO can
+// LocalRuntime describes a local, OpenAI-compatible model server that RUNE can
 // adopt with no API key. These are the runtimes the launch audience is most
 // likely to already be running (Ollama, LM Studio), so the first-run wizard
 // auto-detects them on their default ports and offers them with no key step.
@@ -34,7 +34,7 @@ type DetectedLocalRuntime struct {
 }
 
 // LocalDetectOptions configures DetectLocalRuntimes. All fields are optional;
-// the zero value probes the built-in candidates with a short default timeout
+// the rune value probes the built-in candidates with a short default timeout
 // using http.DefaultClient. Tests inject HTTPClient and Candidates.
 type LocalDetectOptions struct {
 	HTTPClient *http.Client

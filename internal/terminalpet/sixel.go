@@ -11,7 +11,7 @@ const sixelBandHeight = 6
 
 func encodeSixel(source image.Image) ([]byte, error) {
 	if source == nil || source.Bounds().Empty() {
-		return nil, fmt.Errorf("sixel image dimensions must be non-zero")
+		return nil, fmt.Errorf("sixel image dimensions must be non-rune")
 	}
 	bounds := source.Bounds()
 	width, height := bounds.Dx(), bounds.Dy()

@@ -15,8 +15,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
+	"rune/internal/config"
+	"rune/internal/oauth"
 )
 
 const providerManagerMaxVisible = 10
@@ -303,7 +303,7 @@ func (m *model) moveProviderManager(delta int) {
 
 // activateManagerSelection makes the selected provider active via the shared
 // switch path (persists activeProvider+model, rebuilds the client OAuth-aware,
-// exports ZERO_PROVIDER, warms discovery). On success the manager closes and
+// exports RUNE_PROVIDER, warms discovery). On success the manager closes and
 // the switch notice lands in the transcript; a refusal (busy run, missing
 // credential) stays inline so the user keeps their place in the list.
 func (m model) activateManagerSelection() (model, tea.Cmd) {
@@ -334,7 +334,7 @@ func (m model) activateManagerSelection() (model, tea.Cmd) {
 // keychain subprocess and a token-store read — run in a follow-up tea.Cmd so
 // the confirm keypress never stalls the render loop. The OAuth token is
 // deliberately kept — logins outlive profiles so re-adding the provider
-// doesn't force a browser round-trip; zero auth logout removes it.
+// doesn't force a browser round-trip; rune auth logout removes it.
 func (m model) deleteManagerSelection() (model, tea.Cmd) {
 	wizard := m.providerWizard
 	wizard.manageDeleting = false
@@ -370,7 +370,7 @@ func (m model) deleteManagerSelection() (model, tea.Cmd) {
 		// delete. Keep this path session-only.
 		notes = []string{
 			"Removed " + name + " from this session.",
-			"It wasn't saved in config.json (likely set via an environment variable) — unset it to stop Zero from detecting it automatically.",
+			"It wasn't saved in config.json (likely set via an environment variable) — unset it to stop Rune from detecting it automatically.",
 		}
 	}
 
@@ -430,7 +430,7 @@ func providerManagerCleanupCmd(configPath string, profile config.ProviderProfile
 			notes = append(notes, "Warning: its stored API key could not be deleted ("+storeErr.Error()+").")
 		}
 		if login, ok := oauthLoginName(config.ProviderProfile{Name: name, CatalogID: catalogID}); ok {
-			notes = append(notes, "OAuth login kept — remove with `zero auth logout "+login+"`.")
+			notes = append(notes, "OAuth login kept — remove with `rune auth logout "+login+"`.")
 		}
 		return providerManagerCleanupMsg{notes: notes}
 	}
@@ -581,7 +581,7 @@ func (wizard *providerWizardState) commitEditBuffer() string {
 // a failure leaves nothing half-applied). A freshly entered key is captured
 // into the encrypted store under the CURRENT name first (EditProvider's rename
 // migration then moves it), so config.json never holds it in cleartext. The
-// live session follows a rename so ZERO_PROVIDER and the status line never
+// live session follows a rename so RUNE_PROVIDER and the status line never
 // point at a name that no longer exists.
 func (m model) saveManagerEdit() (model, tea.Cmd) {
 	wizard := m.providerWizard
@@ -630,7 +630,7 @@ func (m model) saveManagerEdit() (model, tea.Cmd) {
 	m.savedProviders = applySavedProviderEdit(m.savedProviders, oldName, edit)
 
 	// Keep the live session's identity in sync with a rename of the provider it
-	// is running on: the exported ZERO_PROVIDER must resolve for spawned children.
+	// is running on: the exported RUNE_PROVIDER must resolve for spawned children.
 	if strings.EqualFold(strings.TrimSpace(m.providerName), oldName) {
 		m.providerName = newName
 		m.providerProfile.Name = newName

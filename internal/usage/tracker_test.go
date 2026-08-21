@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestTrackerNormalizesUsageAndComputesModelCost(t *testing.T) {

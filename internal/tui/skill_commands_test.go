@@ -7,8 +7,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/skills"
+	"rune/internal/agent"
+	"rune/internal/skills"
 )
 
 // newSkillTestModel builds a model with an injected skills loader (and the
@@ -93,7 +93,7 @@ func TestSkillCommandNameIsCaseInsensitive(t *testing.T) {
 	}
 }
 
-// Precedence: a user command (.zero/commands) shadows a same-named skill.
+// Precedence: a user command (.rune/commands) shadows a same-named skill.
 func TestUserCommandShadowsSkill(t *testing.T) {
 	root := t.TempDir()
 	writeUserCommand(t, root, "greet.md", "Say hello from the user command.")

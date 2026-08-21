@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestCompactionMessagesPreservesInteractiveAndMutationEvidence(t *testing.T) {

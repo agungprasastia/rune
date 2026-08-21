@@ -16,10 +16,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/background"
+	"rune/internal/sessions"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 const (
@@ -673,7 +673,7 @@ func (executor Executor) binaryPath() (string, error) {
 	}
 	path, err := os.Executable()
 	if err != nil {
-		return "", fmt.Errorf("resolve zero executable: %w", err)
+		return "", fmt.Errorf("resolve rune executable: %w", err)
 	}
 	return path, nil
 }
@@ -785,7 +785,7 @@ func (executor Executor) writePromptFile(prompt string) (string, error) {
 }
 
 func writePromptFile(prompt string) (string, error) {
-	tmpDir, err := os.MkdirTemp("", "zero-specialist-")
+	tmpDir, err := os.MkdirTemp("", "rune-specialist-")
 	if err != nil {
 		return "", fmt.Errorf("create specialist prompt temp dir: %w", err)
 	}
@@ -804,7 +804,7 @@ func cleanupPromptFile(promptFile string) {
 		return
 	}
 	dir := filepath.Dir(promptFile)
-	if strings.HasPrefix(filepath.Base(dir), "zero-specialist-") {
+	if strings.HasPrefix(filepath.Base(dir), "rune-specialist-") {
 		_ = os.RemoveAll(dir)
 		return
 	}

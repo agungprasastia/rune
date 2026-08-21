@@ -3,7 +3,7 @@ package tui
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 // Regression for issue #555's follow-up: /providers must not warn that a

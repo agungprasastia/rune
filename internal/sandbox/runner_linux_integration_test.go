@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/execution"
 )
 
 func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
 	}
 	backend := SelectBackend(BackendOptions{})
 	if !backend.Available || backend.Name != BackendLinuxBwrap {
@@ -35,7 +35,7 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 		filepath.Join(credentialHome, ".aws"),
 		filepath.Join(credentialHome, ".config", "gcloud"),
 		filepath.Join(credentialHome, ".azure"),
-		filepath.Join(configHome, "zero"),
+		filepath.Join(configHome, "rune"),
 	} {
 		if err := os.MkdirAll(path, 0o700); err != nil {
 			t.Fatalf("Mkdir credential path: %v", err)
@@ -47,9 +47,9 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 	if err := os.WriteFile(awsCredentials, []byte("[default]\naws_secret_access_key = leaked\n"), 0o600); err != nil {
 		t.Fatalf("WriteFile aws credentials: %v", err)
 	}
-	zeroTokens := filepath.Join(configHome, "zero", "oauth-tokens.json")
+	zeroTokens := filepath.Join(configHome, "rune", "oauth-tokens.json")
 	if err := os.WriteFile(zeroTokens, []byte(`{"access_token":"leaked"}`+"\n"), 0o600); err != nil {
-		t.Fatalf("WriteFile zero tokens: %v", err)
+		t.Fatalf("WriteFile rune tokens: %v", err)
 	}
 	t.Setenv("HOME", credentialHome)
 	t.Setenv("XDG_CONFIG_HOME", configHome)
@@ -71,14 +71,14 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 		Args: []string{"-c", strings.Join([]string{
 			"set -eu",
 			"test \"$HOME\" != \"$PWD\"",
-			"test ! -e .zero && test ! -e .agents",
-			"echo cache > \"$npm_config_cache/zero-runtime-probe\"",
+			"test ! -e .rune && test ! -e .agents",
+			"echo cache > \"$npm_config_cache/rune-runtime-probe\"",
 			"test ! -e .npm && test ! -e .cache",
-			"rm -f \"$npm_config_cache/zero-runtime-probe\"",
+			"rm -f \"$npm_config_cache/rune-runtime-probe\"",
 			"echo ok > write-ok.txt",
 			"test \"$(cat write-ok.txt)\" = ok",
-			"echo tmp > /tmp/zero-sandbox-smoke",
-			"test \"$(cat /tmp/zero-sandbox-smoke)\" = tmp",
+			"echo tmp > /tmp/rune-sandbox-smoke",
+			"test \"$(cat /tmp/rune-sandbox-smoke)\" = tmp",
 			"cat .git/config >/dev/null",
 		}, "\n")},
 		Dir: root,
@@ -128,13 +128,13 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 
 	// The mid-session race the EnsureDenyReadDirs contract exists for: nothing
 	// under $XDG_CONFIG_HOME exists when the plan is built, so bubblewrap would
-	// have had no mount destination to mask. The sandbox creates Zero's own
+	// have had no mount destination to mask. The sandbox creates Rune's own
 	// directory first, and the token written by this test WHILE the sandboxed
 	// command is already running must stay invisible to it.
 	t.Run("credential store created during the session stays hidden", func(t *testing.T) {
 		raceHome := t.TempDir()
 		raceConfig := filepath.Join(raceHome, "config")
-		raceStore := filepath.Join(raceConfig, "zero")
+		raceStore := filepath.Join(raceConfig, "rune")
 		tokenPath := filepath.Join(raceStore, "oauth-tokens.json")
 		raceRoot := t.TempDir()
 		started := filepath.Join(raceRoot, "started")
@@ -182,7 +182,7 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 	t.Run("user plugin root inside the denied config dir stays readable", func(t *testing.T) {
 		pluginHome := t.TempDir()
 		pluginConfig := filepath.Join(pluginHome, "config")
-		pluginRoot := filepath.Join(pluginConfig, "zero", "plugins", "demo")
+		pluginRoot := filepath.Join(pluginConfig, "rune", "plugins", "demo")
 		if err := os.MkdirAll(pluginRoot, 0o700); err != nil {
 			t.Fatalf("MkdirAll plugin root: %v", err)
 		}
@@ -190,9 +190,9 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 		if err := os.WriteFile(manifest, []byte(`{"name":"demo"}`+"\n"), 0o600); err != nil {
 			t.Fatalf("WriteFile plugin manifest: %v", err)
 		}
-		secret := filepath.Join(pluginConfig, "zero", "oauth-tokens.json")
+		secret := filepath.Join(pluginConfig, "rune", "oauth-tokens.json")
 		if err := os.WriteFile(secret, []byte(`{"access_token":"leaked"}`+"\n"), 0o600); err != nil {
-			t.Fatalf("WriteFile zero tokens: %v", err)
+			t.Fatalf("WriteFile rune tokens: %v", err)
 		}
 		pluginEngine := NewEngine(EngineOptions{WorkspaceRoot: root, Policy: DefaultPolicy(), Backend: backend})
 		output, runErr := runLinuxSandboxSmokeCommand(t, pluginEngine, CommandSpec{
@@ -216,7 +216,7 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 	t.Run("credential store created after launch stays hidden on the next run", func(t *testing.T) {
 		lateHome := t.TempDir()
 		lateConfig := filepath.Join(lateHome, "config")
-		lateStore := filepath.Join(lateConfig, "zero")
+		lateStore := filepath.Join(lateConfig, "rune")
 		if err := os.MkdirAll(lateStore, 0o700); err != nil {
 			t.Fatalf("MkdirAll late credential store: %v", err)
 		}
@@ -266,9 +266,9 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 			marker: "CLOUD_CREDENTIAL_READ_SUCCEEDED",
 		},
 		{
-			name:   "zero credential store read",
-			script: "if cat " + shellQuote(zeroTokens) + " 2>/dev/null | grep -q leaked; then echo ZERO_CREDENTIAL_READ_SUCCEEDED; exit 42; fi",
-			marker: "ZERO_CREDENTIAL_READ_SUCCEEDED",
+			name:   "rune credential store read",
+			script: "if cat " + shellQuote(zeroTokens) + " 2>/dev/null | grep -q leaked; then echo RUNE_CREDENTIAL_READ_SUCCEEDED; exit 42; fi",
+			marker: "RUNE_CREDENTIAL_READ_SUCCEEDED",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -300,8 +300,8 @@ func TestLinuxHelperRealSandboxSmoke(t *testing.T) {
 }
 
 func TestLinuxLandlockRealSandboxSmoke(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
 	}
 	helper, err := linuxSandboxHelperCommand()
 	if err != nil {
@@ -354,8 +354,8 @@ func TestLinuxLandlockRealSandboxSmoke(t *testing.T) {
 }
 
 func TestLinuxHelperAllowsIsolatedLoopbackWithoutExternalEgress(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
 	}
 	backend := SelectBackend(BackendOptions{})
 	if !backend.Available || backend.Name != BackendLinuxBwrap {
@@ -399,8 +399,8 @@ func TestLinuxHelperAllowsIsolatedLoopbackWithoutExternalEgress(t *testing.T) {
 }
 
 func TestLinuxHelperPreservesAbsentProtectedMetadata(t *testing.T) {
-	if os.Getenv("ZERO_SANDBOX_REAL_SMOKE") != "1" {
-		t.Skip("set ZERO_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
+	if os.Getenv("RUNE_SANDBOX_REAL_SMOKE") != "1" {
+		t.Skip("set RUNE_SANDBOX_REAL_SMOKE=1 to run real sandbox smoke tests")
 	}
 	backend := SelectBackend(BackendOptions{})
 	if !backend.Available || backend.Name != BackendLinuxBwrap {
@@ -413,7 +413,7 @@ func TestLinuxHelperPreservesAbsentProtectedMetadata(t *testing.T) {
 	defer cancel()
 	command, plan, err := engine.CommandContext(ctx, CommandSpec{
 		Name: "/bin/sh",
-		Args: []string{"-c", "set -eu; test ! -e .zero; mkdir .zero"},
+		Args: []string{"-c", "set -eu; test ! -e .rune; mkdir .rune"},
 		Dir:  root,
 	})
 	if err != nil {
@@ -427,7 +427,7 @@ func TestLinuxHelperPreservesAbsentProtectedMetadata(t *testing.T) {
 	if !strings.Contains(string(output), "blocked creation of protected workspace metadata path") {
 		t.Fatalf("sandbox did not explain protected metadata denial: %v\n%s", runErr, output)
 	}
-	if _, err := os.Lstat(filepath.Join(root, ".zero")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(root, ".rune")); !os.IsNotExist(err) {
 		t.Fatalf("protected metadata path remained after execution: %v", err)
 	}
 	report, err := plan.ExecutionReport()
@@ -437,7 +437,7 @@ func TestLinuxHelperPreservesAbsentProtectedMetadata(t *testing.T) {
 	if report.Denial == nil || report.Denial.Capability.Kind != execution.CapabilityProtectedMetadata {
 		t.Fatalf("execution report denial = %#v, want protected metadata", report.Denial)
 	}
-	if report.Denial.Capability.Scope != filepath.Join(root, ".zero") {
+	if report.Denial.Capability.Scope != filepath.Join(root, ".rune") {
 		t.Fatalf("denial scope = %q, want exact protected path", report.Denial.Capability.Scope)
 	}
 }

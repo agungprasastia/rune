@@ -17,8 +17,8 @@ import (
 
 func TestSHA256FileHashesArchiveBytes(t *testing.T) {
 	dir := t.TempDir()
-	archivePath := filepath.Join(dir, "zero-v0.1.0-linux-x64.tar.gz")
-	archiveBytes := []byte("zero archive bytes")
+	archivePath := filepath.Join(dir, "rune-v0.1.0-linux-x64.tar.gz")
+	archiveBytes := []byte("rune archive bytes")
 	if err := os.WriteFile(archivePath, archiveBytes, 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
@@ -36,9 +36,9 @@ func TestSHA256FileHashesArchiveBytes(t *testing.T) {
 
 func TestWriteAndVerifyReleaseChecksums(t *testing.T) {
 	dir := t.TempDir()
-	archiveName := "zero-v0.1.0-linux-x64.tar.gz"
+	archiveName := "rune-v0.1.0-linux-x64.tar.gz"
 	archivePath := filepath.Join(dir, archiveName)
-	if err := os.WriteFile(archivePath, []byte("zero archive bytes"), 0o644); err != nil {
+	if err := os.WriteFile(archivePath, []byte("rune archive bytes"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -75,20 +75,20 @@ func TestChecksumParsingRejectsMalformedAndUnsafeNames(t *testing.T) {
 	if _, err := ParseSHA256Checksum("not a checksum"); err == nil || !strings.Contains(err.Error(), "checksum file must contain") {
 		t.Fatalf("ParseSHA256Checksum malformed error = %v", err)
 	}
-	if _, err := FormatSHA256Checksum("abc", "zero.tar.gz"); err == nil || !strings.Contains(err.Error(), "64 hexadecimal") {
+	if _, err := FormatSHA256Checksum("abc", "rune.tar.gz"); err == nil || !strings.Contains(err.Error(), "64 hexadecimal") {
 		t.Fatalf("FormatSHA256Checksum invalid checksum error = %v", err)
 	}
-	if _, err := ParseSHA256Checksum(strings.Repeat("a", 64) + "  ../zero.tar.gz\n"); err == nil || !strings.Contains(err.Error(), "same-directory") {
+	if _, err := ParseSHA256Checksum(strings.Repeat("a", 64) + "  ../rune.tar.gz\n"); err == nil || !strings.Contains(err.Error(), "same-directory") {
 		t.Fatalf("ParseSHA256Checksum unsafe path error = %v", err)
 	}
-	if _, err := ParseSHA256Checksum(strings.Repeat("a", 64) + "  zero.tar.gz\n" + strings.Repeat("b", 64) + "  other.tar.gz\n"); err == nil || !strings.Contains(err.Error(), "exactly one checksum line") {
+	if _, err := ParseSHA256Checksum(strings.Repeat("a", 64) + "  rune.tar.gz\n" + strings.Repeat("b", 64) + "  other.tar.gz\n"); err == nil || !strings.Contains(err.Error(), "exactly one checksum line") {
 		t.Fatalf("ParseSHA256Checksum multi-line error = %v", err)
 	}
 }
 
 func TestVerifyChecksumDetectsArchiveChanges(t *testing.T) {
 	dir := t.TempDir()
-	archivePath := filepath.Join(dir, "zero-v0.1.0-linux-x64.tar.gz")
+	archivePath := filepath.Join(dir, "rune-v0.1.0-linux-x64.tar.gz")
 	if err := os.WriteFile(archivePath, []byte("original bytes"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestVerifyChecksumDetectsArchiveChanges(t *testing.T) {
 
 func TestVerifyReleaseChecksumsRequiresMatchingFiles(t *testing.T) {
 	dir := t.TempDir()
-	archivePath := filepath.Join(dir, "zero-v0.1.0-linux-x64.tar.gz")
+	archivePath := filepath.Join(dir, "rune-v0.1.0-linux-x64.tar.gz")
 	if err := os.WriteFile(archivePath, []byte("archive bytes"), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
@@ -121,8 +121,8 @@ func TestVerifyReleaseChecksumsRequiresMatchingFiles(t *testing.T) {
 	if _, err := WriteSHA256Checksum(archivePath); err != nil {
 		t.Fatalf("WriteSHA256Checksum returned error: %v", err)
 	}
-	strayChecksum := filepath.Join(dir, "zero-v0.1.0-macos-arm64.tar.gz.sha256")
-	if err := os.WriteFile(strayChecksum, []byte(strings.Repeat("a", 64)+"  zero-v0.1.0-macos-arm64.tar.gz\n"), 0o644); err != nil {
+	strayChecksum := filepath.Join(dir, "rune-v0.1.0-macos-arm64.tar.gz.sha256")
+	if err := os.WriteFile(strayChecksum, []byte(strings.Repeat("a", 64)+"  rune-v0.1.0-macos-arm64.tar.gz\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile stray checksum: %v", err)
 	}
 
@@ -153,24 +153,24 @@ func TestReleaseArchiveNamesMatchInstallerContracts(t *testing.T) {
 			version:     "0.1.0",
 			goos:        "linux",
 			goarch:      "amd64",
-			packageName: "zero-v0.1.0-linux-x64",
-			archiveName: "zero-v0.1.0-linux-x64.tar.gz",
+			packageName: "rune-v0.1.0-linux-x64",
+			archiveName: "rune-v0.1.0-linux-x64.tar.gz",
 		},
 		{
 			name:        "macos arm64",
 			version:     "0.1.0",
 			goos:        "darwin",
 			goarch:      "arm64",
-			packageName: "zero-v0.1.0-macos-arm64",
-			archiveName: "zero-v0.1.0-macos-arm64.tar.gz",
+			packageName: "rune-v0.1.0-macos-arm64",
+			archiveName: "rune-v0.1.0-macos-arm64.tar.gz",
 		},
 		{
 			name:        "windows amd64",
 			version:     "0.1.0",
 			goos:        "windows",
 			goarch:      "amd64",
-			packageName: "zero-v0.1.0-windows-x64",
-			archiveName: "zero-v0.1.0-windows-x64.zip",
+			packageName: "rune-v0.1.0-windows-x64",
+			archiveName: "rune-v0.1.0-windows-x64.zip",
 		},
 	}
 	for _, tt := range tests {
@@ -201,10 +201,10 @@ func TestBuildHelpersMatchScriptContracts(t *testing.T) {
 	if version != "0.1.0" {
 		t.Fatalf("PackageVersion = %q, want 0.1.0", version)
 	}
-	if got := DefaultBuildOutput(root, "windows"); got != filepath.Join(root, "zero.exe") {
+	if got := DefaultBuildOutput(root, "windows"); got != filepath.Join(root, "rune.exe") {
 		t.Fatalf("DefaultBuildOutput(windows) = %q", got)
 	}
-	if got := DefaultBuildOutput(root, "linux"); got != filepath.Join(root, "zero") {
+	if got := DefaultBuildOutput(root, "linux"); got != filepath.Join(root, "rune") {
 		t.Fatalf("DefaultBuildOutput(linux) = %q", got)
 	}
 	if got := WindowsSandboxCommandRunnerArtifactName("windows"); got != "rune-windows-command-runner.exe" {
@@ -213,7 +213,7 @@ func TestBuildHelpersMatchScriptContracts(t *testing.T) {
 	if got := WindowsSandboxSetupArtifactName("windows"); got != "rune-windows-sandbox-setup.exe" {
 		t.Fatalf("WindowsSandboxSetupArtifactName(windows) = %q", got)
 	}
-	if got := BuildLdflags(version); !strings.Contains(got, "-X github.com/rune-ai/rune/internal/cli.version=0.1.0") {
+	if got := BuildLdflags(version); !strings.Contains(got, "-X rune/internal/cli.version=0.1.0") {
 		t.Fatalf("BuildLdflags = %q", got)
 	}
 }
@@ -223,7 +223,7 @@ func TestSmokeRejectsMissingDefaultArtifact(t *testing.T) {
 	mustWriteFile(t, filepath.Join(root, "package.json"), `{"version":"0.1.0"}`)
 
 	_, err := Smoke(context.Background(), SmokeOptions{RootDir: root, GOOS: "linux"})
-	if err == nil || !strings.Contains(err.Error(), "build artifact not found: zero") {
+	if err == nil || !strings.Contains(err.Error(), "build artifact not found: rune") {
 		t.Fatalf("Smoke error = %v, want missing artifact", err)
 	}
 }
@@ -329,13 +329,13 @@ func TestResolvePackageDirsAcceptsDistSubdirs(t *testing.T) {
 
 func TestCreateArchivesWithRootPackageFiles(t *testing.T) {
 	t.Run("tar gz", func(t *testing.T) {
-		stagingDir := packageStagingFixture(t, "zero")
-		archivePath := filepath.Join(t.TempDir(), "zero-v0.1.0-linux-x64.tar.gz")
+		stagingDir := packageStagingFixture(t, "rune")
+		archivePath := filepath.Join(t.TempDir(), "rune-v0.1.0-linux-x64.tar.gz")
 		if err := createArchive(stagingDir, archivePath, "linux"); err != nil {
 			t.Fatalf("createArchive returned error: %v", err)
 		}
 		names := tarArchiveNames(t, archivePath)
-		for _, want := range []string{"zero", "README.md", "bin/zero.js", "VERSION"} {
+		for _, want := range []string{"rune", "README.md", "bin/rune.js", "VERSION"} {
 			if !names[want] {
 				t.Fatalf("tar archive missing %s: %#v", want, names)
 			}
@@ -343,13 +343,13 @@ func TestCreateArchivesWithRootPackageFiles(t *testing.T) {
 	})
 
 	t.Run("zip", func(t *testing.T) {
-		stagingDir := packageStagingFixture(t, "zero.exe")
-		archivePath := filepath.Join(t.TempDir(), "zero-v0.1.0-windows-x64.zip")
+		stagingDir := packageStagingFixture(t, "rune.exe")
+		archivePath := filepath.Join(t.TempDir(), "rune-v0.1.0-windows-x64.zip")
 		if err := createArchive(stagingDir, archivePath, "windows"); err != nil {
 			t.Fatalf("createArchive returned error: %v", err)
 		}
 		names := zipArchiveNames(t, archivePath)
-		for _, want := range []string{"zero.exe", "README.md", "bin/zero.js", "VERSION"} {
+		for _, want := range []string{"rune.exe", "README.md", "bin/rune.js", "VERSION"} {
 			if !names[want] {
 				t.Fatalf("zip archive missing %s: %#v", want, names)
 			}
@@ -361,7 +361,7 @@ func TestCreateTarArchivePreservesSymlinkTargets(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Unix symlink archive behavior")
 	}
-	stagingDir := packageStagingFixture(t, "zero")
+	stagingDir := packageStagingFixture(t, "rune")
 	linkPath := filepath.Join(stagingDir, "helpers", "node_modules", ".bin", "agent-browser")
 	if err := os.MkdirAll(filepath.Dir(linkPath), 0o755); err != nil {
 		t.Fatalf("MkdirAll: %v", err)
@@ -370,7 +370,7 @@ func TestCreateTarArchivePreservesSymlinkTargets(t *testing.T) {
 	if err := os.Symlink(linkTarget, linkPath); err != nil {
 		t.Fatalf("Symlink: %v", err)
 	}
-	archivePath := filepath.Join(t.TempDir(), "zero-v0.1.0-linux-x64.tar.gz")
+	archivePath := filepath.Join(t.TempDir(), "rune-v0.1.0-linux-x64.tar.gz")
 	if err := createArchive(stagingDir, archivePath, "linux"); err != nil {
 		t.Fatalf("createArchive returned error: %v", err)
 	}
@@ -386,20 +386,20 @@ func TestCreateTarArchivePreservesSymlinkTargets(t *testing.T) {
 func TestCopyPackageFilesStagesLinuxSandboxHelper(t *testing.T) {
 	root := t.TempDir()
 	staging := t.TempDir()
-	artifact := filepath.Join(root, "zero")
+	artifact := filepath.Join(root, "rune")
 	helper := filepath.Join(root, "rune-linux-sandbox")
 	seccomp := filepath.Join(root, "rune-seccomp")
 	for path, content := range map[string]string{
-		artifact:                              "zero",
+		artifact:                              "rune",
 		helper:                                "helper",
 		seccomp:                               "seccomp",
 		filepath.Join(root, "README.md"):      "readme",
 		filepath.Join(root, "package.json"):   `{"version":"0.1.0"}`,
-		filepath.Join(root, "bin", "zero.js"): "wrapper",
+		filepath.Join(root, "bin", "rune.js"): "wrapper",
 	} {
 		mustWriteFile(t, path, content)
 	}
-	if err := copyPackageFiles(root, staging, artifact, filepath.Join(staging, "zero"), "linux", "0.1.0", map[string]string{
+	if err := copyPackageFiles(root, staging, artifact, filepath.Join(staging, "rune"), "linux", "0.1.0", map[string]string{
 		"rune-linux-sandbox": helper,
 		"rune-seccomp":       seccomp,
 	}); err != nil {
@@ -416,20 +416,20 @@ func TestCopyPackageFilesStagesLinuxSandboxHelper(t *testing.T) {
 func TestCopyPackageFilesStagesWindowsSandboxHelpers(t *testing.T) {
 	root := t.TempDir()
 	staging := t.TempDir()
-	artifact := filepath.Join(root, "zero.exe")
+	artifact := filepath.Join(root, "rune.exe")
 	runner := filepath.Join(root, "rune-windows-command-runner.exe")
 	setup := filepath.Join(root, "rune-windows-sandbox-setup.exe")
 	for path, content := range map[string]string{
-		artifact:                              "zero",
+		artifact:                              "rune",
 		runner:                                "runner",
 		setup:                                 "setup",
 		filepath.Join(root, "README.md"):      "readme",
 		filepath.Join(root, "package.json"):   `{"version":"0.1.0"}`,
-		filepath.Join(root, "bin", "zero.js"): "wrapper",
+		filepath.Join(root, "bin", "rune.js"): "wrapper",
 	} {
 		mustWriteFile(t, path, content)
 	}
-	if err := copyPackageFiles(root, staging, artifact, filepath.Join(staging, "zero.exe"), "windows", "0.1.0", map[string]string{
+	if err := copyPackageFiles(root, staging, artifact, filepath.Join(staging, "rune.exe"), "windows", "0.1.0", map[string]string{
 		"rune-windows-command-runner.exe": runner,
 		"rune-windows-sandbox-setup.exe":  setup,
 	}); err != nil {
@@ -538,7 +538,7 @@ func packageStagingFixture(t *testing.T, binaryName string) string {
 	files := map[string]string{
 		binaryName:    "binary",
 		"README.md":   "readme",
-		"bin/zero.js": "wrapper",
+		"bin/rune.js": "wrapper",
 		"VERSION":     "0.1.0\n",
 	}
 	for name, content := range files {

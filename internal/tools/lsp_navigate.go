@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/lsp"
+	"rune/internal/lsp"
 )
 
 // lspNavigateTool exposes LSP code navigation (jump-to-definition, find-all-

@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	zeroSandbox "github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/redaction"
+	zeroSandbox "rune/internal/sandbox"
 )
 
 const (
@@ -32,7 +32,7 @@ type searchResult struct {
 	URL     string
 	Snippet string
 	// Score is an optional provider-supplied relevance signal in the [0, 1]
-	// range. Zero (the zero value) is treated as "absent" by the renderer.
+	// range. Rune (the rune value) is treated as "absent" by the renderer.
 	Score float64
 }
 
@@ -132,7 +132,7 @@ func (tool webSearchTool) Run(ctx context.Context, args map[string]any) Result {
 	}
 
 	if tool.backend == nil {
-		return errorResult("Error: no search backend configured. Set ZERO_WEBSEARCH_BASE_URL (and ZERO_WEBSEARCH_API_KEY) to enable web_search.")
+		return errorResult("Error: no search backend configured. Set RUNE_WEBSEARCH_BASE_URL (and RUNE_WEBSEARCH_API_KEY) to enable web_search.")
 	}
 
 	runCtx, cancel := context.WithTimeout(ctx, webSearchTimeout)
@@ -164,7 +164,7 @@ func (tool webSearchTool) Run(ctx context.Context, args map[string]any) Result {
 // formatSearchResults renders results as a compact numbered list:
 // "1. Title — URL" with the snippet indented on the next line.
 // If a result carries a score that rounds to at least 0.01, it is shown as
-// " — score 0.91" after the title. Absent (zero), negative, and sub-0.005 scores
+// " — score 0.91" after the title. Absent (rune), negative, and sub-0.005 scores
 // are omitted so the common case stays tidy and never prints a noisy "score 0.00".
 func formatSearchResults(results []searchResult) string {
 	lines := make([]string, 0, len(results)*2)
@@ -189,9 +189,9 @@ func formatSearchResults(results []searchResult) string {
 }
 
 // defaultSearchBackend returns the env-configured generic backend, or nil when
-// ZERO_WEBSEARCH_BASE_URL is unset (the tool then reports it as unconfigured).
+// RUNE_WEBSEARCH_BASE_URL is unset (the tool then reports it as unconfigured).
 func defaultSearchBackend() searchBackend {
-	baseURL := strings.TrimSpace(os.Getenv("ZERO_WEBSEARCH_BASE_URL"))
+	baseURL := strings.TrimSpace(os.Getenv("RUNE_WEBSEARCH_BASE_URL"))
 	if baseURL == "" {
 		return nil
 	}
@@ -201,8 +201,8 @@ func defaultSearchBackend() searchBackend {
 			CheckRedirect: sameHostRedirectPolicy,
 		},
 		baseURL:  baseURL,
-		apiKey:   strings.TrimSpace(os.Getenv("ZERO_WEBSEARCH_API_KEY")),
-		provider: strings.TrimSpace(os.Getenv("ZERO_WEBSEARCH_PROVIDER")),
+		apiKey:   strings.TrimSpace(os.Getenv("RUNE_WEBSEARCH_API_KEY")),
+		provider: strings.TrimSpace(os.Getenv("RUNE_WEBSEARCH_PROVIDER")),
 	}
 }
 
@@ -244,7 +244,7 @@ func (backend *httpSearchBackend) Search(ctx context.Context, query string, limi
 	}
 	requestBody := map[string]any{"query": query, "limit": limit}
 	// Forward the configured provider so an aggregating endpoint can route the
-	// query; without this the ZERO_WEBSEARCH_PROVIDER knob would be inert.
+	// query; without this the RUNE_WEBSEARCH_PROVIDER knob would be inert.
 	if backend.provider != "" {
 		requestBody["provider"] = backend.provider
 	}
@@ -258,7 +258,7 @@ func (backend *httpSearchBackend) Search(ctx context.Context, query string, limi
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
-	request.Header.Set("User-Agent", "zero-web-search/0.1")
+	request.Header.Set("User-Agent", "rune-web-search/0.1")
 	if backend.apiKey != "" {
 		request.Header.Set("Authorization", "Bearer "+backend.apiKey)
 	}
@@ -298,7 +298,7 @@ func (backend *httpSearchBackend) searchSearxng(ctx context.Context, query strin
 		return nil, fmt.Errorf("build searxng request: %w", err)
 	}
 	request.Header.Set("Accept", "application/json")
-	request.Header.Set("User-Agent", "zero-web-search/0.1")
+	request.Header.Set("User-Agent", "rune-web-search/0.1")
 	if backend.apiKey != "" { // optional, e.g. a reverse-proxy in front of SearXNG
 		request.Header.Set("Authorization", "Bearer "+backend.apiKey)
 	}
@@ -348,7 +348,7 @@ func parseSearxngResults(body []byte, limit int) ([]searchResult, error) {
 // numeric string ("0.91"), null, or some other shape, never failing the decode.
 // A plain float64 field would make json.Unmarshal reject the *entire* response
 // when a single provider sends a stringified or malformed score, dropping every
-// result; here an unparseable score degrades to the zero value (treated as
+// result; here an unparseable score degrades to the rune value (treated as
 // absent) instead.
 type lenientScore float64
 
@@ -358,7 +358,7 @@ func (s *lenientScore) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	// Accept both 0.91 and "0.91"; ignore anything else (object, bool, NaN/Inf,
-	// out-of-range) by leaving the score at zero. ParseFloat accepts "NaN"/"Inf",
+	// out-of-range) by leaving the score at rune. ParseFloat accepts "NaN"/"Inf",
 	// so reject non-finite results explicitly to honor the documented filter.
 	unquoted := strings.TrimSpace(strings.Trim(string(trimmed), `"`))
 	if f, parseErr := strconv.ParseFloat(unquoted, 64); parseErr == nil && !math.IsNaN(f) && !math.IsInf(f, 0) {
@@ -370,7 +370,7 @@ func (s *lenientScore) UnmarshalJSON(data []byte) error {
 // parseSearchResults accepts either a bare array [{title,url,snippet,score}] or
 // a wrapped object {"results":[...]}, the two shapes common across providers.
 // The optional "score" field is forwarded when present; providers that omit
-// it leave searchResult.Score at the zero value and the renderer skips it.
+// it leave searchResult.Score at the rune value and the renderer skips it.
 func parseSearchResults(body []byte) ([]searchResult, error) {
 	type rawResult struct {
 		Title   string       `json:"title"`

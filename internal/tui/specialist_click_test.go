@@ -6,7 +6,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/sessions"
 )
 
 // specialistClickTestModel builds a model with a single specialist card in the

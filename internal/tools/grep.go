@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 type grepTool struct {

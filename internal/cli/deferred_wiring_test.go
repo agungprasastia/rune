@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/tui"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/mcp"
+	"rune/internal/tools"
+	"rune/internal/tui"
 )
 
 // cliFakeDeferredTool is deferred-eligible (implements Deferred() bool), mirroring

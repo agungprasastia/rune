@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/redaction"
+	"rune/internal/sandbox"
 )
 
 // SandboxGrantSnapshot is the typed view of a single persistent
@@ -27,7 +27,7 @@ type SandboxGrantSnapshot struct {
 // underlying grant snapshot with a Matched flag so callers can tell
 // the difference between "grant existed and matched" and "no grant
 // recorded for this tool" without inspecting an error or a typed
-// zero value.
+// rune value.
 type SandboxGrantMatchSnapshot struct {
 	ToolName string                `json:"toolName"`
 	Matched  bool                  `json:"matched"`

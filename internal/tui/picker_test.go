@@ -14,12 +14,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/oauth"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/zeroruntime"
 )
 
 func TestModelPickerDetectsOllamaCloudFromBaseURL(t *testing.T) {
@@ -55,8 +55,8 @@ func TestModelPickerDetectsOllamaCloudFromBaseURL(t *testing.T) {
 
 func TestModelPickerChatGPTDiscoveryUsesMatchingOAuthAccount(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "oauth-tokens.json")
-	t.Setenv("ZERO_OAUTH_STORAGE", "file")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", path)
+	t.Setenv("RUNE_OAUTH_STORAGE", "file")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", path)
 	store, err := oauth.NewStore(oauth.StoreOptions{FilePath: path})
 	if err != nil {
 		t.Fatalf("oauth store: %v", err)
@@ -69,7 +69,7 @@ func TestModelPickerChatGPTDiscoveryUsesMatchingOAuthAccount(t *testing.T) {
 		t.Fatalf("save OAuth token: %v", err)
 	}
 
-	m := model{userAgent: "zero/test"}
+	m := model{userAgent: "rune/test"}
 	options := m.modelPickerDiscoveryOptions(config.ProviderProfile{Name: "codex", CatalogID: "chatgpt"})
 	if options.OAuthResolver == nil || options.CodexAccountResolver == nil {
 		t.Fatal("ChatGPT model discovery must carry both bearer and account resolvers")
@@ -82,7 +82,7 @@ func TestModelPickerChatGPTDiscoveryUsesMatchingOAuthAccount(t *testing.T) {
 	if err != nil || !ok || account != "workspace-77" {
 		t.Fatalf("discovery account = (%q, %v, %v)", account, ok, err)
 	}
-	if options.UserAgent != "zero/test" {
+	if options.UserAgent != "rune/test" {
 		t.Fatalf("discovery user agent = %q", options.UserAgent)
 	}
 }
@@ -395,7 +395,7 @@ func TestModelPickerSearchFiltersModels(t *testing.T) {
 }
 
 func TestModelPickerFavoriteShortcutTogglesSelectedModel(t *testing.T) {
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	m := newModel(context.Background(), Options{
 		UserConfigPath: configPath,
 		ProviderName:   "ollama-cloud",
@@ -741,7 +741,7 @@ func TestModelPickerRecentSectionShowsHistoryPastTheActiveModel(t *testing.T) {
 // Typed /model switches must record + persist recent history, moving a
 // re-selected pair back to the front rather than leaving a stale duplicate.
 func TestModelCommandRecordsAndPersistsRecentHistory(t *testing.T) {
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	m := newModel(context.Background(), Options{
 		UserConfigPath: configPath,
 		ProviderName:   "openrouter",
@@ -811,7 +811,7 @@ func TestModelCommandRecordsAndPersistsRecentHistory(t *testing.T) {
 // switchProviderModel (the picker's cross-provider path) must also record
 // history, tagged with the provider actually switched to.
 func TestSwitchProviderModelRecordsRecentHistory(t *testing.T) {
-	configPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	configPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	m := newModel(context.Background(), Options{
 		UserConfigPath:  configPath,
 		ProviderName:    "openai",
@@ -878,7 +878,7 @@ func TestModelCommandAcceptsManualModelForCustomProvider(t *testing.T) {
 	if next.modelName != "qwen-custom-latest" {
 		t.Fatalf("active model = %q, want manual custom model", next.modelName)
 	}
-	if transcriptContains(next.transcript, "unknown Zero model") {
+	if transcriptContains(next.transcript, "unknown Rune model") {
 		t.Fatalf("manual custom model should not be rejected, got %#v", next.transcript)
 	}
 }
@@ -1304,8 +1304,8 @@ func TestOllamaContextWindowDiscoveryCmdScopedToLocalOllama(t *testing.T) {
 
 // TestOllamaContextWindowDiscoveredMsgPopulatesMap verifies the Update()
 // handler for the async probe's result actually reaches modelContextWindow's
-// fallback source, and that a failed/zero probe leaves the map untouched
-// rather than caching a bogus zero.
+// fallback source, and that a failed/rune probe leaves the map untouched
+// rather than caching a bogus rune.
 func TestOllamaContextWindowDiscoveredMsgPopulatesMap(t *testing.T) {
 	m := newModel(context.Background(), Options{})
 
@@ -1414,7 +1414,7 @@ func TestNormalizeProfileForProviderCanonicalizesPlaceholderName(t *testing.T) {
 // `chatgpt-account-id` header, so every call 401s.
 func TestSwitchProviderModelUsesOAuthLoginWithoutInliningBearer(t *testing.T) {
 	tokensPath := filepath.Join(t.TempDir(), "oauth-tokens.json")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokensPath)
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokensPath)
 	store, err := oauth.NewStore(oauth.StoreOptions{})
 	if err != nil {
 		t.Fatalf("oauth store: %v", err)
@@ -1455,7 +1455,7 @@ func TestSwitchProviderModelUsesOAuthLoginWithoutInliningBearer(t *testing.T) {
 // header, no local runtime, and no OAuth login, the gate must keep refusing.
 func TestSwitchProviderModelStillRejectsProviderWithNoCredential(t *testing.T) {
 	tokensPath := filepath.Join(t.TempDir(), "oauth-tokens.json")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", tokensPath)
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", tokensPath)
 
 	m := newModel(context.Background(), Options{
 		ProviderName:    "opengateway",

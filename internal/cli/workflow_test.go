@@ -12,14 +12,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/selfverify"
-	"github.com/rune-ai/rune/internal/testrunner"
-	"github.com/rune-ai/rune/internal/verify"
-	"github.com/rune-ai/rune/internal/worktrees"
-	"github.com/rune-ai/rune/internal/zerogit"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/redaction"
+	"rune/internal/selfverify"
+	"rune/internal/testrunner"
+	"rune/internal/verify"
+	"rune/internal/worktrees"
+	"rune/internal/zerogit"
+	"rune/internal/zeroruntime"
 )
 
 // featureBranchInspect returns an inspectChanges stub for ensureFeatureBranch:
@@ -76,7 +76,7 @@ func TestRunWorktreesPrepareTextAndJSON(t *testing.T) {
 				if decoded.Path != prepared.Path || decoded.Name != prepared.Name {
 					t.Fatalf("unexpected JSON result: %#v", decoded)
 				}
-			} else if !strings.Contains(stdout.String(), "Zero worktree ready") || !strings.Contains(stdout.String(), prepared.Path) {
+			} else if !strings.Contains(stdout.String(), "Rune worktree ready") || !strings.Contains(stdout.String(), prepared.Path) {
 				t.Fatalf("unexpected worktree text output: %q", stdout.String())
 			}
 		})
@@ -194,7 +194,7 @@ func TestRunWorktreesRelease(t *testing.T) {
 func TestRunWorktreesReleaseNormalizesRelativePath(t *testing.T) {
 	// git worktree unlock matches against the path git recorded when the
 	// worktree was created, so a relative argument (resolved against
-	// whatever directory the caller happens to be running `zero` from) can
+	// whatever directory the caller happens to be running `rune` from) can
 	// fail to match. Chdir into a known directory and pass a relative
 	// argument to confirm it reaches releaseWorktree as an absolute path.
 	origWd, err := os.Getwd()
@@ -432,7 +432,7 @@ func TestRunVerifyTextAndJSON(t *testing.T) {
 				if snapshot.Contract != verify.ReportContractVersion || len(snapshot.Events) == 0 {
 					t.Fatalf("verify JSON did not expose runtime contract: %#v", snapshot)
 				}
-			} else if !strings.Contains(stdout.String(), "Zero verification") || !strings.Contains(stdout.String(), "go.test") || !strings.Contains(stdout.String(), cwd) || !strings.Contains(stdout.String(), "tests: 2 total, 1 passed, 1 failed") {
+			} else if !strings.Contains(stdout.String(), "Rune verification") || !strings.Contains(stdout.String(), "go.test") || !strings.Contains(stdout.String(), cwd) || !strings.Contains(stdout.String(), "tests: 2 total, 1 passed, 1 failed") {
 				t.Fatalf("unexpected verify text output: %q", stdout.String())
 			}
 		})
@@ -621,7 +621,7 @@ func TestRunVerifyAttemptsFormatsSelfVerifyText(t *testing.T) {
 		t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
 	output := stdout.String()
-	for _, want := range []string{"Zero self-verification", "root: " + cwd, "stop: passed", "attempt 1: failed", "remediation: applied - prepared retry", "attempt 2: passed"} {
+	for _, want := range []string{"Rune self-verification", "root: " + cwd, "stop: passed", "attempt 1: failed", "remediation: applied - prepared retry", "attempt 2: passed"} {
 		if !strings.Contains(output, want) {
 			t.Fatalf("expected %q in output: %q", want, output)
 		}
@@ -693,7 +693,7 @@ func TestRunChangesInspectAndCommit(t *testing.T) {
 		if exitCode != exitSuccess {
 			t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 		}
-		if !strings.Contains(stdout.String(), "Zero changes commit") || !strings.Contains(stdout.String(), "dry-run: true") {
+		if !strings.Contains(stdout.String(), "Rune changes commit") || !strings.Contains(stdout.String(), "dry-run: true") {
 			t.Fatalf("unexpected changes commit output: %q", stdout.String())
 		}
 	})
@@ -852,9 +852,9 @@ func TestRunExecWorktreeReleasesLockAfterRun(t *testing.T) {
 	if exitCode != exitSuccess {
 		t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
-	// A `zero exec --worktree` run is the only user of the worktree it prepares:
+	// A `rune exec --worktree` run is the only user of the worktree it prepares:
 	// its own process created it and is now exiting, so it must release the
-	// Prepare lock itself rather than leaving it locked forever (unlike `zero
+	// Prepare lock itself rather than leaving it locked forever (unlike `rune
 	// worktrees prepare`, which hands the path to a longer-lived external
 	// caller and has no such end-of-life signal to act on).
 	if releaseCalls != 1 {
@@ -998,7 +998,7 @@ func TestRunExecRejectsForkWithWorktree(t *testing.T) {
 func TestRunExecRejectsWorktreeDirWithoutWorktree(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	exitCode := runWithDeps([]string{"exec", "--worktree-dir", "/tmp/zero", "hello"}, &stdout, &stderr, appDeps{
+	exitCode := runWithDeps([]string{"exec", "--worktree-dir", "/tmp/rune", "hello"}, &stdout, &stderr, appDeps{
 		prepareWorktree: func(context.Context, worktrees.Options) (worktrees.Result, error) {
 			t.Fatal("prepareWorktree should not be called for invalid flags")
 			return worktrees.Result{}, nil
@@ -2183,7 +2183,7 @@ func TestRunChangesPushChecksSelectedRemoteNotConfiguredUpstream(t *testing.T) {
 // its symref check, but a merely-cached origin/main (last fetched earlier)
 // can sit behind the remote's live tip. Before the fix, commitsAhead ran
 // straight against that stale ref: this simulates the stale ref reporting
-// zero commits ahead until the tracking ref is refreshed, matching the
+// rune commits ahead until the tracking ref is refreshed, matching the
 // scenario where the remote has already advanced past what was last fetched.
 func TestEnsureFeatureBranchRefreshesTrackingRefBeforeCheckingAhead(t *testing.T) {
 	cwd := t.TempDir()
@@ -2204,7 +2204,7 @@ func TestEnsureFeatureBranchRefreshesTrackingRefBeforeCheckingAhead(t *testing.T
 		commitsAhead: func(ctx context.Context, cwd, remote, branch string) (int, error) {
 			if !refreshed {
 				// The stale, unrefreshed local origin/main is behind and
-				// would report zero commits ahead even though HEAD carries
+				// would report rune commits ahead even though HEAD carries
 				// real, unpublished work relative to the remote's live tip.
 				return 0, nil
 			}
@@ -3052,8 +3052,8 @@ func TestRunChangesBareRemotePushThenPRUsable(t *testing.T) {
 	// closed after the first main push (dangling HEAD + existing heads).
 	runWorkflowGit(t, tmp, "init", "--bare", "-b", "main", bare)
 	runWorkflowGit(t, tmp, "init", repo)
-	runWorkflowGit(t, repo, "config", "user.name", "Zero")
-	runWorkflowGit(t, repo, "config", "user.email", "zero@example.invalid")
+	runWorkflowGit(t, repo, "config", "user.name", "Rune")
+	runWorkflowGit(t, repo, "config", "user.email", "rune@example.invalid")
 	runWorkflowGit(t, repo, "checkout", "-b", "main")
 	writeWorkflowFile(t, filepath.Join(repo, "README.md"), "initial\n")
 	runWorkflowGit(t, repo, "add", "README.md")

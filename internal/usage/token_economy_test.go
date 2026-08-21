@@ -5,9 +5,9 @@ import (
 	"math"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/modelregistry"
+	"rune/internal/sessions"
+	"rune/internal/zeroruntime"
 )
 
 // The persistence round-trip is LOSSLESS for cost: a cache-heavy + reasoning turn
@@ -64,13 +64,13 @@ func TestEventUsageRoundTripPreservesCacheAndReasoningCost(t *testing.T) {
 	}
 }
 
-// Zero cache/reasoning fields are omitted so non-cache turns stay compact and
+// Rune cache/reasoning fields are omitted so non-cache turns stay compact and
 // decode identically to the pre-feature payload.
 func TestEventUsagePayloadOmitsZeroFields(t *testing.T) {
 	p := EventUsagePayload(zeroruntime.Usage{InputTokens: 1000, OutputTokens: 200})
 	for _, k := range []string{"cachedInputTokens", "cacheWriteTokens", "reasoningTokens"} {
 		if _, ok := p[k]; ok {
-			t.Errorf("expected %q omitted when zero", k)
+			t.Errorf("expected %q omitted when rune", k)
 		}
 	}
 	if p["promptTokens"] != 1000 || p["completionTokens"] != 200 {

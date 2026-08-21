@@ -3,7 +3,7 @@ package anthropic
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestMapStopReasonRefusal(t *testing.T) {

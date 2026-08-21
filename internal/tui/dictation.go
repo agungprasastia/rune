@@ -11,8 +11,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/dictation"
+	"rune/internal/config"
+	"rune/internal/dictation"
 )
 
 // Transcriber and Recorder are re-exported so Options and the model can refer to
@@ -420,7 +420,7 @@ func (m model) handleDictationTranscribed(msg dictationTranscribedMsg) (tea.Mode
 	if msg.err != nil {
 		// A cloud auth failure (missing/invalid key) is fixable in place: reopen the
 		// API-key prompt for the current provider so the user can paste a key and
-		// retry, instead of hitting a dead-end "run zero auth" line.
+		// retry, instead of hitting a dead-end "run rune auth" line.
 		if next, handled := m.maybeOfferKeyOnAuthError(msg.err); handled {
 			return next, nil
 		}

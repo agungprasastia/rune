@@ -3,8 +3,8 @@ package tui
 import (
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/imageinput"
 	"github.com/atotto/clipboard"
+	"rune/internal/imageinput"
 )
 
 // clipboardReadMsg carries the result of an async OS-clipboard read back to

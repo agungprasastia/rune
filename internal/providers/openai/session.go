@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 // prewarmTimeout bounds the best-effort prewarm probe. The probe runs in the

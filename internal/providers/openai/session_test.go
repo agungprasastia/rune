@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 // keepAliveClient returns a client whose transport retains idle connections on

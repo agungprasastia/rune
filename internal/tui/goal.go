@@ -8,10 +8,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/errhint"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/errhint"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 const goalContinuationPrompt = "Continue pursuing the active goal. Review the existing session context, make concrete progress, and use update_goal when the objective is complete or genuinely blocked."

@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/providers/providerio"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/providers/providerio"
+	"rune/internal/zeroruntime"
 )
 
 const defaultBaseURL = "https://generativelanguage.googleapis.com"
@@ -54,8 +54,8 @@ type Options struct {
 	// the OpenAI and Anthropic providers). Nil falls back to plain API-key auth.
 	OAuthResolver providerio.TokenResolver
 	// StreamIdleTimeout aborts the stream if no data arrives for this long.
-	// When unset, Zero uses providerio.ResolveStreamIdleTimeout — the
-	// ZERO_STREAM_IDLE_TIMEOUT override or providerio.DefaultStreamIdleTimeout.
+	// When unset, Rune uses providerio.ResolveStreamIdleTimeout — the
+	// RUNE_STREAM_IDLE_TIMEOUT override or providerio.DefaultStreamIdleTimeout.
 	StreamIdleTimeout time.Duration
 }
 
@@ -81,7 +81,7 @@ func New(options Options) (*Provider, error) {
 	if model == "" {
 		return nil, errors.New("gemini provider requires a model")
 	}
-	maxTokens, err := providerio.PositiveOrDefault(options.MaxTokens, defaultMaxTokens, "zero Gemini provider maxTokens")
+	maxTokens, err := providerio.PositiveOrDefault(options.MaxTokens, defaultMaxTokens, "rune Gemini provider maxTokens")
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +331,7 @@ func (provider *Provider) geminiRequest(request zeroruntime.CompletionRequest) (
 		return generateContentRequest{}, err
 	}
 	if len(contents) == 0 {
-		return generateContentRequest{}, errors.New("zero Gemini provider requires at least one non-system message")
+		return generateContentRequest{}, errors.New("rune Gemini provider requires at least one non-system message")
 	}
 
 	mapped := generateContentRequest{
@@ -360,11 +360,11 @@ func (provider *Provider) geminiRequest(request zeroruntime.CompletionRequest) (
 
 // geminiSchemaFields is the subset of JSON Schema keywords Google's
 // functionDeclarations[].parameters accepts (the Generative AI Schema type).
-// Anything outside it — most notably OpenAI's `additionalProperties`, which Zero
+// Anything outside it — most notably OpenAI's `additionalProperties`, which Rune
 // emits on every tool's parameters and which Gemini 400s on ("Unknown name
 // \"additionalProperties\" … Cannot find field") — must be dropped before the
 // request goes out. Kept as an allowlist rather than a denylist so a schema
-// keyword Zero (or an MCP server) adds later can't silently leak an unsupported
+// keyword Rune (or an MCP server) adds later can't silently leak an unsupported
 // field into the Gemini payload.
 var geminiSchemaFields = map[string]bool{
 	"type": true, "format": true, "title": true, "description": true,
@@ -438,7 +438,7 @@ func mapMessages(messages []zeroruntime.Message) (*geminiContent, []geminiConten
 			}
 		case zeroruntime.MessageRoleTool:
 			if message.ToolCallID == "" {
-				return nil, nil, errors.New("zero Gemini provider requires toolCallId on tool result messages")
+				return nil, nil, errors.New("rune Gemini provider requires toolCallId on tool result messages")
 			}
 			name := toolNamesByID[message.ToolCallID]
 			if name == "" {
@@ -513,11 +513,11 @@ func parseToolArguments(argumentsJSON string, toolName string) (map[string]any, 
 	}
 	var parsed any
 	if err := json.Unmarshal([]byte(argumentsJSON), &parsed); err != nil {
-		return nil, fmt.Errorf("zero Gemini provider could not parse tool arguments for %s as JSON", toolName)
+		return nil, fmt.Errorf("rune Gemini provider could not parse tool arguments for %s as JSON", toolName)
 	}
 	object, ok := parsed.(map[string]any)
 	if !ok || object == nil {
-		return nil, fmt.Errorf("zero Gemini provider requires tool arguments for %s to be a JSON object", toolName)
+		return nil, fmt.Errorf("rune Gemini provider requires tool arguments for %s to be a JSON object", toolName)
 	}
 	return object, nil
 }
@@ -528,7 +528,7 @@ func normalizeFunctionCallArgs(value any, toolName string) (map[string]any, erro
 	}
 	object, ok := value.(map[string]any)
 	if !ok || object == nil {
-		return nil, fmt.Errorf("zero Gemini provider requires streamed tool arguments for %s to be a JSON object", toolName)
+		return nil, fmt.Errorf("rune Gemini provider requires streamed tool arguments for %s to be a JSON object", toolName)
 	}
 	return object, nil
 }

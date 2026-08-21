@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/workspaceindex"
+	"rune/internal/agent"
+	"rune/internal/workspaceindex"
 )
 
 // commandSuggestion is one row in the slash-command autocomplete overlay: the
@@ -51,7 +51,7 @@ var fileSuggestionIndexCache = struct {
 }{entries: map[string]cachedFileSuggestionIndex{}}
 
 // suggestionsActive reports whether the autocomplete overlay should drive key
-// handling. A slash-command palette stays active even with zero matches so the
+// handling. A slash-command palette stays active even with rune matches so the
 // query remains in the palette instead of leaking back into the composer.
 func (m model) suggestionsActive() bool {
 	if m.pendingPermission != nil || m.pendingAskUser != nil || m.pendingSpecReview != nil || m.providerWizard != nil || m.mcpManager != nil {

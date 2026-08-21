@@ -5,7 +5,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // imageEchoProvider records the messages of the first request it receives, then

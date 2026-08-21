@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 // TestTaskToolForwardsPermissionMode guards the fix for the Task tool dropping the
@@ -22,10 +22,10 @@ func TestTaskToolForwardsPermissionMode(t *testing.T) {
 		{"empty is fail-safe low (no silent escalation)", "", "low"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			zero := 0
+			rune := 0
 			var gotArgs []string
 			executor := Executor{
-				BinaryPath:   "/usr/local/bin/zero",
+				BinaryPath:   "/usr/local/bin/rune",
 				NewSessionID: func() (string, error) { return "child_task", nil },
 				Load: func(LoadOptions) (LoadResult, error) {
 					return LoadResult{Specialists: []Manifest{{
@@ -39,7 +39,7 @@ func TestTaskToolForwardsPermissionMode(t *testing.T) {
 					return ChildRunResult{Events: []streamjson.Event{
 						{Type: streamjson.EventRunStart, SessionID: "child_task"},
 						{Type: streamjson.EventFinal, Text: "ok"},
-						{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &zero},
+						{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &rune},
 					}}, nil
 				},
 			}
@@ -62,11 +62,11 @@ func TestTaskToolForwardsPermissionMode(t *testing.T) {
 // type is NOT a registered specialist still executes — instead of failing with
 // "specialist ... not found".
 func TestRunFreshUsesInlineManifestWithoutRegistryLookup(t *testing.T) {
-	zero := 0
+	rune := 0
 	var ran bool
 	var gotArgs []string
 	executor := Executor{
-		BinaryPath:   "/usr/local/bin/zero",
+		BinaryPath:   "/usr/local/bin/rune",
 		NewSessionID: func() (string, error) { return "child_task", nil },
 		// Registry has NO "subagent" specialist: a name lookup would fail.
 		Load: func(LoadOptions) (LoadResult, error) {
@@ -78,7 +78,7 @@ func TestRunFreshUsesInlineManifestWithoutRegistryLookup(t *testing.T) {
 			return ChildRunResult{Events: []streamjson.Event{
 				{Type: streamjson.EventRunStart, SessionID: "child_task"},
 				{Type: streamjson.EventFinal, Text: "done"},
-				{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &zero},
+				{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &rune},
 			}}, nil
 		},
 	}

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/providercatalog"
 )
 
 func TestModelsAreProviderScoped(t *testing.T) {

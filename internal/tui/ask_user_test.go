@@ -6,7 +6,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
+	"rune/internal/agent"
 )
 
 // testAskUserRequest is a two-question request used by model_test.go too.

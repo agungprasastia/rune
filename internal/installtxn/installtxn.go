@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-const lockFileName = ".zero-install.lock"
+const lockFileName = ".rune-install.lock"
 
 // Lock takes the per-install-root cross-process lock. It blocks until any other
 // installer or remover using dir has completed.
@@ -28,7 +28,7 @@ func StageDir(dir string) (stage string, cleanup func(), err error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", func() {}, fmt.Errorf("create install dir: %w", err)
 	}
-	workspace, err := os.MkdirTemp(dir, ".zero-install-txn-")
+	workspace, err := os.MkdirTemp(dir, ".rune-install-txn-")
 	if err != nil {
 		return "", func() {}, fmt.Errorf("create install staging dir: %w", err)
 	}
@@ -76,7 +76,7 @@ func CommitDir(target string, staged string, publish func() error) error {
 //
 // The caller must hold the install-root lock returned by Lock.
 func RemoveDir(target string, publish func() error) error {
-	workspace, err := os.MkdirTemp(filepath.Dir(target), ".zero-install-txn-")
+	workspace, err := os.MkdirTemp(filepath.Dir(target), ".rune-install-txn-")
 	if err != nil {
 		return fmt.Errorf("create removal staging dir: %w", err)
 	}
@@ -122,7 +122,7 @@ func cleanupWorkspace(workspace string) {
 // file over path. The caller is responsible for any surrounding transaction
 // lock.
 func WriteFileAtomically(path string, data []byte, perm os.FileMode) error {
-	temp, err := os.CreateTemp(filepath.Dir(path), ".zero-lockfile-")
+	temp, err := os.CreateTemp(filepath.Dir(path), ".rune-lockfile-")
 	if err != nil {
 		return err
 	}

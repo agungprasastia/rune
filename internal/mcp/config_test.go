@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 func TestNormalizeConfigValidatesTransportBoundaries(t *testing.T) {
@@ -15,7 +15,7 @@ func TestNormalizeConfigValidatesTransportBoundaries(t *testing.T) {
 			Type:    "stdio",
 			Command: "docs-mcp",
 			Args:    []string{"--workspace", "."},
-			Env:     map[string]string{"ZERO_DOCS_TOKEN": "test"},
+			Env:     map[string]string{"RUNE_DOCS_TOKEN": "test"},
 		},
 		"web": {
 			Type:    "http",

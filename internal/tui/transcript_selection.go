@@ -13,7 +13,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 type transcriptSelectionPoint struct {
@@ -142,7 +142,7 @@ func (l transcriptBodyLayout) totalLines() int {
 	return len(l.lines)
 }
 
-// padTranscriptBodyLines left-indents transcript body rows when a non-zero
+// padTranscriptBodyLines left-indents transcript body rows when a non-rune
 // gutter is configured. It is horizontal only — it never changes the line count,
 // so the width-keyed height cache stays valid. Two-column mode right-pads the
 // chat block to the column width in joinColumns; single-column leaves any

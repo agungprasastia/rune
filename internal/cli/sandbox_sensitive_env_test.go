@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 func TestProviderSensitiveEnvKeys(t *testing.T) {

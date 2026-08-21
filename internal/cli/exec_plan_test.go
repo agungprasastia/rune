@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/agent"
+	"rune/internal/config"
 )
 
 func TestParseExecArgsRecognizesPlanFlag(t *testing.T) {

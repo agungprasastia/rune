@@ -4,8 +4,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
 func TestProposedCommandPrefixUsesSafeSimpleCommands(t *testing.T) {

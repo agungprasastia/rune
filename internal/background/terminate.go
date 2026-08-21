@@ -29,7 +29,7 @@ func TerminateProcess(pid int) error {
 // commands safely fall back to PID/tree discovery. On Windows, success for a
 // leader that was already dead confirms only that the leader was reaped;
 // descendants may survive because Windows cannot rediscover a tree from a dead
-// root. `zero daemon start` needs this operation when readiness times out: it
+// root. `rune daemon start` needs this operation when readiness times out: it
 // launched the child, so it must both stop the tree and collect the leader.
 //
 // The order matters: the tree is signalled first, because Wait releases the
@@ -61,7 +61,7 @@ func TerminateCommand(cmd *exec.Cmd) error {
 	return nil
 }
 
-// classifyWaitError treats a non-zero exit status as success: a process being
+// classifyWaitError treats a non-rune exit status as success: a process being
 // terminated is expected to report one (or a signal), so the only interesting
 // failure is Wait itself not working.
 func classifyWaitError(waitErr error) error {

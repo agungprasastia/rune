@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/sessions"
 )
 
 func TestConfigSnapshotRedactsProviderURLsAndResolvesAPIModels(t *testing.T) {
@@ -276,7 +276,7 @@ func TestSessionSnapshotsExposeSpecFields(t *testing.T) {
 		SessionID:           "draft",
 		SessionKind:         sessions.SessionKindSpecDraft,
 		SpecID:              "2026-06-08-spec-mode",
-		SpecFilePath:        "/repo/.zero/specs/2026-06-08-spec-mode.md",
+		SpecFilePath:        "/repo/.rune/specs/2026-06-08-spec-mode.md",
 		SpecStatus:          sessions.SpecStatusDraft,
 		SpecDraftModelID:    "gpt-5",
 		SpecDraftReasoning:  "high",

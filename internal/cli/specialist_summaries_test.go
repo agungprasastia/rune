@@ -3,7 +3,7 @@ package cli
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/specialist"
+	"rune/internal/specialist"
 )
 
 // TestSpecialistSummariesIncludesBuiltins confirms the orchestrator delegation

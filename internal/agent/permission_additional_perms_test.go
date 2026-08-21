@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
 // promptShellTool is a minimal shell-style tool whose Safety requires a prompt,

@@ -3,7 +3,7 @@ package agent
 import (
 	"strings"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 type contextPlannerConfig struct {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/verify"
+	"rune/internal/redaction"
+	"rune/internal/verify"
 )
 
 type StopReason string

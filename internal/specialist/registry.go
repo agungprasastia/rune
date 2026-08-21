@@ -1,6 +1,6 @@
 package specialist
 
-import "github.com/rune-ai/rune/internal/tools"
+import "rune/internal/tools"
 
 func RegisterTools(registry *tools.Registry, executor Executor) (*Runtime, error) {
 	runtime := executor.BackgroundRuntime

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestCompactMessagesReturnsMetadataForManualCompaction(t *testing.T) {
@@ -103,7 +103,7 @@ func TestCompactMessagesNoopReturnsUncompactedMetadata(t *testing.T) {
 		t.Fatalf("SummaryText = %q, want empty", result.SummaryText)
 	}
 	if result.ProjectedChars != 0 || result.Truncated {
-		t.Fatalf("no-op projection metadata = (%d, %t), want zero values", result.ProjectedChars, result.Truncated)
+		t.Fatalf("no-op projection metadata = (%d, %t), want rune values", result.ProjectedChars, result.Truncated)
 	}
 	if !reflect.DeepEqual(result.Messages, messages) {
 		t.Fatalf("Messages changed on no-op: %#v", result.Messages)

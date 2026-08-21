@@ -19,13 +19,13 @@ func defaultReducedMotion() bool {
 
 // reducedMotionEnabled reports whether animations (the streaming fade AND the
 // animated spinner) should be replaced with static equivalents. It is an
-// explicit accessibility/preference switch via ZERO_REDUCED_MOTION, and is also
+// explicit accessibility/preference switch via RUNE_REDUCED_MOTION, and is also
 // forced when there is no TTY (animation frames are meaningless to a pipe).
 // Reduced motion never removes liveness: a steady glyph plus the advancing
 // elapsed timer keeps the "still working" cue. It is one switch for all motion,
-// whereas ZERO_NO_FADE only governs the streaming-text fade.
+// whereas RUNE_NO_FADE only governs the streaming-text fade.
 func reducedMotionEnabled(env func(string) string, profile colorprofile.Profile) bool {
-	if v := strings.TrimSpace(env("ZERO_REDUCED_MOTION")); v != "" && v != "0" && !strings.EqualFold(v, "false") {
+	if v := strings.TrimSpace(env("RUNE_REDUCED_MOTION")); v != "" && v != "0" && !strings.EqualFold(v, "false") {
 		return true
 	}
 	return profile == colorprofile.NoTTY
@@ -216,7 +216,7 @@ func streamingLineBornAt(visualIndex, visualCount int, lineAges []time.Time, las
 	// visual lines), the second-and-later visual lines fall out of the
 	// `visualIndex >= len(lineAges)` branch. Clamp to the last known
 	// logical age so wrapped middle lines keep fading in step with their
-	// siblings instead of snapping to the zero time (= base ink).
+	// siblings instead of snapping to the rune time (= base ink).
 	if visualIndex < 0 {
 		return time.Time{}
 	}

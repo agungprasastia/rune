@@ -3,7 +3,7 @@ package providermodelcatalog
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/providercatalog"
+	"rune/internal/providercatalog"
 )
 
 func TestModelIDAllowedForProvider(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func SchemaFromMCP(input map[string]any) tools.Schema {

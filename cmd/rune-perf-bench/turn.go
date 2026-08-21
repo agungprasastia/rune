@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/execprofile"
-	"github.com/rune-ai/rune/internal/perfbench"
+	"rune/internal/execprofile"
+	"rune/internal/perfbench"
 )
 
 // turnOptions configures the `rune-perf-bench turn` subcommand: the per-turn
@@ -46,20 +46,20 @@ func runTurnCommand(args []string, getenv func(string) string, stdout io.Writer,
 
 	set, err := perfbench.LoadTaskSet(options.SuitePath)
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Turn benchmark failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Turn benchmark failed: "+err.Error())
 		return 1
 	}
 
 	// The dry-run path records a zero-iteration run without a binary, so the
 	// manifest loads and the report path is exercised in CI without a model.
 	if options.DryRun {
-		_, _ = fmt.Fprintln(stdout, "[zero] turn benchmark: dry run (no agent invoked)")
+		_, _ = fmt.Fprintln(stdout, "[rune] turn benchmark: dry run (no agent invoked)")
 		return 0
 	}
 
 	binary, err := perfbench.ResolveBinary(options.Binary)
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Turn benchmark failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Turn benchmark failed: "+err.Error())
 		return 2
 	}
 
@@ -74,19 +74,19 @@ func runTurnCommand(args []string, getenv func(string) string, stdout io.Writer,
 		Runner:      perfbench.NewTurnExecRunner(binary),
 	})
 	if err != nil {
-		_, _ = fmt.Fprintln(stderr, "[zero] Turn benchmark failed: "+err.Error())
+		_, _ = fmt.Fprintln(stderr, "[rune] Turn benchmark failed: "+err.Error())
 		return 1
 	}
 
 	if options.Output != "" {
 		if err := writeTurnReport(options.Output, result); err != nil {
-			_, _ = fmt.Fprintln(stderr, "[zero] Turn benchmark failed: "+err.Error())
+			_, _ = fmt.Fprintln(stderr, "[rune] Turn benchmark failed: "+err.Error())
 			return 1
 		}
 	}
 	if options.JSON {
 		if err := perfbench.WriteTurnBenchJSON(stdout, result); err != nil {
-			_, _ = fmt.Fprintln(stderr, "[zero] Turn benchmark failed: "+err.Error())
+			_, _ = fmt.Fprintln(stderr, "[rune] Turn benchmark failed: "+err.Error())
 			return 1
 		}
 		return turnExitCode(result, stderr)
@@ -103,7 +103,7 @@ func runTurnCommand(args []string, getenv func(string) string, stdout io.Writer,
 // still valid measurements.
 func turnExitCode(result perfbench.TurnBenchResult, stderr io.Writer) int {
 	if result.TasksAttempted > 0 && result.TasksErrored == result.TasksAttempted {
-		_, _ = fmt.Fprintln(stderr, "[zero] Turn benchmark failed: every task errored with no accepted benchmark sample (see warnings); the report contains no valid measurements")
+		_, _ = fmt.Fprintln(stderr, "[rune] Turn benchmark failed: every task errored with no accepted benchmark sample (see warnings); the report contains no valid measurements")
 		return 1
 	}
 	return 0
@@ -112,8 +112,8 @@ func turnExitCode(result perfbench.TurnBenchResult, stderr io.Writer) int {
 func parseTurnArgs(args []string, getenv func(string) string) (turnOptions, error) {
 	options := turnOptions{
 		Iterations: 1,
-		Version:    strings.TrimSpace(getenv("ZERO_BENCH_VERSION")),
-		Commit:     strings.TrimSpace(getenv("ZERO_BENCH_COMMIT")),
+		Version:    strings.TrimSpace(getenv("RUNE_BENCH_VERSION")),
+		Commit:     strings.TrimSpace(getenv("RUNE_BENCH_COMMIT")),
 	}
 	for index := 0; index < len(args); index++ {
 		arg := args[index]
@@ -269,8 +269,8 @@ func turnHelpText() string {
 		"  --self-correct      Enable the post-edit verify-and-correct loop",
 		"  --binary <path>     Path to the `zero` binary (default: zero on PATH / repo root)",
 		"  --iterations <n>    Times to run each task (default: 1)",
-		"  --version <v>       Record the ZERO version (default: $ZERO_BENCH_VERSION)",
-		"  --commit <sha>      Record the ZERO commit (default: $ZERO_BENCH_COMMIT)",
+		"  --version <v>       Record the ZERO version (default: $RUNE_BENCH_VERSION)",
+		"  --commit <sha>      Record the ZERO commit (default: $RUNE_BENCH_COMMIT)",
 		"  --output <path>     Write the JSON result to path",
 		"  --json              Print only the JSON result",
 		"  --dry-run           Load the manifest and exit without invoking the agent",

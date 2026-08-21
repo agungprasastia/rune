@@ -12,13 +12,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/daemon"
-	"github.com/rune-ai/rune/internal/daemon/remote"
+	"rune/internal/background"
+	"rune/internal/daemon"
+	"rune/internal/daemon/remote"
 )
 
-// runDaemon dispatches the `zero daemon ...` subcommands. The daemon supervises a
-// pool of headless `zero exec` workers and routes sessions to them over an
+// runDaemon dispatches the `rune daemon ...` subcommands. The daemon supervises a
+// pool of headless `rune exec` workers and routes sessions to them over an
 // owner-only local control socket. It is an ADDITIVE surface — interactive and
 // one-shot exec are unchanged.
 func runDaemon(args []string, stdout io.Writer, stderr io.Writer, _ appDeps) int {
@@ -50,7 +50,7 @@ func runDaemon(args []string, stdout io.Writer, stderr io.Writer, _ appDeps) int
 }
 
 func writeDaemonUsage(w io.Writer, code int) int {
-	fmt.Fprint(w, `Usage: zero daemon <command>
+	fmt.Fprint(w, `Usage: rune daemon <command>
 
 Commands:
   start [--foreground]      Start the daemon (background by default).
@@ -61,8 +61,8 @@ Commands:
   attach <session>          Attach to a running session's stream.
   serve-remote --addr <host:port> --tls-cert <f> --tls-key <f> [--bundle-dir <d>]
                             Serve an opt-in, TLS-only network bridge to this
-                            daemon. Requires a bearer token in $ZERO_DAEMON_REMOTE_TOKEN
-                            (or $ZERO_DAEMON_REMOTE_TOKEN_FILE). --bundle-dir enables
+                            daemon. Requires a bearer token in $RUNE_DAEMON_REMOTE_TOKEN
+                            (or $RUNE_DAEMON_REMOTE_TOKEN_FILE). --bundle-dir enables
                             git-bundle uploads, extracted into per-link work trees.
   link --remote <host:port> --repo <dir> --id <name> [--out <file>]
                             Upload repo's git history to the remote as a bundle and
@@ -102,7 +102,7 @@ func runDaemonStart(args []string, stdout io.Writer, stderr io.Writer) int {
 }
 
 // runDaemonForeground runs the daemon in this process until SIGINT/SIGTERM. Each
-// worker is a headless `zero exec` child with the sandbox re-entrancy markers
+// worker is a headless `rune exec` child with the sandbox re-entrancy markers
 // scrubbed (NewExecLauncher) so it establishes its own sandbox.
 func runDaemonForeground(paths daemon.Paths, stdout io.Writer, stderr io.Writer) int {
 	launcher, err := daemon.NewExecLauncher(daemon.ExecLauncherConfig{})
@@ -140,7 +140,7 @@ func runDaemonForeground(paths daemon.Paths, stdout io.Writer, stderr io.Writer)
 // process (its own process group, output to a log file) and waits for it to bind.
 func runDaemonStartDetached(paths daemon.Paths, stdout io.Writer, stderr io.Writer) int {
 	if daemonReachable(paths) {
-		fmt.Fprintln(stdout, "zero daemon is already running")
+		fmt.Fprintln(stdout, "rune daemon is already running")
 		return exitSuccess
 	}
 	exe, err := os.Executable()
@@ -167,7 +167,7 @@ func runDaemonStartDetached(paths daemon.Paths, stdout io.Writer, stderr io.Writ
 		}
 		return writeAppError(stderr, err.Error(), exitCrash)
 	}
-	fmt.Fprintf(stdout, "zero daemon started (socket %s)\n", paths.Socket)
+	fmt.Fprintf(stdout, "rune daemon started (socket %s)\n", paths.Socket)
 	return exitSuccess
 }
 
@@ -231,14 +231,14 @@ func runDaemonStop(args []string, stdout io.Writer, stderr io.Writer) int {
 	}
 	client, err := daemon.Dial(paths.Socket)
 	if err != nil {
-		fmt.Fprintln(stdout, "zero daemon is not running")
+		fmt.Fprintln(stdout, "rune daemon is not running")
 		return exitSuccess
 	}
 	defer client.Close()
 	if err := client.Shutdown(); err != nil {
 		return writeAppError(stderr, err.Error(), exitCrash)
 	}
-	fmt.Fprintln(stdout, "zero daemon stopped")
+	fmt.Fprintln(stdout, "rune daemon stopped")
 	return exitSuccess
 }
 
@@ -255,7 +255,7 @@ func runDaemonStatus(args []string, stdout io.Writer, stderr io.Writer) int {
 	}
 	client, err := daemon.Dial(paths.Socket)
 	if err != nil {
-		fmt.Fprintln(stdout, "zero daemon is not running")
+		fmt.Fprintln(stdout, "rune daemon is not running")
 		return exitSuccess
 	}
 	defer client.Close()
@@ -344,7 +344,7 @@ func runDaemonRun(args []string, stdout io.Writer, stderr io.Writer) int {
 		case strings.HasPrefix(a, "--prompt="):
 			prompt = strings.TrimPrefix(a, "--prompt=")
 		default:
-			// Forwarded verbatim to the worker `zero exec` (reuses exec's own flag
+			// Forwarded verbatim to the worker `rune exec` (reuses exec's own flag
 			// parsing for per-session run options).
 			forward = append(forward, a)
 		}
@@ -442,7 +442,7 @@ func daemonDialError(flags remoteDialFlags, err error) string {
 	if strings.TrimSpace(flags.Addr) != "" {
 		return "failed to reach remote daemon at " + flags.Addr + ": " + err.Error()
 	}
-	return "zero daemon is not running (start it with `zero daemon start`)"
+	return "rune daemon is not running (start it with `rune daemon start`)"
 }
 
 // runDaemonServeRemote starts the local daemon plus an opt-in, TLS-only network
@@ -568,7 +568,7 @@ func runDaemonServeRemote(args []string, stdout io.Writer, stderr io.Writer) int
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
-	fmt.Fprintf(stdout, "zero daemon remote bridge listening on %s (TLS)\n", addr)
+	fmt.Fprintf(stdout, "rune daemon remote bridge listening on %s (TLS)\n", addr)
 	select {
 	case <-sigCh:
 		srv.Shutdown()
@@ -641,7 +641,7 @@ func runDaemonLink(args []string, stdout io.Writer, stderr io.Writer) int {
 		return writeAppError(stderr, err.Error(), exitCrash)
 	}
 	fmt.Fprintf(stdout, "uploaded %s; remote repo at %s\n", link.LinkID, link.RemotePath)
-	fmt.Fprintf(stdout, "run it with: zero daemon run --remote %s --cwd %s ...\n", link.Address, link.RemotePath)
+	fmt.Fprintf(stdout, "run it with: rune daemon run --remote %s --cwd %s ...\n", link.Address, link.RemotePath)
 	if strings.TrimSpace(out) != "" {
 		if err := link.Save(out); err != nil {
 			return writeAppError(stderr, err.Error(), exitCrash)

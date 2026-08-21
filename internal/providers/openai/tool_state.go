@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 const (

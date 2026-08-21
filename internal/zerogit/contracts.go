@@ -1,7 +1,7 @@
 package zerogit
 
 const RuntimeGo = "go"
-const ChangeContractVersion = "zero.changes.report.v1"
+const ChangeContractVersion = "rune.changes.report.v1"
 
 type EventType string
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
+	"rune/internal/modelregistry"
 )
 
 // escalateToModelMetaKey is the result-metadata key the agent loop reads to

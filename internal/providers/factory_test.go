@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/zeroruntime"
 )
 
 func TestNewCreatesOpenAIProviderWithFactoryOptions(t *testing.T) {
@@ -27,7 +27,7 @@ func TestNewCreatesOpenAIProviderWithFactoryOptions(t *testing.T) {
 		Model:        "factory-model",
 	}, Options{
 		HTTPClient: client,
-		UserAgent:  "zero-factory-test",
+		UserAgent:  "rune-factory-test",
 	})
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
@@ -51,7 +51,7 @@ func TestNewCreatesOpenAIProviderWithFactoryOptions(t *testing.T) {
 	if transport.request.Header.Get("Authorization") != "Bearer sk-factory" {
 		t.Fatalf("Authorization = %q, want bearer token", transport.request.Header.Get("Authorization"))
 	}
-	if transport.request.Header.Get("User-Agent") != "zero-factory-test" {
+	if transport.request.Header.Get("User-Agent") != "rune-factory-test" {
 		t.Fatalf("User-Agent = %q, want factory user agent", transport.request.Header.Get("User-Agent"))
 	}
 }
@@ -194,7 +194,7 @@ func TestNewThreadsCustomProviderHeaders(t *testing.T) {
 		APIKey:        "sk-gateway",
 		AuthHeader:    "X-API-Key",
 		AuthScheme:    "Token",
-		CustomHeaders: map[string]string{"HTTP-Referer": "https://zero.dev"},
+		CustomHeaders: map[string]string{"HTTP-Referer": "https://rune.dev"},
 		Model:         "gateway-model",
 	}, Options{HTTPClient: client})
 	if err != nil {
@@ -215,7 +215,7 @@ func TestNewThreadsCustomProviderHeaders(t *testing.T) {
 	if transport.request.Header.Get("X-API-Key") != "Token sk-gateway" {
 		t.Fatalf("X-API-Key = %q, want custom auth header", transport.request.Header.Get("X-API-Key"))
 	}
-	if transport.request.Header.Get("HTTP-Referer") != "https://zero.dev" {
+	if transport.request.Header.Get("HTTP-Referer") != "https://rune.dev" {
 		t.Fatalf("HTTP-Referer = %q, want custom provider header", transport.request.Header.Get("HTTP-Referer"))
 	}
 }
@@ -378,7 +378,7 @@ func TestNewResolvesKnownModelToAPIModelAndProvider(t *testing.T) {
 		Model:  "claude-sonnet-4.5",
 	}, Options{
 		HTTPClient: client,
-		UserAgent:  "zero-factory-test",
+		UserAgent:  "rune-factory-test",
 	})
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
@@ -402,7 +402,7 @@ func TestNewResolvesKnownModelToAPIModelAndProvider(t *testing.T) {
 	if transport.request.Header.Get("x-api-key") != "sk-ant" {
 		t.Fatalf("x-api-key = %q, want Anthropic key", transport.request.Header.Get("x-api-key"))
 	}
-	if transport.request.Header.Get("User-Agent") != "zero-factory-test" {
+	if transport.request.Header.Get("User-Agent") != "rune-factory-test" {
 		t.Fatalf("User-Agent = %q, want factory user agent", transport.request.Header.Get("User-Agent"))
 	}
 	var body map[string]any
@@ -430,7 +430,7 @@ func TestNewCreatesGeminiProviderFromFactoryOptions(t *testing.T) {
 		Model:        "gemini-2.5-flash",
 	}, Options{
 		HTTPClient: client,
-		UserAgent:  "zero-factory-test",
+		UserAgent:  "rune-factory-test",
 	})
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
@@ -499,8 +499,8 @@ func TestNewRoutesChatGPTCatalogToCodexProvider(t *testing.T) {
 	// OAuth token and the "want empty chatgpt-account-id" assertion fails locally
 	// (it still passes in CI, where no login is stored). Mirrors the isolation in
 	// TestNewRoutesChatGPTCatalogWithStoredAccountID.
-	t.Setenv("ZERO_OAUTH_STORAGE", "file")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", t.TempDir()+"/tokens.json")
+	t.Setenv("RUNE_OAUTH_STORAGE", "file")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", t.TempDir()+"/tokens.json")
 
 	transport := &captureTransport{
 		responseBody: "data: [DONE]\n\n",
@@ -513,7 +513,7 @@ func TestNewRoutesChatGPTCatalogToCodexProvider(t *testing.T) {
 		Model:     "gpt-5",
 	}, Options{
 		HTTPClient: client,
-		UserAgent:  "zero-factory-test",
+		UserAgent:  "rune-factory-test",
 	})
 	if err != nil {
 		t.Fatalf("New() error = %v", err)
@@ -575,7 +575,7 @@ func TestNewRoutesChatGPTCatalogWithStoredAccountID(t *testing.T) {
 		Model:     "gpt-5",
 	}, Options{
 		HTTPClient:    &http.Client{Transport: transport},
-		UserAgent:     "zero-factory-test",
+		UserAgent:     "rune-factory-test",
 		OAuthLoginKey: oauth.ProviderKey("chatgpt"),
 	})
 	if err != nil {
@@ -639,15 +639,15 @@ func (transport *captureTransport) body() io.Reader {
 }
 
 // newOAuthStoreForTest pins the OAuth token store to a plain temp FILE and
-// returns a Store on it. Pinning ZERO_OAUTH_STORAGE matters as much as the
+// returns a Store on it. Pinning RUNE_OAUTH_STORAGE matters as much as the
 // path: an inherited "keyring" value would send NewStore to the OS keychain
-// and ignore ZERO_OAUTH_TOKENS_PATH entirely, making the test read/write the
+// and ignore RUNE_OAUTH_TOKENS_PATH entirely, making the test read/write the
 // developer's real logins. Exists so the chatgpt factory tests can seed a
 // token without copying the path-handling dance from internal/cli.
 func newOAuthStoreForTest(t *testing.T) (*oauth.Store, error) {
 	t.Helper()
-	t.Setenv("ZERO_OAUTH_STORAGE", "file")
-	t.Setenv("ZERO_OAUTH_TOKENS_PATH", t.TempDir()+"/tokens.json")
+	t.Setenv("RUNE_OAUTH_STORAGE", "file")
+	t.Setenv("RUNE_OAUTH_TOKENS_PATH", t.TempDir()+"/tokens.json")
 	return oauth.NewStore(oauth.StoreOptions{})
 }
 

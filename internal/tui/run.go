@@ -12,20 +12,20 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/term"
 
-	"github.com/rune-ai/rune/internal/peermsg"
-	"github.com/rune-ai/rune/internal/terminalpet"
+	"rune/internal/peermsg"
+	"rune/internal/terminalpet"
 )
 
-// Run starts the Zero Bubble Tea shell and returns a process-style exit code.
+// Run starts the Rune Bubble Tea shell and returns a process-style exit code.
 func Run(ctx context.Context, options Options) int {
 	// The interactive shell needs a real terminal on stdin: with piped or
 	// redirected input Bubble Tea blocks forever waiting for events that never
-	// arrive (e.g. `echo "" | zero`). Fail fast with guidance toward the headless
+	// arrive (e.g. `echo "" | rune`). Fail fast with guidance toward the headless
 	// path instead of hanging. term.IsTerminal is a true TTY check (it rejects
 	// pipes, regular files, and non-terminal char devices like /dev/null) and
 	// fails closed — anything that is not a verified terminal blocks the shell.
 	if !term.IsTerminal(os.Stdin.Fd()) {
-		fmt.Fprintln(os.Stderr, "zero: the interactive shell needs a terminal (stdin is not a TTY). For non-interactive use, run: zero exec \"<prompt>\"")
+		fmt.Fprintln(os.Stderr, "rune: the interactive shell needs a terminal (stdin is not a TTY). For non-interactive use, run: rune exec \"<prompt>\"")
 		return 2
 	}
 
@@ -114,17 +114,17 @@ func Run(ctx context.Context, options Options) int {
 		closeErr = options.PeerService.Close()
 	}
 	if runErr != nil {
-		// Surface the failure: exiting 1 with zero diagnostics left users
+		// Surface the failure: exiting 1 with rune diagnostics left users
 		// guessing why the default chat surface died.
-		fmt.Fprintln(os.Stderr, "zero: tui error:", runErr)
+		fmt.Fprintln(os.Stderr, "rune: tui error:", runErr)
 		return 1
 	}
 	if closeErr != nil {
-		fmt.Fprintln(os.Stderr, "zero: peer messaging cleanup error:", closeErr)
+		fmt.Fprintln(os.Stderr, "rune: peer messaging cleanup error:", closeErr)
 		return 1
 	}
 	if clearErr != nil {
-		fmt.Fprintln(os.Stderr, "zero: terminal companion cleanup error:", clearErr)
+		fmt.Fprintln(os.Stderr, "rune: terminal companion cleanup error:", clearErr)
 		return 1
 	}
 	return 0
@@ -142,13 +142,13 @@ func terminalPetFrameCacheWith(options Options, userConfigDir, userCacheDir func
 	if root == "" {
 		configDir, err := userConfigDir()
 		if err == nil && strings.TrimSpace(configDir) != "" {
-			root = filepath.Join(configDir, "zero")
+			root = filepath.Join(configDir, "rune")
 		}
 	}
 	if root == "" {
 		cacheDir, err := userCacheDir()
 		if err == nil && strings.TrimSpace(cacheDir) != "" {
-			root = filepath.Join(cacheDir, "zero")
+			root = filepath.Join(cacheDir, "rune")
 		}
 	}
 	if root == "" {

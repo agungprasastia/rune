@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/sandbox"
+	"rune/internal/zeroruntime"
 )
 
 const SchemaVersion = 2

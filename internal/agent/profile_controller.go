@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/sandbox"
 )
 
 // profileController observes per-turn run signals and decides at most one

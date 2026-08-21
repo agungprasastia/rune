@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 func TestGenerateToolCreatesSpecialist(t *testing.T) {
@@ -44,13 +44,13 @@ func TestGenerateToolResultAppendsWarnings(t *testing.T) {
 	manifest := Manifest{
 		Metadata: Metadata{Name: "api-review"},
 		Location: LocationProject,
-		FilePath: "/project/.zero/specialists/api-review.md",
-		Warnings: []string{"specialist was updated, but replacement backup /project/.zero/specialists/.api-review.bak could not be removed: access denied"},
+		FilePath: "/project/.rune/specialists/api-review.md",
+		Warnings: []string{"specialist was updated, but replacement backup /project/.rune/specialists/.api-review.bak could not be removed: access denied"},
 	}
 
 	result := generateToolResult(manifest)
 
-	want := "specialist: api-review\nlocation: project\npath: /project/.zero/specialists/api-review.md\nwarning: " + manifest.Warnings[0]
+	want := "specialist: api-review\nlocation: project\npath: /project/.rune/specialists/api-review.md\nwarning: " + manifest.Warnings[0]
 	if result.Status != tools.StatusOK || result.Output != want {
 		t.Fatalf("result = %#v, want output %q", result, want)
 	}
@@ -60,12 +60,12 @@ func TestGenerateToolResultNormalOutputUnchanged(t *testing.T) {
 	manifest := Manifest{
 		Metadata: Metadata{Name: "api-review"},
 		Location: LocationProject,
-		FilePath: "/project/.zero/specialists/api-review.md",
+		FilePath: "/project/.rune/specialists/api-review.md",
 	}
 
 	result := generateToolResult(manifest)
 
-	want := "specialist: api-review\nlocation: project\npath: /project/.zero/specialists/api-review.md"
+	want := "specialist: api-review\nlocation: project\npath: /project/.rune/specialists/api-review.md"
 	if result.Output != want {
 		t.Fatalf("output = %q, want %q", result.Output, want)
 	}

@@ -9,15 +9,15 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/execprofile"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/usage"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/execprofile"
+	"rune/internal/modelregistry"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/sessions"
+	"rune/internal/usage"
+	"rune/internal/zeroruntime"
 )
 
 var responseStyles = []string{"balanced", "concise", "explanatory", "review"}
@@ -489,7 +489,7 @@ func (m model) handleSelfCorrectCommand(args string) (model, string) {
 
 // maxTurnsCeiling caps the per-session /turns budget so a typo (e.g. /turns 99999)
 // can't set an absurd ceiling; real multi-step tasks fit comfortably under it. Shared
-// with config so applyEnv enforces the same bound on an inherited ZERO_MAX_TURNS.
+// with config so applyEnv enforces the same bound on an inherited RUNE_MAX_TURNS.
 const maxTurnsCeiling = config.MaxTurnsCeiling
 
 func (m model) handleTurnsCommand(args string) (model, string) {
@@ -593,9 +593,9 @@ func (m model) revertExecProfile() model {
 		if m.execProfileDisplacedMaxTurns > 0 {
 			config.SetMaxTurnsEnv(m.execProfileDisplacedMaxTurns)
 		} else {
-			// The profile's apply exported its budget to ZERO_MAX_TURNS (for
-			// sub-agents), and SetMaxTurnsEnv ignores zero — so restoring a
-			// zero displaced budget must clear the env explicitly or spawned
+			// The profile's apply exported its budget to RUNE_MAX_TURNS (for
+			// sub-agents), and SetMaxTurnsEnv ignores rune — so restoring a
+			// rune displaced budget must clear the env explicitly or spawned
 			// children would keep the removed profile's budget.
 			_ = os.Unsetenv(config.MaxTurnsEnv)
 		}
@@ -1176,7 +1176,7 @@ func isUnpricedUsageError(err error) bool {
 	}
 	message := strings.ToLower(err.Error())
 	for _, marker := range []string{
-		"unknown zero model",
+		"unknown rune model",
 		"missing model input pricing rate",
 		"missing model output pricing rate",
 		"invalid model cached input pricing rate",

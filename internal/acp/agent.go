@@ -9,21 +9,21 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodelcatalog"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodelcatalog"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
-// Deps are the ZERO capabilities the ACP Agent drives. The CLI fills these with
+// Deps are the RUNE capabilities the ACP Agent drives. The CLI fills these with
 // real implementations; tests inject fakes (e.g. a canned provider) to drive the
 // full ACP flow without a live model. Keeping auth/model/keys behind these deps
-// means the editor only hosts the thread — ZERO owns BYOK and telemetry-free
+// means the editor only hosts the thread — RUNE owns BYOK and telemetry-free
 // operation.
 type Deps struct {
 	ResolveConfig  func(workspaceRoot string, overrides config.Overrides) (config.ResolvedConfig, error)
@@ -110,14 +110,14 @@ func (a *Agent) handleInitialize(_ context.Context, params json.RawMessage) (any
 	return InitializeResult{
 		ProtocolVersion: negotiated,
 		AgentCapabilities: AgentCapabilities{
-			// Only advertise what ZERO actually implements: session/load (loadSession)
+			// Only advertise what RUNE actually implements: session/load (loadSession)
 			// and image prompts. session/resume + the session-capability sub-object
 			// are intentionally omitted since there is no resume handler yet.
 			LoadSession:        true,
 			PromptCapabilities: PromptCapabilities{Image: true},
 		},
 		AgentInfo: &info,
-		// ZERO owns credentials (BYOK) and does not delegate auth to the editor.
+		// RUNE owns credentials (BYOK) and does not delegate auth to the editor.
 		AuthMethods: []AuthMethod{},
 	}, nil
 }
@@ -301,7 +301,7 @@ func stopReasonFor(result agent.Result, err error) (string, error) {
 		// a deliberate action, and for apply_patch the only refusal a client is
 		// offered — came back as JSON-RPC -32603 carrying the internal sentinel
 		// text. Editors and the desktop app both render that as a crashed turn,
-		// so declining a tool looked like ZERO falling over. It is a
+		// so declining a tool looked like RUNE falling over. It is a
 		// cancellation, and StopCancelled is what ACP has for saying so.
 		if errors.Is(err, agent.ErrPermissionApprovalCanceled) {
 			return StopCancelled, nil
@@ -317,7 +317,7 @@ func stopReasonFor(result agent.Result, err error) (string, error) {
 	return StopEndTurn, nil
 }
 
-// requestPermission forwards a ZERO permission prompt to the client as an ACP
+// requestPermission forwards a RUNE permission prompt to the client as an ACP
 // session/request_permission request and maps the outcome back. Failure to reach
 // the client fails closed to deny.
 func (a *Agent) requestPermission(ctx context.Context, sessionID string, req agent.PermissionRequest) (agent.PermissionDecision, error) {
@@ -620,9 +620,9 @@ func (a *Agent) warnPersistence(note *notifier, action string, message string, e
 	if note != nil {
 		sessionID = note.sessionID
 	}
-	log.Printf("zero acp: failed to %s for session %s: %v", action, sessionID, err)
+	log.Printf("rune acp: failed to %s for session %s: %v", action, sessionID, err)
 	if note != nil {
-		note.text("\n\n[zero warning] " + message + "\n")
+		note.text("\n\n[rune warning] " + message + "\n")
 	}
 }
 

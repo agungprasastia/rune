@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/daemon"
+	"rune/internal/daemon"
 )
 
 const defaultDialTimeout = 15 * time.Second

@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/background"
+	"rune/internal/sessions"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 const (
@@ -44,7 +44,7 @@ func (tool *OutputTool) Name() string {
 }
 
 func (tool *OutputTool) Description() string {
-	return "Poll the output of a background Zero specialist task."
+	return "Poll the output of a background Rune specialist task."
 }
 
 func (tool *OutputTool) Parameters() tools.Schema {

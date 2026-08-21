@@ -90,7 +90,7 @@ func (k *Keyring) Set(service, account, secret string) error {
 		return wrap("set", err)
 	case "linux":
 		// secret-tool reads the secret from stdin, keeping it out of the argv.
-		_, err := k.exec([]byte(secret), "secret-tool", "store", "--label", "zero", "service", service, "account", account)
+		_, err := k.exec([]byte(secret), "secret-tool", "store", "--label", "rune", "service", service, "account", account)
 		return wrap("set", err)
 	default:
 		return ErrUnsupported
@@ -213,7 +213,7 @@ func (e *runError) Unwrap() error { return e.err }
 
 // Not-found exit codes for the OS tools: macOS `security` exits 44
 // (errSecItemNotFound) when no matching item exists; `secret-tool` exits 1 when a
-// lookup finds nothing. Any other non-zero exit is a real failure.
+// lookup finds nothing. Any other non-rune exit is a real failure.
 const (
 	securityNotFoundExit   = 44
 	secretToolNotFoundExit = 1

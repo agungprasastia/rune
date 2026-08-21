@@ -1,13 +1,13 @@
 // Package workspacetrust records which workspace roots the user has explicitly
-// trusted, so Zero can gate project-scoped executable config (hooks, plugins)
+// trusted, so Rune can gate project-scoped executable config (hooks, plugins)
 // behind an opt-in per workspace and fail closed on any error.
 //
 // Trust is keyed on the normalized absolute workspace root (filepath.Abs then
 // filepath.EvalSymlinks), and membership is an EXACT match: a nested repo or
 // subdirectory under a trusted root is NOT trusted, so trusting a monorepo root
 // does not implicitly trust a vendored dependency or submodule that ships its
-// own .zero/. The store is a plaintext JSON file at
-// <UserConfigDir>/zero/trust.json; it holds workspace paths, not secrets, so it
+// own .rune/. The store is a plaintext JSON file at
+// <UserConfigDir>/rune/trust.json; it holds workspace paths, not secrets, so it
 // is not encrypted, but it is written atomically with restrictive permissions
 // (dir 0o700, file 0o600).
 package workspacetrust
@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 // store is the on-disk JSON shape: {"trusted": ["<abs path>", ...]}.
@@ -28,14 +28,14 @@ type store struct {
 	Trusted []string `json:"trusted"`
 }
 
-// storeFilePath returns <UserConfigDir>/zero/trust.json, reusing the config
+// storeFilePath returns <UserConfigDir>/rune/trust.json, reusing the config
 // package's XDG resolution rather than re-implementing it.
 func storeFilePath() (string, error) {
 	dir, err := config.UserConfigDir()
 	if err != nil {
 		return "", fmt.Errorf("resolve user config directory: %w", err)
 	}
-	return filepath.Join(dir, "zero", "trust.json"), nil
+	return filepath.Join(dir, "rune", "trust.json"), nil
 }
 
 // normalize resolves a workspace root to its canonical absolute form:

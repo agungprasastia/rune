@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/dictation"
-	"github.com/rune-ai/rune/internal/tui"
+	"rune/internal/config"
+	"rune/internal/dictation"
+	"rune/internal/tui"
 )
 
 // Default batch cloud models (§8). Overridable via stt.model.
@@ -186,8 +186,8 @@ func newSaveSTTKey(userConfigPath string) func(string, string) error {
 	}
 }
 
-// resolveSTTKey finds an API key for an STT cloud provider, reusing Zero's
-// existing credentials (§2 — "zero new credential UI"). Precedence: a matching
+// resolveSTTKey finds an API key for an STT cloud provider, reusing Rune's
+// existing credentials (§2 — "rune new credential UI"). Precedence: a matching
 // configured provider's resolved key, then the encrypted credential store, then
 // the provider's conventional environment variable.
 func resolveSTTKey(resolved config.ResolvedConfig, userConfigPath, provider, envVar string) string {

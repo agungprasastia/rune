@@ -43,15 +43,15 @@ build_cmd windows ./cmd/rune-windows-sandbox-setup rune-windows-sandbox-setup.ex
 
 case "$(go env GOOS)" in
   linux)
-    ZERO_SANDBOX_REAL_SMOKE=1 go test ./internal/sandbox -run 'TestLinuxHelperRealSandboxSmoke|TestLinuxLandlockRealSandboxSmoke' -count=1
+    RUNE_SANDBOX_REAL_SMOKE=1 go test ./internal/sandbox -run 'TestLinuxHelperRealSandboxSmoke|TestLinuxLandlockRealSandboxSmoke' -count=1
     ;;
   darwin)
     go test ./internal/sandbox -run TestSandboxExecProfileAllowsDevNullAndTemp -count=1
     ;;
   windows)
-    ZERO_SANDBOX_REAL_SMOKE=1 \
-      ZERO_WINDOWS_COMMAND_RUNNER_EXE="$tmpdir/windows-rune-windows-command-runner.exe" \
-      ZERO_WINDOWS_SANDBOX_SETUP_EXE="$tmpdir/windows-rune-windows-sandbox-setup.exe" \
+    RUNE_SANDBOX_REAL_SMOKE=1 \
+      RUNE_WINDOWS_COMMAND_RUNNER_EXE="$tmpdir/windows-rune-windows-command-runner.exe" \
+      RUNE_WINDOWS_SANDBOX_SETUP_EXE="$tmpdir/windows-rune-windows-sandbox-setup.exe" \
       go test ./internal/sandbox -run 'TestWindowsRestrictedTokenRealSandboxSmoke|TestWindowsRestrictedTokenPowerShell' -count=1
     ;;
   *)

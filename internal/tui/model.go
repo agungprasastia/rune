@@ -19,27 +19,27 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/doctor"
-	"github.com/rune-ai/rune/internal/errhint"
-	"github.com/rune-ai/rune/internal/lsp"
-	internalmcp "github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/notify"
-	"github.com/rune-ai/rune/internal/peermsg"
-	"github.com/rune-ai/rune/internal/providerhealth"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/providers/providerio"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/skills"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/terminalpet"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/usage"
-	"github.com/rune-ai/rune/internal/usercommands"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/doctor"
+	"rune/internal/errhint"
+	"rune/internal/lsp"
+	internalmcp "rune/internal/mcp"
+	"rune/internal/modelregistry"
+	"rune/internal/notify"
+	"rune/internal/peermsg"
+	"rune/internal/providerhealth"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/providers/providerio"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/skills"
+	"rune/internal/streamjson"
+	"rune/internal/terminalpet"
+	"rune/internal/tools"
+	"rune/internal/usage"
+	"rune/internal/usercommands"
+	"rune/internal/zeroruntime"
 )
 
 const tuiToolOutputLimit = 240
@@ -47,7 +47,7 @@ const defaultResponseStyle = "concise"
 const chatWheelScrollLines = 5
 
 // activeAnimationFrameInterval keeps active-only status motion smooth without
-// running a timer when Zero is idle. It also drives the shared liveness spinner.
+// running a timer when Rune is idle. It also drives the shared liveness spinner.
 const activeAnimationFrameInterval = time.Second / 30
 const ctrlCExitConfirmDuration = 3 * time.Second
 const ctrlCExitConfirmText = "Press Ctrl+C again to exit"
@@ -72,7 +72,7 @@ type model struct {
 	ctx                         context.Context
 	cwd                         string
 	appVersion                  string
-	userCommands                []usercommands.Command // file-sourced /commands (.zero/commands)
+	userCommands                []usercommands.Command // file-sourced /commands (.rune/commands)
 	loadSkills                  func() []skills.Skill  // lazy installed-skills loader for /skills + /<skill-name>
 	userConfigPath              string
 	doctorUserConfigPath        string
@@ -274,7 +274,7 @@ type model struct {
 	pending        bool
 	// turnStartedAt is when the in-flight run began; the working status line
 	// renders the live elapsed time from it so a long or stalled turn never looks
-	// like a frozen terminal (for ANY provider, not just slow ones). Zero = idle.
+	// like a frozen terminal (for ANY provider, not just slow ones). Rune = idle.
 	turnStartedAt time.Time
 	// turnTimer is shared with the agent command so both the live status and the
 	// settled "worked for" duration exclude time blocked on a user permission.
@@ -418,7 +418,7 @@ type model struct {
 	// current turn so the working line can show a live, monotonic token estimate.
 	// It is NOT reset at segment boundaries (where streamingText/Reasoning clear),
 	// only at turn start (beginRun), so the count climbs across a multi-tool turn
-	// instead of snapping back to zero after each tool call.
+	// instead of snapping back to rune after each tool call.
 	turnStreamedRunes int
 	// Streaming-text fade state. lineAges is keyed to LOGICAL lines of
 	// streamingText (one entry per \n in the accumulated text), and
@@ -433,10 +433,10 @@ type model struct {
 	lineAges           []time.Time
 	lastStreamActivity time.Time
 	fadeActive         bool
-	fadeDisabled       bool // streaming fade off (ZERO_NO_FADE / SSH / tmux / low-color / reduced motion)
+	fadeDisabled       bool // streaming fade off (RUNE_NO_FADE / SSH / tmux / low-color / reduced motion)
 	// streamClearDisabled turns off the full-redraw-on-streamed-newline
 	// workaround for terminals that render scroll regions correctly
-	// (ZERO_NO_STREAM_CLEAR=1). lastStreamClear rate-limits the redraws the
+	// (RUNE_NO_STREAM_CLEAR=1). lastStreamClear rate-limits the redraws the
 	// workaround schedules so heavy streaming output (code, logs, diffs)
 	// coalesces to a bounded number of repaints per second instead of one
 	// per newline. pendingStreamClear tracks a newline that arrived while
@@ -447,7 +447,7 @@ type model struct {
 	streamClearDisabled bool
 	lastStreamClear     time.Time
 	pendingStreamClear  bool
-	reducedMotion       bool // ZERO_REDUCED_MOTION / no-TTY: static spinner glyph, no fade
+	reducedMotion       bool // RUNE_REDUCED_MOTION / no-TTY: static spinner glyph, no fade
 	// In-progress tool call whose arguments are streaming (a file being written),
 	// shown live by streamingToolCallView so a long write/edit isn't a frozen
 	// spinner. Cleared when the call completes (next text/turn) — see updateModel.
@@ -458,7 +458,7 @@ type model struct {
 
 	// Slash-command autocomplete (purely additive UI state). suggestions is the
 	// live match list for the current "/token"; suggestionIdx is the highlighted
-	// row. commandPaletteOpen keeps a zero-match command search active so invalid
+	// row. commandPaletteOpen keeps a rune-match command search active so invalid
 	// query text stays in the palette instead of leaking into the composer.
 	// filePaletteOpen does the same for a trailing "@token" file search.
 	suggestions        []commandSuggestion
@@ -817,7 +817,7 @@ type pendingPermissionPrompt struct {
 	// resting approval choice. Moved by ↑/↓/Tab; confirmed by Enter or a click.
 	// Hotkeys resolve the matching request-provided option directly.
 	cursor int
-	// typing is true once the user chose "tell Zero what to do differently": the
+	// typing is true once the user chose "tell Rune what to do differently": the
 	// card replaces its option list with a free-text field (sharing the composer
 	// input, like the ask_user questionnaire). Submitting sends a Deny decision
 	// whose Reason is the typed text, so the model reads it as the tool result and
@@ -935,7 +935,7 @@ func newModel(ctx context.Context, options Options) model {
 		Mode:      notify.Mode(strings.TrimSpace(options.Notify.Mode)),
 		FocusMode: notify.FocusMode(strings.TrimSpace(options.Notify.FocusMode)),
 	})
-	// Opt-in webhook fan-out (ZERO_NOTIFY_WEBHOOK_URL). Delivery failures stay
+	// Opt-in webhook fan-out (RUNE_NOTIFY_WEBHOOK_URL). Delivery failures stay
 	// silent here: the TUI owns the alt-screen, so writing to stderr would
 	// corrupt the display.
 	notify.MaybeAddWebhookSink(notifier, os.Getenv, nil)
@@ -987,7 +987,7 @@ func newModel(ctx context.Context, options Options) model {
 		petEntries:                  map[string]terminalpet.Entry{},
 		petID:                       strings.TrimSpace(options.SavedPet),
 		keyBindings:                 resolvedKeyBindings,
-		themeMode:                   resolveThemeMode(options.Theme, os.Getenv("ZERO_THEME"), options.SavedTheme),
+		themeMode:                   resolveThemeMode(options.Theme, os.Getenv("RUNE_THEME"), options.SavedTheme),
 		hasDarkBg:                   true,
 		userAgent:                   options.UserAgent,
 		usageTracker:                usageTracker,
@@ -1040,7 +1040,7 @@ func newModel(ctx context.Context, options Options) model {
 	// Terminals that handle scroll regions correctly can opt back into the
 	// fast incremental path; the redraw workaround (see the ClearScreen
 	// scheduling in updateModel) is otherwise on, rate-limited.
-	if v := strings.TrimSpace(os.Getenv("ZERO_NO_STREAM_CLEAR")); v != "" && v != "0" && !strings.EqualFold(v, "false") {
+	if v := strings.TrimSpace(os.Getenv("RUNE_NO_STREAM_CLEAR")); v != "" && v != "0" && !strings.EqualFold(v, "false") {
 		m.streamClearDisabled = true
 	}
 	// One session-long LSP manager (cheap to build — servers start lazily on the
@@ -1083,7 +1083,7 @@ func (m model) doctorOptions(connectivity bool) doctor.Options {
 }
 
 const (
-	composerPlaceholder     = "describe a task for zero…"
+	composerPlaceholder     = "describe a task for rune…"
 	composerMaxVisibleLines = 4
 )
 
@@ -1123,11 +1123,11 @@ func (m model) Init() tea.Cmd {
 	// on program start, so m.height/m.width are normally set before the first
 	// render. But that's the terminal proactively pushing a size — if it's
 	// ever missed (a slow/unusual terminal, a multiplexer, a startup race),
-	// nothing else ever asks again: m.height stays its zero value forever,
+	// nothing else ever asks again: m.height stays its rune value forever,
 	// `if m.altScreen && m.height > 0` (transcriptView) falls back to the
 	// unpadded, non-fullscreen render path for the rest of the session, and
 	// the alt-screen viewport never gets filled below the actual content.
-	// Explicitly requesting it here means Zero doesn't depend solely on the
+	// Explicitly requesting it here means Rune doesn't depend solely on the
 	// terminal's unprompted push.
 	cmds = append(cmds, tea.RequestWindowSize)
 	// Read the terminal background only to keep a selected palette legible. This
@@ -2241,7 +2241,7 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// on SSH and slow links. ~10 redraws/second is enough to keep the
 		// caret clean without dominating the write path; terminals that
 		// render scroll regions correctly can opt out entirely with
-		// ZERO_NO_STREAM_CLEAR=1. A newline that arrives inside the throttle
+		// RUNE_NO_STREAM_CLEAR=1. A newline that arrives inside the throttle
 		// window still owes a repair — it's marked pending and a one-shot
 		// timer is scheduled to flush it (see streamClearFlushMsg), instead
 		// of being dropped outright. That covers a throttled newline that
@@ -2263,7 +2263,7 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// case schedules the next one). Schedule the FIRST tick only on
 		// the inactive→active transition; subsequent deltas just refresh
 		// state and rely on the existing tick chain.
-		// When the fade is disabled (ZERO_NO_FADE / SSH / tmux / low-color),
+		// When the fade is disabled (RUNE_NO_FADE / SSH / tmux / low-color),
 		// fadeActive stays false so styleStreamingLine renders streaming text
 		// statically at base ink, and no self-perpetuating tick is scheduled.
 		if !m.fadeDisabled {
@@ -2984,7 +2984,7 @@ func (m model) View() tea.View {
 	view := tea.NewView(content)
 	view.AltScreen = m.altScreen
 	// Keep the terminal's canvas intact. Named themes may color local cards, but
-	// Zero never replaces the user's background, opacity, wallpaper, or profile.
+	// Rune never replaces the user's background, opacity, wallpaper, or profile.
 	// Always requested, independent of the notifier: the composer cursor's
 	// focus/blink behavior (composerBlinkMsg above) needs tea.FocusMsg/BlurMsg
 	// regardless of notification config. A standard, widely supported DEC
@@ -3147,7 +3147,7 @@ func (m model) footerView(width int) string {
 	// field) consume every key, so the composer is inert. Suppress it and the idle
 	// hints/plan panel like the ask_user modal above, keeping only the status line.
 	// The card itself renders in the transcript body. This also keeps the shared
-	// input from echoing in two places once "tell Zero what to do differently"
+	// input from echoing in two places once "tell Rune what to do differently"
 	// opens the on-card feedback field.
 	if m.pendingPermission != nil {
 		footer.WriteString(m.footerStatusLine(width))
@@ -3595,7 +3595,7 @@ func (m model) syncChatScroll() model {
 	}
 	// Shift by the signed delta so the absolute view holds whether the body grew
 	// (streaming appended lines) or shrank (a tool card collapsed, transcript
-	// cleared). Clamp at zero so a large shrink lands the user back at the tail
+	// cleared). Clamp at rune so a large shrink lands the user back at the tail
 	// rather than underflowing past it.
 	m.chatScrollOffset = clampInt(m.chatScrollOffset+current-m.chatBodyLines, 0, maxOffset)
 	m.chatBodyLines = current
@@ -3806,7 +3806,7 @@ const quietWorkingHint = 8 * time.Second
 // else "". The advancing number is itself the liveness signal.
 //
 // Past half the provider's idle timeout, the cue escalates to name what's
-// actually happening and when Zero will act on its own: a heartbeating-but-
+// actually happening and when Rune will act on its own: a heartbeating-but-
 // silent stream (observed on chatgpt/gpt-5.x and ollama reasoning models,
 // see providerio.ErrStreamStalled) is bounded by the content-stall watchdog at
 // providerio.ContentStallTimeout(idle), but until it fires this exact same
@@ -3830,7 +3830,7 @@ func (m model) quietGenerationHint() string {
 	}
 	if idleTimeout := providerio.ResolveStreamIdleTimeout(0); idleTimeout > 0 && quiet >= idleTimeout/2 {
 		ceiling := providerio.ContentStallTimeout(idleTimeout)
-		return fmt.Sprintf("still generating… %s — unusually quiet, Zero will auto-recover by ~%s if it doesn't resume", formatWorkingElapsed(quiet), formatWorkingElapsed(ceiling))
+		return fmt.Sprintf("still generating… %s — unusually quiet, Rune will auto-recover by ~%s if it doesn't resume", formatWorkingElapsed(quiet), formatWorkingElapsed(ceiling))
 	}
 	return "still generating… " + formatWorkingElapsed(quiet)
 }
@@ -4333,7 +4333,7 @@ func (m model) resolvePermission(decision permissionDecision) (tea.Model, tea.Cm
 
 // resolvePermissionWithReason resolves the pending prompt with an explicit reason
 // string. It backs both the fixed-label choices (reason = permissionDecisionReason)
-// and the free-text "tell Zero what to do differently" path, where the reason is
+// and the free-text "tell Rune what to do differently" path, where the reason is
 // the user's typed instruction and the action is Deny so the agent surfaces it as
 // the tool result and keeps going.
 func (m model) resolvePermissionWithReason(decision permissionDecision, reason string) (tea.Model, tea.Cmd) {
@@ -4831,7 +4831,7 @@ func (m model) dispatchCommand(command parsedCommand) (tea.Model, tea.Cmd) {
 		m.transcript = reduceTranscript(m.transcript, transcriptAction{kind: actionAppendSystem, text: text})
 		return m, nil
 	case commandTurns:
-		// Changing the budget mid-run would mutate the inherited ZERO_MAX_TURNS env
+		// Changing the budget mid-run would mutate the inherited RUNE_MAX_TURNS env
 		// that sub-agents spawned later in THIS run read, making the run's budget
 		// inconsistent. Require an idle session (the new budget applies next run).
 		if m.pending && strings.TrimSpace(command.text) != "" {
@@ -4848,7 +4848,7 @@ func (m model) dispatchCommand(command parsedCommand) (tea.Model, tea.Cmd) {
 		return m, nil
 	case commandProfile:
 		// Same idle-session rule as /turns: switching the profile mutates the
-		// turn budget (and its ZERO_MAX_TURNS propagation), so a change needs
+		// turn budget (and its RUNE_MAX_TURNS propagation), so a change needs
 		// an idle session; bare /profile (status) is always allowed.
 		if m.pending && strings.TrimSpace(command.text) != "" && !strings.EqualFold(strings.TrimSpace(command.text), "status") {
 			m.transcript = reduceTranscript(m.transcript, transcriptAction{kind: actionAppendSystem, text: "Profile\nFinish or stop the current run before switching the execution profile."})
@@ -4884,7 +4884,7 @@ func (m model) dispatchCommand(command parsedCommand) (tea.Model, tea.Cmd) {
 		return m, nil
 	case commandUnknown:
 		// A "/name" not in the builtin registry may be a user-defined command
-		// from .zero/commands/<name>.md — expand its template and run it as a
+		// from .rune/commands/<name>.md — expand its template and run it as a
 		// normal prompt before reporting "unknown".
 		if next, cmd, handled := m.handleUserCommand(command.text); handled {
 			return next, cmd
@@ -5039,7 +5039,7 @@ func (m model) launchPromptInternal(prompt string, peer *peermsg.InboundMessage)
 	if m.provider == nil {
 		m.transcript = reduceTranscript(m.transcript, transcriptAction{
 			kind: actionAppendAssistant,
-			text: "No provider configured. Run `zero setup` (guided) or `zero auth` (OAuth) from a shell, or set a provider API key env var, then relaunch.",
+			text: "No provider configured. Run `rune setup` (guided) or `rune auth` (OAuth) from a shell, or set a provider API key env var, then relaunch.",
 		})
 		return m, nil
 	}
@@ -5257,7 +5257,7 @@ func (m *model) cancelRun() {
 	// A cancelled loop iteration bypasses the agentResponseMsg completion seam (its
 	// late message is drained through flushRunIDs, not advanceLoop), so clear the
 	// loop tag here and re-arm the interrupted loop for its next cadence. Otherwise
-	// the loop is left "running" forever (nextRunAt stays zero) and the NEXT
+	// the loop is left "running" forever (nextRunAt stays rune) and the NEXT
 	// unrelated turn would be misattributed as this loop's completion.
 	if m.activeLoopID != "" {
 		if l := m.findLoop(m.activeLoopID); l != nil {

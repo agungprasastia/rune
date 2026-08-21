@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodelcatalog"
-	"github.com/rune-ai/rune/internal/providers/openai"
-	"github.com/rune-ai/rune/internal/providers/providerio"
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/config"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodelcatalog"
+	"rune/internal/providers/openai"
+	"rune/internal/providers/providerio"
+	"rune/internal/redaction"
 )
 
 const (
@@ -161,7 +161,7 @@ func DiscoverOllamaContextWindow(ctx context.Context, baseURL string, model stri
 }
 
 // ollamaShowEndpoint derives the native Ollama API root from the
-// OpenAI-compatible base URL Zero stores for the provider (".../v1") and
+// OpenAI-compatible base URL Rune stores for the provider (".../v1") and
 // appends /api/show.
 func ollamaShowEndpoint(baseURL string) (string, error) {
 	baseURL = strings.TrimSpace(baseURL)

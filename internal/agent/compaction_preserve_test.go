@@ -6,8 +6,8 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // stateConversation is a long enough conversation that Compact elides a middle
@@ -93,7 +93,7 @@ func TestCompactPreservesRuntimeEvidenceAcrossRepeatedCompaction(t *testing.T) {
 	task := newTaskState("Please keep the change focused.", nil)
 	task.observe(taskStateEvent{kind: taskStateEventToolResult, arguments: `{"cmd":"go test ./..."}`, toolResult: ToolResult{
 		Name: "exec_command", Status: tools.StatusError, Output: "Error: tests failed",
-		Meta: map[string]string{"spill_path": ".zero/artifacts/tests.txt"},
+		Meta: map[string]string{"spill_path": ".rune/artifacts/tests.txt"},
 	}})
 	task.observe(taskStateEvent{kind: taskStateEventPermission, permission: PermissionEvent{
 		ToolName: "exec_command", DecisionAction: PermissionDecisionAllowForSession, Scope: "/tmp",
@@ -110,7 +110,7 @@ func TestCompactPreservesRuntimeEvidenceAcrossRepeatedCompaction(t *testing.T) {
 	}
 	task.observe(taskStateEvent{kind: taskStateEventToolResult, arguments: `{"cmd":"go test ./..."}`, toolResult: ToolResult{
 		Name: "exec_command", Status: tools.StatusError, Output: "Error: tests still fail with newer evidence",
-		Meta: map[string]string{"spill_path": ".zero/artifacts/tests.txt"},
+		Meta: map[string]string{"spill_path": ".rune/artifacts/tests.txt"},
 	}})
 	secondInput := append(append([]zeroruntime.Message{}, first...),
 		zeroruntime.Message{Role: zeroruntime.MessageRoleUser, Content: "Never add background memory models."},
@@ -278,9 +278,9 @@ func TestCompactPreservesProjectInstructions(t *testing.T) {
 }
 
 func TestProjectInstructionBlockAcceptsProjectGuidelineFilename(t *testing.T) {
-	source, body := projectInstructionBlock("# ZERO.md instructions for /repo\n\n<INSTRUCTIONS>\nPrefer Go commands.\n</INSTRUCTIONS>")
-	if source != "ZERO.md instructions for /repo" || !strings.Contains(body, "Prefer Go commands.") {
-		t.Fatalf("expected ZERO.md instruction block to parse, got source=%q body=%q", source, body)
+	source, body := projectInstructionBlock("# RUNE.md instructions for /repo\n\n<INSTRUCTIONS>\nPrefer Go commands.\n</INSTRUCTIONS>")
+	if source != "RUNE.md instructions for /repo" || !strings.Contains(body, "Prefer Go commands.") {
+		t.Fatalf("expected RUNE.md instruction block to parse, got source=%q body=%q", source, body)
 	}
 }
 

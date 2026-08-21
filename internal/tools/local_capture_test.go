@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/localcontrol"
+	"rune/internal/localcontrol"
 )
 
 type fakeArtifactRunner struct {

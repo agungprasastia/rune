@@ -38,31 +38,31 @@ path:
 ```bash
 # platform-package path
 mkdir -p /tmp/zero-sim/node_modules/@gitlawb
-cp -R dist/npm/wrapper /tmp/zero-sim/node_modules/@gitlawb/zero
+cp -R dist/npm/wrapper /tmp/zero-sim/node_modules/@rune-ai/rune
 cp -R dist/npm/platforms/zero-<platform>-<arch> \
-  "/tmp/zero-sim/node_modules/@gitlawb/zero-<platform>-<arch>"
-node /tmp/zero-sim/node_modules/@gitlawb/zero/bin/zero.js --version
+  "/tmp/zero-sim/node_modules/@rune-ai/rune-<platform>-<arch>"
+node /tmp/zero-sim/node_modules/@rune-ai/rune/bin/zero.js --version
 
 # first-run download fallback (delete the platform package first)
-rm -rf "/tmp/zero-sim/node_modules/@gitlawb/zero-<platform>-<arch>"
-node /tmp/zero-sim/node_modules/@gitlawb/zero/bin/zero.js --version
+rm -rf "/tmp/zero-sim/node_modules/@rune-ai/rune-<platform>-<arch>"
+node /tmp/zero-sim/node_modules/@rune-ai/rune/bin/zero.js --version
 ```
 
 ## Checklist
 
-- `package.json` has the expected package name (`@gitlawb/zero`), version,
+- `package.json` has the expected package name (`@rune-ai/rune`), version,
   `bin.zero` entry, and NO `scripts` entries — the published package must be
   free of lifecycle scripts (see NPM_PACKAGING.md).
 - `scripts/npm/build-platform-packages.mjs` emits platform payloads whose
-  `package.json` is `@gitlawb/zero@<version>-<platform>-<arch>` with matching
+  `package.json` is `@rune-ai/rune@<version>-<platform>-<arch>` with matching
   `os`/`cpu`, contains the executable binary and the vendored `helpers/` tree
   with regular-file (non-symlink) `.bin` shims, and a wrapper payload with no
   scripts, no dependencies, and the full five-alias `optionalDependencies`
   matrix.
 - `scripts/postinstall.mjs` (the first-run fallback) resolves the correct
-  release asset name/URL per platform (`ZERO_INSTALL_DRY_RUN=1` prints the
+  release asset name/URL per platform (`RUNE_INSTALL_DRY_RUN=1` prints the
   plan), verifies the downloaded archive's SHA-256, and extracts only the
-  known binary basenames into place. `ZERO_SKIP_DOWNLOAD=1` opts out cleanly
+  known binary basenames into place. `RUNE_SKIP_DOWNLOAD=1` opts out cleanly
   (exit 0) and an unsupported platform/arch is a non-fatal skip.
 - The wrapper prefers the platform package binary over a previously downloaded
   one, and `agent-browser`/`tuistory` run from the platform package's

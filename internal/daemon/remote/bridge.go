@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rune-ai/rune/internal/daemon"
+	"rune/internal/daemon"
 )
 
 const (

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	zeroSandbox "github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/zerocommands"
+	"rune/internal/config"
+	zeroSandbox "rune/internal/sandbox"
+	"rune/internal/zerocommands"
 )
 
 type sandboxCheckOptions struct {
@@ -19,7 +19,7 @@ type sandboxCheckOptions struct {
 	json       bool
 }
 
-// sandboxCheckReport is the combined snapshot `zero sandbox check` emits: the
+// sandboxCheckReport is the combined snapshot `rune sandbox check` emits: the
 // active plan (policy + backend + restrictions), the decision the engine would
 // make for the described tool action, and any persistent grant that matches the
 // tool. It is the production consumer of the zerocommands sandbox-snapshot
@@ -44,7 +44,7 @@ func runSandboxCheck(args []string, stdout io.Writer, stderr io.Writer, deps app
 		return exitSuccess
 	}
 	if strings.TrimSpace(options.tool) == "" {
-		return writeExecUsageError(stderr, "tool name is required: zero sandbox check <tool> [flags]")
+		return writeExecUsageError(stderr, "tool name is required: rune sandbox check <tool> [flags]")
 	}
 
 	workspaceRoot, err := resolveWorkspaceRoot("", deps)
@@ -246,7 +246,7 @@ func formatSandboxCheckReport(report sandboxCheckReport) string {
 
 func writeSandboxCheckHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox check <tool> [flags]
+  rune sandbox check <tool> [flags]
 
 Evaluates the sandbox decision for a hypothetical tool action against the
 resolved policy, and prints the plan, the decision (allow/prompt/deny with risk

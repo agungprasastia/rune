@@ -9,10 +9,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
 func TestHelpCommandRendersGroupedSections(t *testing.T) {
@@ -35,7 +35,7 @@ func TestHelpCommandRendersGroupedSections(t *testing.T) {
 		"Meta",
 		"  /model [list|id]",
 		"  /permissions",
-		"hint: submit plain text to ask Zero",
+		"hint: submit plain text to ask Rune",
 	} {
 		assertContains(t, text, want)
 	}
@@ -259,7 +259,7 @@ func TestContextAndPermissionsCommandsRenderProductState(t *testing.T) {
 	}
 
 	m := newModel(context.Background(), Options{
-		Cwd:            `D:\codings\Opensource\Zero`,
+		Cwd:            `D:\codings\Opensource\Rune`,
 		ProviderName:   "openai",
 		ModelName:      "gpt-4.1",
 		Registry:       registry,
@@ -278,7 +278,7 @@ func TestContextAndPermissionsCommandsRenderProductState(t *testing.T) {
 		"Context",
 		"go runtime | ask permissions | 1 tool",
 		"Runtime",
-		"cwd        D:\\codings\\Opensource\\Zero",
+		"cwd        D:\\codings\\Opensource\\Rune",
 		"provider   openai",
 		"model      gpt-4.1",
 		"Session",

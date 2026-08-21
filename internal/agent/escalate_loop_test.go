@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // TestOptionsModelSwitcherFieldExists asserts the escalation hook is an
 // assignable field on Options with the agreed signature, and that nil is its
-// zero value (escalation disabled by default).
+// rune value (escalation disabled by default).
 func TestOptionsModelSwitcherFieldExists(t *testing.T) {
 	var options Options
 	if options.ModelSwitcher != nil {

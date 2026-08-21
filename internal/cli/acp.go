@@ -7,32 +7,32 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rune-ai/rune/internal/acp"
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/acp"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
-const acpUsage = `zero acp — serve the Agent Client Protocol (ACP) over stdio
+const acpUsage = `rune acp — serve the Agent Client Protocol (ACP) over stdio
 
 Editors that speak ACP (Zed, JetBrains, Neovim, ...) spawn this command and drive
-ZERO as a backend over JSON-RPC 2.0 on stdin/stdout. ZERO keeps your provider,
+RUNE as a backend over JSON-RPC 2.0 on stdin/stdout. RUNE keeps your provider,
 model, and API keys (BYOK); the editor only hosts the conversation thread.
 
 Usage:
-  zero acp
+  rune acp
 
 Not meant to be run interactively — point your editor's ACP / external-agent
-setting at "zero acp".`
+setting at "rune acp".`
 
 var acpSignalContext = signalContext
 
-// runACP serves ACP over stdio so an editor can drive ZERO's agent core. It
+// runACP serves ACP over stdio so an editor can drive RUNE's agent core. It
 // speaks JSON-RPC 2.0 (newline-delimited JSON) on stdin/stdout; stderr stays free
-// for human-readable diagnostics. The session lifecycle maps onto ZERO's own
-// session store, and provider/model/keys remain owned by ZERO.
+// for human-readable diagnostics. The session lifecycle maps onto RUNE's own
+// session store, and provider/model/keys remain owned by RUNE.
 func runACP(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) int {
 	for _, arg := range args {
 		switch arg {
@@ -74,7 +74,7 @@ func runACP(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) int
 		},
 		ResolveWorkspaceRoot: acpWorkspaceRootResolver(deps),
 		Store:                deps.newSessionStore(),
-		AgentInfo:            acp.Implementation{Name: "zero", Version: version},
+		AgentInfo:            acp.Implementation{Name: "rune", Version: version},
 	})
 
 	ctx, stop := acpSignalContext()
@@ -88,7 +88,7 @@ func runACP(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) int
 // acpWorkspaceRootResolver validates a client-supplied cwd into a confinement
 // root. It reuses exec's resolveWorkspaceRoot (abs+clean, must be an existing
 // dir) and additionally rejects the filesystem root and the home directory — an
-// editor must not be able to point ZERO's file/shell tools at the whole disk.
+// editor must not be able to point RUNE's file/shell tools at the whole disk.
 func acpWorkspaceRootResolver(deps appDeps) func(string) (string, error) {
 	return func(cwd string) (string, error) {
 		root, err := resolveWorkspaceRoot(cwd, deps)

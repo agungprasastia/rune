@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/providers/providerio"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/providers/providerio"
 )
 
 // OAuthLoginForProfile resolves the OAuth login used by profile once and

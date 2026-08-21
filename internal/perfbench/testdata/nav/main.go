@@ -24,5 +24,5 @@ func main() {
 }
 
 // TODO: replace the demo greet with the real client call before shipping.
-// (Present so nav-05's find-the-markers task has a non-zero, inspection-
+// (Present so nav-05's find-the-markers task has a non-rune, inspection-
 // required answer; an agent that always emits "count: 0" fails.)

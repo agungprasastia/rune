@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // TestCurrentStepContent: the header/summary name the step actually being

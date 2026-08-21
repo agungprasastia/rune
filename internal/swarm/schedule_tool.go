@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // ScheduleToolName is the recurring-spawn scheduler tool.

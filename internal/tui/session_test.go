@@ -12,11 +12,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 type scriptedProvider struct {
@@ -712,7 +712,7 @@ func TestResumeCommandHydratesSessionTranscript(t *testing.T) {
 		t.Fatalf("Create returned error: %v", err)
 	}
 	appendTestEvent(t, store, session.SessionID, sessions.EventMessage, map[string]any{"role": "user", "content": "previous request"})
-	appendTestEvent(t, store, session.SessionID, sessions.EventToolCall, map[string]any{"id": "call_1", "name": "grep", "arguments": `{"pattern":"Zero"}`})
+	appendTestEvent(t, store, session.SessionID, sessions.EventToolCall, map[string]any{"id": "call_1", "name": "grep", "arguments": `{"pattern":"Rune"}`})
 	appendTestEvent(t, store, session.SessionID, sessions.EventPermissionDecision, map[string]any{
 		"toolCallId":     "call_1",
 		"name":           "grep",
@@ -737,13 +737,13 @@ func TestResumeCommandHydratesSessionTranscript(t *testing.T) {
 	if cmd != nil {
 		t.Fatal("expected /resume to hydrate synchronously")
 	}
-	for _, want := range []string{"Resumed Zero session", session.SessionID, "previous request", "tool call: grep", "permission: grep allow", "tool result: grep error matches", "previous answer", "old error"} {
+	for _, want := range []string{"Resumed Rune session", session.SessionID, "previous request", "tool call: grep", "permission: grep allow", "tool result: grep error matches", "previous answer", "old error"} {
 		if !transcriptContains(next.transcript, want) {
 			t.Fatalf("expected resumed transcript to contain %q, got %#v", want, next.transcript)
 		}
 	}
 	toolCall, ok := findTranscriptRow(next.transcript, rowToolCall)
-	if !ok || toolCall.tool != "grep" || toolCall.detail != "Zero" {
+	if !ok || toolCall.tool != "grep" || toolCall.detail != "Rune" {
 		t.Fatalf("expected hydrated tool call metadata, got ok=%v row=%#v", ok, toolCall)
 	}
 	permissionRow, ok := findTranscriptRow(next.transcript, rowPermission)
@@ -757,7 +757,7 @@ func TestResumeCommandHydratesSessionTranscript(t *testing.T) {
 	if !ok || toolResult.tool != "grep" || toolResult.status != tools.StatusError || toolResult.detail != "matches" {
 		t.Fatalf("expected hydrated tool result metadata, got ok=%v row=%#v", ok, toolResult)
 	}
-	if transcriptContains(next.transcript, "zero exec --resume") {
+	if transcriptContains(next.transcript, "rune exec --resume") {
 		t.Fatalf("resume should not show headless-only guidance after hydration, got %#v", next.transcript)
 	}
 }
@@ -1140,7 +1140,7 @@ func TestResumedPromptIncludesSessionContext(t *testing.T) {
 		t.Fatal("expected provider request to include messages")
 	}
 	prompt := messages[len(messages)-1].Content
-	for _, want := range []string{"Continuing Zero session", session.SessionID, "previous request", "previous answer", "Current user request:", "continue"} {
+	for _, want := range []string{"Continuing Rune session", session.SessionID, "previous request", "previous answer", "Current user request:", "continue"} {
 		if !strings.Contains(prompt, want) {
 			t.Fatalf("expected resumed prompt to contain %q, got %q", want, prompt)
 		}
@@ -1183,7 +1183,7 @@ func TestResumeCommandReportsMissingSession(t *testing.T) {
 	updated, _ := m.Update(testKey(tea.KeyEnter))
 	next := updated.(model)
 
-	if !transcriptContains(next.transcript, "zero session not found: missing_session") {
+	if !transcriptContains(next.transcript, "rune session not found: missing_session") {
 		t.Fatalf("expected missing session error, got %#v", next.transcript)
 	}
 }

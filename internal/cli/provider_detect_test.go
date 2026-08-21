@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/provideronboarding"
+	"rune/internal/config"
+	"rune/internal/provideronboarding"
 )
 
 func TestRunProvidersDetectSurfacesLocalRuntimeAndProviderActions(t *testing.T) {
@@ -42,7 +42,7 @@ func TestRunProvidersDetectSurfacesLocalRuntimeAndProviderActions(t *testing.T) 
 		"Detected local runtimes:",
 		"Ollama Local — http://localhost:11434/v1",
 		"models: llama3.1",
-		"zero providers add ollama", // SetupAction's no-key adopt command
+		"rune providers add ollama", // SetupAction's no-key adopt command
 		"Configured providers:",
 		"openai",
 		"Use provider",

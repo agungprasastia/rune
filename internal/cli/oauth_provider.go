@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providers"
-	"github.com/rune-ai/rune/internal/providers/providerio"
+	"rune/internal/config"
+	"rune/internal/providers"
+	"rune/internal/providers/providerio"
 )
 
 // oauthLoginForProfile resolves the user's OAuth login for a provider ONCE and

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/sessions"
 )
 
 func TestSearchSessionsFindsRedactedEventContextAndCachesIndex(t *testing.T) {

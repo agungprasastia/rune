@@ -8,19 +8,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/streamjson"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/agent"
+	"rune/internal/background"
+	"rune/internal/sessions"
+	"rune/internal/streamjson"
+	"rune/internal/tools"
 )
 
 func TestTaskToolRunsForegroundSpecialist(t *testing.T) {
-	zero := 0
+	rune := 0
 	var gotBinary string
 	var gotArgs []string
 	executor := Executor{
-		BinaryPath:   "/usr/local/bin/zero",
+		BinaryPath:   "/usr/local/bin/rune",
 		NewSessionID: func() (string, error) { return "child_task", nil },
 		Load: func(LoadOptions) (LoadResult, error) {
 			return LoadResult{Specialists: []Manifest{{
@@ -40,7 +40,7 @@ func TestTaskToolRunsForegroundSpecialist(t *testing.T) {
 				Events: []streamjson.Event{
 					{Type: streamjson.EventRunStart, SessionID: "child_task"},
 					{Type: streamjson.EventFinal, Text: "child finished"},
-					{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &zero},
+					{Type: streamjson.EventRunEnd, Status: "success", ExitCode: &rune},
 				},
 			}, nil
 		},
@@ -68,7 +68,7 @@ func TestTaskToolRunsForegroundSpecialist(t *testing.T) {
 	if result.Meta["session_id"] != "child_task" {
 		t.Fatalf("session meta = %#v", result.Meta)
 	}
-	if gotBinary != "/usr/local/bin/zero" {
+	if gotBinary != "/usr/local/bin/rune" {
 		t.Fatalf("binary = %q", gotBinary)
 	}
 	for _, want := range [][]string{
@@ -189,7 +189,7 @@ func TestTaskToolRunsBackgroundSpecialist(t *testing.T) {
 	var gotOutputFile string
 	var gotArgs []string
 	executor := Executor{
-		BinaryPath:        "/usr/local/bin/zero",
+		BinaryPath:        "/usr/local/bin/rune",
 		BackgroundManager: manager,
 		NewSessionID:      func() (string, error) { return "child_task", nil },
 		Load: func(LoadOptions) (LoadResult, error) {
@@ -200,7 +200,7 @@ func TestTaskToolRunsBackgroundSpecialist(t *testing.T) {
 			}}}, nil
 		},
 		LaunchBackground: func(binaryPath string, args []string, outputFile string, onExit func(exitCode int)) (int, error) {
-			if binaryPath != "/usr/local/bin/zero" {
+			if binaryPath != "/usr/local/bin/rune" {
 				t.Fatalf("binaryPath = %q", binaryPath)
 			}
 			gotArgs = append([]string(nil), args...)

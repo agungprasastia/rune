@@ -6,12 +6,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providers"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/config"
+	"rune/internal/modelregistry"
+	"rune/internal/providercatalog"
+	"rune/internal/providers"
+	"rune/internal/redaction"
+	"rune/internal/sessions"
 )
 
 const RuntimeGo = "go"

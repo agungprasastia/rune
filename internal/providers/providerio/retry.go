@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/trace"
+	"rune/internal/trace"
 )
 
 // Transient-failure retry, shared by every provider.

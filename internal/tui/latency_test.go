@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/sessions"
 )
 
 func TestAvgTurnLatencyText(t *testing.T) {
@@ -24,7 +24,7 @@ func TestAvgTurnLatencyText(t *testing.T) {
 	if got := m.avgTurnLatencyText(); got != "4.5s avg (1.5s to first token, 2 turns)" {
 		t.Fatalf("avgTurnLatencyText with ttft = %q, want \"4.5s avg (1.5s to first token, 2 turns)\"", got)
 	}
-	// /new must reset the rolling latency + ttft so a fresh session starts from zero.
+	// /new must reset the rolling latency + ttft so a fresh session starts from rune.
 	m.activeSession = sessions.Metadata{SessionID: "x"}
 	next := m.startNewSession()
 	if next.turnLatencyCount != 0 || next.turnLatencySum != 0 || next.turnTTFTCount != 0 || next.turnTTFTSum != 0 {

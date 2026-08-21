@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/localcontrol"
+	"rune/internal/localcontrol"
 )
 
 func TestDesktopSnapshotBuildsDriverJSON(t *testing.T) {

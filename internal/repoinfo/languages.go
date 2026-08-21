@@ -4,7 +4,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/workspaceindex"
+	"rune/internal/workspaceindex"
 )
 
 // extToLanguage maps a lowercase file extension (no dot) to a display language.

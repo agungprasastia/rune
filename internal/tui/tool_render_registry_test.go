@@ -41,7 +41,7 @@ func TestDefaultToolBodyRegistrySelectsCoreRenderers(t *testing.T) {
 		{
 			name:   "read_file",
 			hint:   "README.md",
-			detail: "File: README.md\n\n  7 | # Zero",
+			detail: "File: README.md\n\n  7 | # Rune",
 			want:   []string{"Read", "README.md"},
 		},
 		{
@@ -79,7 +79,7 @@ func TestDefaultToolBodyRegistrySelectsCoreRenderers(t *testing.T) {
 					t.Fatalf("%s body = %q, missing %q", tt.name, got, want)
 				}
 			}
-			if tt.name == "read_file" && strings.Contains(got, "# Zero") {
+			if tt.name == "read_file" && strings.Contains(got, "# Rune") {
 				t.Fatalf("read_file body = %q, must not expose read contents", got)
 			}
 			if tt.name == "grep" && strings.Contains(got, "internal/tui/rendering.go:41") {

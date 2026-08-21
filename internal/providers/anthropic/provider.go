@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/providers/providerio"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/providers/providerio"
+	"rune/internal/zeroruntime"
 )
 
 const defaultBaseURL = "https://api.anthropic.com"
@@ -87,8 +87,8 @@ type Options struct {
 	// the API key. See providerio.SendWithAuthRetry.
 	OAuthResolver providerio.TokenResolver
 	// StreamIdleTimeout aborts the stream if no data arrives for this long.
-	// When unset, Zero uses providerio.ResolveStreamIdleTimeout — the
-	// ZERO_STREAM_IDLE_TIMEOUT override or providerio.DefaultStreamIdleTimeout.
+	// When unset, Rune uses providerio.ResolveStreamIdleTimeout — the
+	// RUNE_STREAM_IDLE_TIMEOUT override or providerio.DefaultStreamIdleTimeout.
 	StreamIdleTimeout time.Duration
 }
 
@@ -116,7 +116,7 @@ func New(options Options) (*Provider, error) {
 	if model == "" {
 		return nil, errors.New("anthropic provider requires a model")
 	}
-	maxTokens, err := providerio.PositiveOrDefault(options.MaxTokens, defaultMaxTokens, "zero Anthropic provider maxTokens")
+	maxTokens, err := providerio.PositiveOrDefault(options.MaxTokens, defaultMaxTokens, "rune Anthropic provider maxTokens")
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +364,7 @@ func (provider *Provider) anthropicRequest(request zeroruntime.CompletionRequest
 		return messagesRequest{}, err
 	}
 	if len(messages) == 0 {
-		return messagesRequest{}, errors.New("zero Anthropic provider requires at least one non-system message")
+		return messagesRequest{}, errors.New("rune Anthropic provider requires at least one non-system message")
 	}
 
 	mapped := messagesRequest{
@@ -447,7 +447,7 @@ func mapMessages(messages []zeroruntime.Message) (string, []anthropicMessage, er
 			}
 		case zeroruntime.MessageRoleTool:
 			if message.ToolCallID == "" {
-				return "", nil, errors.New("zero Anthropic provider requires toolCallId on tool result messages")
+				return "", nil, errors.New("rune Anthropic provider requires toolCallId on tool result messages")
 			}
 			appendUserBlocks(&mapped, []map[string]any{{
 				"type":        "tool_result",
@@ -544,11 +544,11 @@ func parseToolArguments(argumentsJSON string, toolName string) (map[string]any, 
 	}
 	var parsed any
 	if err := json.Unmarshal([]byte(argumentsJSON), &parsed); err != nil {
-		return nil, fmt.Errorf("zero Anthropic provider could not parse tool arguments for %s as JSON", toolName)
+		return nil, fmt.Errorf("rune Anthropic provider could not parse tool arguments for %s as JSON", toolName)
 	}
 	object, ok := parsed.(map[string]any)
 	if !ok || object == nil {
-		return nil, fmt.Errorf("zero Anthropic provider requires tool arguments for %s to be a JSON object", toolName)
+		return nil, fmt.Errorf("rune Anthropic provider requires tool arguments for %s to be a JSON object", toolName)
 	}
 	return object, nil
 }

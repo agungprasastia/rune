@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/usage"
+	"rune/internal/agent"
+	"rune/internal/execution"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/usage"
 )
 
 const tuiSessionTitleLimit = 80
@@ -73,7 +73,7 @@ func (m model) startNewSession() model {
 	m.sessionEvents = nil
 
 	// Reset the per-session usage + compaction display so the new session starts
-	// from zero instead of inheriting the previous conversation's token/cost totals.
+	// from rune instead of inheriting the previous conversation's token/cost totals.
 	if m.usageTracker != nil {
 		m.usageTracker.Reset()
 	}
@@ -209,7 +209,7 @@ func tuiSessionTitle(prompt string) string {
 	// a multi-byte rune and persist invalid UTF-8 into the session metadata.
 	title := cutRunes(strings.Join(strings.Fields(prompt), " "), tuiSessionTitleLimit)
 	if title == "" {
-		return "Zero TUI session"
+		return "Rune TUI session"
 	}
 	return title
 }
@@ -288,7 +288,7 @@ func (m model) resolveResumeSession(args string) (*sessions.Metadata, error) {
 			return nil, err
 		}
 		if latest == nil {
-			return nil, errors.New("no zero sessions available to resume")
+			return nil, errors.New("no rune sessions available to resume")
 		}
 		return latest, nil
 	}
@@ -298,17 +298,17 @@ func (m model) resolveResumeSession(args string) (*sessions.Metadata, error) {
 		return nil, err
 	}
 	if session == nil {
-		return nil, fmt.Errorf("zero session not found: %s", args)
+		return nil, fmt.Errorf("rune session not found: %s", args)
 	}
 	if !sessions.IsResumableKind(session.SessionKind) {
-		return nil, fmt.Errorf("zero session is not resumable: %s", args)
+		return nil, fmt.Errorf("rune session is not resumable: %s", args)
 	}
 	return session, nil
 }
 
 // resumeEvents reads a session's events for resume, preferring the rehydrated
 // (compaction-aware) view so a resumed session honors a prior /compact — matching
-// the CLI's `zero exec --resume` (readExecContextEvents) and the in-TUI /compact
+// the CLI's `rune exec --resume` (readExecContextEvents) and the in-TUI /compact
 // reload. Falls back to the raw log if rehydration fails.
 func (m model) resumeEvents(sessionID string) ([]sessions.Event, error) {
 	events, err := m.sessionStore.ReadRehydratedEvents(sessionID)
@@ -351,7 +351,7 @@ func (m model) formatResumeSummary(session sessions.Metadata, eventCount int) st
 		lines = append(lines, goalLine)
 	}
 	return renderCommandOutput(commandOutput{
-		Title:  "Resumed Zero session",
+		Title:  "Resumed Rune session",
 		Status: commandStatusOK,
 		Sections: []commandSection{{
 			Title: "Session",
@@ -401,7 +401,7 @@ func (m model) newSessionPicker() *commandPicker {
 		if !sessionMatchesWorkspace(meta.Cwd, m.cwd) {
 			continue
 		}
-		// A zero-event session has nothing to resume — skip it without a file read.
+		// A rune-event session has nothing to resume — skip it without a file read.
 		if meta.EventCount == 0 {
 			continue
 		}
@@ -450,7 +450,7 @@ func sessionPickerLabel(when, title string) string {
 // ordered latest-first, so the first qualifying match is the latest. It applies
 // the SAME filters as newSessionPicker — workspace membership, non-empty
 // metadata, and real resumable content — so `/resume latest` never lands on a
-// zero-event or empty/failed run the picker would have hidden.
+// rune-event or empty/failed run the picker would have hidden.
 func (m model) latestResumableInWorkspace() (*sessions.Metadata, error) {
 	metas, err := m.sessionStore.ListResumable()
 	if err != nil {

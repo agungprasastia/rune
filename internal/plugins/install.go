@@ -20,7 +20,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/installtxn"
+	"rune/internal/installtxn"
 )
 
 // manifestFileName is the plugin manifest filename, matching the loader.
@@ -295,7 +295,7 @@ func fetchSource(ctx context.Context, source string, runner GitRunner) (string, 
 	if runner == nil {
 		runner = defaultGitRunner
 	}
-	temp, err := os.MkdirTemp("", "zero-plugin-fetch-")
+	temp, err := os.MkdirTemp("", "rune-plugin-fetch-")
 	if err != nil {
 		return "", func() {}, fmt.Errorf("create temp dir: %w", err)
 	}

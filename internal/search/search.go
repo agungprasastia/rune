@@ -10,8 +10,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/sessions"
+	"rune/internal/redaction"
+	"rune/internal/sessions"
 )
 
 const (
@@ -188,10 +188,10 @@ func RebuildIndex(store *sessions.Store, session sessions.Metadata, now func() t
 	}
 	data, err := json.MarshalIndent(index, "", "  ")
 	if err != nil {
-		return Index{}, fmt.Errorf("encode Zero search index: %w", err)
+		return Index{}, fmt.Errorf("encode Rune search index: %w", err)
 	}
 	if err := os.WriteFile(indexPath(store, session.SessionID), append(data, '\n'), 0o600); err != nil {
-		return Index{}, fmt.Errorf("write Zero search index: %w", err)
+		return Index{}, fmt.Errorf("write Rune search index: %w", err)
 	}
 	return index, nil
 }
@@ -316,9 +316,9 @@ func resolveSessions(store *sessions.Store, sessionID string) ([]sessions.Metada
 		return []sessions.Metadata{}, err
 	}
 	if session == nil {
-		// Surfacing the miss beats silently "succeeding" with zero results
+		// Surfacing the miss beats silently "succeeding" with rune results
 		// against a session that doesn't exist.
-		return []sessions.Metadata{}, fmt.Errorf("zero session not found: %s", sessionID)
+		return []sessions.Metadata{}, fmt.Errorf("rune session not found: %s", sessionID)
 	}
 	return []sessions.Metadata{*session}, nil
 }

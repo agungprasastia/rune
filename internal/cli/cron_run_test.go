@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/cron"
+	"rune/internal/cron"
 )
 
 // fakeExec records each invocation and returns a fixed exit code.

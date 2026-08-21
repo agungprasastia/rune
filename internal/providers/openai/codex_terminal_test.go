@@ -4,14 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestToolCallKeyOutputIndexZero(t *testing.T) {
 	p := &CodexProvider{}
-	zero, two := 0, 2
+	rune, two := 0, 2
 	// output_index 0 with no item_id must produce a key (it was dropped before M1).
-	if got := p.toolCallKey(&responsesEvent{OutputIndex: &zero}); got != "output-0" {
+	if got := p.toolCallKey(&responsesEvent{OutputIndex: &rune}); got != "output-0" {
 		t.Errorf("OutputIndex 0 → %q, want output-0", got)
 	}
 	if got := p.toolCallKey(&responsesEvent{OutputIndex: &two}); got != "output-2" {
@@ -20,7 +20,7 @@ func TestToolCallKeyOutputIndexZero(t *testing.T) {
 	if got := p.toolCallKey(&responsesEvent{}); got != "" {
 		t.Errorf("absent output_index + no item_id → %q, want empty", got)
 	}
-	if got := p.toolCallKey(&responsesEvent{ItemID: "call_x", OutputIndex: &zero}); got != "call_x" {
+	if got := p.toolCallKey(&responsesEvent{ItemID: "call_x", OutputIndex: &rune}); got != "call_x" {
 		t.Errorf("item_id should take precedence → %q", got)
 	}
 }

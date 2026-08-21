@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/tools"
 )
 
 // argsPermTool implements tools.ArgsPermissioner; plainTool does not.

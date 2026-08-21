@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
 )
 
 type normalizationRecordingShellTool struct {
@@ -286,7 +286,7 @@ func TestNormalizeProviderExpandedEmptyAdditionalPermissions(t *testing.T) {
 		string(tools.SandboxPermissionsWithAdditionalPermissions),
 	} {
 		args := map[string]any{
-			"command":             "./zero --version",
+			"command":             "./rune --version",
 			"sandbox_permissions": mode,
 			"additional_permissions": map[string]any{
 				"file_system": map[string]any{
@@ -319,7 +319,7 @@ func TestExecuteToolCallNormalizesProviderExpandedEmptyAdditionalPermissions(t *
 		ToolCall{
 			ID:   "c1",
 			Name: "bash",
-			Arguments: `{"command":"./zero --version","sandbox_permissions":"with_additional_permissions",` +
+			Arguments: `{"command":"./rune --version","sandbox_permissions":"with_additional_permissions",` +
 				`"additional_permissions":{"file_system":{"deny_read":[],"entries":[],"read":[],"write":[]},"network":{"enabled":false}}}`,
 		},
 		PermissionModeAuto,
@@ -366,7 +366,7 @@ func TestNormalizeAdditionalPermissionsRemovesWorkspaceReadAlreadyCoveredBySandb
 		Policy:        sandbox.DefaultPolicy(),
 	})
 	args := map[string]any{
-		"command":             "./zero --version",
+		"command":             "./rune --version",
 		"sandbox_permissions": string(tools.SandboxPermissionsWithAdditionalPermissions),
 		"additional_permissions": map[string]any{
 			"file_system": map[string]any{

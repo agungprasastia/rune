@@ -4,16 +4,16 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providers/openai"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/providers/openai"
+	"rune/internal/zeroruntime"
 )
 
 // openaiTurnSessionEnv gates the optimized OpenAI turn session (prewarm +
 // prefix telemetry). Default OFF: unset, "0", or "false" (any case) leave the
 // agent loop's default adapter path untouched. Set to any other non-empty
-// value (e.g. "1") to enable — the same boolean idiom as ZERO_FORMAT_ON_WRITE.
-const openaiTurnSessionEnv = "ZERO_OPENAI_TURN_SESSION"
+// value (e.g. "1") to enable — the same boolean idiom as RUNE_FORMAT_ON_WRITE.
+const openaiTurnSessionEnv = "RUNE_OPENAI_TURN_SESSION"
 
 func openaiTurnSessionEnabled() bool {
 	value := strings.TrimSpace(os.Getenv(openaiTurnSessionEnv))
@@ -60,7 +60,7 @@ func OptimizedTurnSessions(profile config.ProviderProfile, provider zeroruntime.
 // the non-optimized sibling of OptimizedTurnSessions for callers that still
 // want capabilities populated — e.g. the mid-run model-switch fallback when the
 // switched model is not eligible for the optimized session. Capability
-// resolution failure degrades to an unknown (zero) projection rather than
+// resolution failure degrades to an unknown (rune) projection rather than
 // failing the wrap: the default session has no behavior that depends on
 // capabilities, so a swap must never be blocked by a projection error.
 func DefaultTurnSessions(profile config.ProviderProfile, provider zeroruntime.Provider, options Options) zeroruntime.TurnSessionProvider {

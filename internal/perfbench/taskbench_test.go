@@ -113,7 +113,7 @@ func TestRunTasksRecordsRunnerError(t *testing.T) {
 	config := TaskConfig{
 		Model: "m",
 		Runner: func(_ context.Context, task BenchTask, _ RunContext) TaskOutcome {
-			return TaskOutcome{Err: errors.New("zero exec exited 1")}
+			return TaskOutcome{Err: errors.New("rune exec exited 1")}
 		},
 	}
 
@@ -129,7 +129,7 @@ func TestRunTasksRecordsRunnerError(t *testing.T) {
 	if result.Errors != 2 {
 		t.Fatalf("errors = %d, want 2", result.Errors)
 	}
-	if !strings.Contains(result.Tasks[0].Detail, "zero exec exited 1") {
+	if !strings.Contains(result.Tasks[0].Detail, "rune exec exited 1") {
 		t.Fatalf("task detail should carry the runner error, got %q", result.Tasks[0].Detail)
 	}
 }
@@ -268,7 +268,7 @@ func writeExecStub(t *testing.T, body string) string {
 		t.Skip("exec stub uses a POSIX shell script")
 	}
 	dir := t.TempDir()
-	path := filepath.Join(dir, "zero-stub.sh")
+	path := filepath.Join(dir, "rune-stub.sh")
 	script := "#!/bin/sh\n" + body
 	if err := os.WriteFile(path, []byte(script), 0o755); err != nil {
 		t.Fatalf("write exec stub: %v", err)
@@ -277,18 +277,18 @@ func writeExecStub(t *testing.T, body string) string {
 }
 
 func TestNewExecRunnerNonZeroRunEndIsFailNotError(t *testing.T) {
-	// A non-zero run_end exit code is a normal task failure, not a harness error,
-	// even though the process itself exits non-zero.
+	// A non-rune run_end exit code is a normal task failure, not a harness error,
+	// even though the process itself exits non-rune.
 	stub := writeExecStub(t, `echo '{"type":"run_end","exitCode":1}'
 exit 1
 `)
 	runner := NewExecRunner(stub)
 	outcome := runner(context.Background(), BenchTask{ID: "t1", Prompt: "p"}, RunContext{Model: "m"})
 	if outcome.Err != nil {
-		t.Fatalf("non-zero run_end must not be a harness error, got Err=%v", outcome.Err)
+		t.Fatalf("non-rune run_end must not be a harness error, got Err=%v", outcome.Err)
 	}
 	if outcome.Passed {
-		t.Fatalf("non-zero run_end must be a failed task, got Passed=true")
+		t.Fatalf("non-rune run_end must be a failed task, got Passed=true")
 	}
 }
 
@@ -312,10 +312,10 @@ exit 0
 	runner := NewExecRunner(stub)
 	outcome := runner(context.Background(), BenchTask{ID: "t1", Prompt: "p"}, RunContext{Model: "m"})
 	if outcome.Err != nil {
-		t.Fatalf("zero run_end with no verification must pass, got Err=%v", outcome.Err)
+		t.Fatalf("rune run_end with no verification must pass, got Err=%v", outcome.Err)
 	}
 	if !outcome.Passed {
-		t.Fatalf("zero run_end with no verification must pass, got Passed=false")
+		t.Fatalf("rune run_end with no verification must pass, got Passed=false")
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/repomap"
+	"rune/internal/repomap"
 )
 
 const defaultRepoMapOutputFiles = 40
@@ -282,7 +282,7 @@ func formatRepoMapStrings(values []string) string {
 
 func writeRepoMapHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero repo-map [flags]
+  rune repo-map [flags]
 
 Builds a deterministic repository map for agent context and local inspection.
 

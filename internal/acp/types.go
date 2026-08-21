@@ -2,7 +2,7 @@ package acp
 
 import "encoding/json"
 
-// ProtocolVersion is the ACP protocol version ZERO speaks. Wire compatibility is
+// ProtocolVersion is the ACP protocol version RUNE speaks. Wire compatibility is
 // negotiated during initialize; v1 is the current stable version.
 const ProtocolVersion = 1
 
@@ -21,7 +21,7 @@ const (
 	MethodFSReadTextFile         = "fs/read_text_file"          // agent -> client
 	MethodFSWriteTextFile        = "fs/write_text_file"         // agent -> client
 
-	// Vendor-prefixed ZERO extensions (clients that don't support them ignore the
+	// Vendor-prefixed RUNE extensions (clients that don't support them ignore the
 	// method and degrade cleanly, per the spec's _-prefixed convention).
 	MethodZeroSetModel = "_zero/set_model"
 )
@@ -87,10 +87,10 @@ type InitializeResult struct {
 
 // ---- content blocks ----
 
-// ContentBlock is the polymorphic content type. ZERO emits "text" (and "image"
+// ContentBlock is the polymorphic content type. RUNE emits "text" (and "image"
 // on tool content); it parses "text", "image", and "resource"/"resource_link"
 // from inbound prompts. A single struct with omitempty fields covers both
-// directions since the field names do not collide across the variants ZERO uses.
+// directions since the field names do not collide across the variants RUNE uses.
 type ContentBlock struct {
 	Type     string          `json:"type"`
 	Text     string          `json:"text,omitempty"`
@@ -105,8 +105,8 @@ func TextBlock(text string) ContentBlock { return ContentBlock{Type: "text", Tex
 
 // ---- sessions ----
 
-// McpServer mirrors the editor-provided MCP server entry. ZERO owns its own MCP
-// configuration (BYOK), so these are accepted for spec compliance; ZERO's
+// McpServer mirrors the editor-provided MCP server entry. RUNE owns its own MCP
+// configuration (BYOK), so these are accepted for spec compliance; RUNE's
 // configured servers remain authoritative.
 type McpServer struct {
 	Name    string          `json:"name"`
@@ -212,9 +212,9 @@ type ToolCallUpdate struct {
 	Locations     []ToolCallLocation `json:"locations,omitempty"`
 }
 
-// ToolCallContent is a tool call's rendered output. ZERO emits "content" (a
+// ToolCallContent is a tool call's rendered output. RUNE emits "content" (a
 // text/image block) and "diff" (a file change); "terminal" is part of the spec
-// but unused because ZERO executes locally.
+// but unused because RUNE executes locally.
 type ToolCallContent struct {
 	Type string `json:"type"`
 	// type == "content"

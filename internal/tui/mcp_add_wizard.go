@@ -8,8 +8,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	internalmcp "github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/redaction"
+	internalmcp "rune/internal/mcp"
+	"rune/internal/redaction"
 )
 
 const (

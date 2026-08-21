@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/redaction"
 )
 
 func TestDiscoverParsesMetadata(t *testing.T) {

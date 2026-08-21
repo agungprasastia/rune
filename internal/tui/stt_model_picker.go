@@ -11,10 +11,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/dictation"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodelcatalog"
+	"rune/internal/config"
+	"rune/internal/dictation"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodelcatalog"
 )
 
 // sttModelValue encodes a picker selection as "provider:model" (model may be

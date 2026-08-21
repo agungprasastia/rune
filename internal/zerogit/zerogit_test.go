@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/redaction"
+	"rune/internal/redaction"
 )
 
 func TestInspectSummarizesChangesAndRedactsDiff(t *testing.T) {
@@ -164,7 +164,7 @@ func TestCommitRejectsCleanTreeAndInvalidMessage(t *testing.T) {
 
 func TestInspectPreviewIncludesUntrackedOnlyChanges(t *testing.T) {
 	root := initGitRepo(t, true)
-	writeTestFile(t, filepath.Join(root, "notes.md"), "hello zero\n")
+	writeTestFile(t, filepath.Join(root, "notes.md"), "hello rune\n")
 
 	summary, err := Inspect(context.Background(), InspectOptions{Cwd: root})
 	if err != nil {
@@ -180,7 +180,7 @@ func TestInspectPreviewIncludesUntrackedOnlyChanges(t *testing.T) {
 	if !strings.Contains(summary.DiffStat, "notes.md") {
 		t.Fatalf("diff stat does not include untracked file: %q", summary.DiffStat)
 	}
-	if !strings.Contains(summary.Diff, "diff --git a/notes.md b/notes.md") || !strings.Contains(summary.Diff, "+hello zero") {
+	if !strings.Contains(summary.Diff, "diff --git a/notes.md b/notes.md") || !strings.Contains(summary.Diff, "+hello rune") {
 		t.Fatalf("diff does not include untracked file content: %q", summary.Diff)
 	}
 	if staged := runGitCommand(t, root, "diff", "--cached", "--name-only"); strings.TrimSpace(staged) != "" {
@@ -252,7 +252,7 @@ func TestInspectBaseRefRealGitDiffsBranchAgainstBase(t *testing.T) {
 	runGitCommand(t, root, "checkout", "-q", "-b", "feature")
 	writeTestFile(t, filepath.Join(root, "feature.md"), "branch only\n")
 	runGitCommand(t, root, "add", "feature.md")
-	runGitCommand(t, root, "-c", "user.name=Zero", "-c", "user.email=zero@example.invalid", "commit", "-m", "Add feature")
+	runGitCommand(t, root, "-c", "user.name=Rune", "-c", "user.email=rune@example.invalid", "commit", "-m", "Add feature")
 
 	summary, err := Inspect(context.Background(), InspectOptions{Cwd: root, BaseRef: strings.TrimSpace(baseRef)})
 	if err != nil {
@@ -449,7 +449,7 @@ func initGitRepo(t *testing.T, withCommit bool) string {
 	if withCommit {
 		writeTestFile(t, filepath.Join(root, "README.md"), "initial\n")
 		runGitCommand(t, root, "add", "README.md")
-		runGitCommand(t, root, "-c", "user.name=Zero", "-c", "user.email=zero@example.invalid", "commit", "-m", "Initial commit")
+		runGitCommand(t, root, "-c", "user.name=Rune", "-c", "user.email=rune@example.invalid", "commit", "-m", "Initial commit")
 	}
 	return root
 }
@@ -731,7 +731,7 @@ func TestPushBranchesToRemote(t *testing.T) {
 		// CreateBranch's own remote-collision probe runs before this push, so
 		// a concurrent creator of the same name in that window would
 		// otherwise be silently fast-forwarded. RequireNewRemoteBranch closes
-		// it with a zero-value --force-with-lease asserting the destination
+		// it with a rune-value --force-with-lease asserting the destination
 		// still doesn't exist at push time.
 		root := t.TempDir()
 		runner := &fakeRunner{results: []CommandResult{
@@ -1610,7 +1610,7 @@ func TestIsDefaultBranchAllowsFirstPushToUnbornRemote(t *testing.T) {
 	root := t.TempDir()
 	runner := &fakeRunner{results: []CommandResult{
 		{Stdout: root + "\n"},
-		{Stdout: "\n"}, // ls-remote --symref: remote answered, zero refs
+		{Stdout: "\n"}, // ls-remote --symref: remote answered, rune refs
 		{Stdout: "\n"}, // ls-remote --heads: confirms no branches at all
 	}}
 
@@ -1632,7 +1632,7 @@ func TestIsDefaultBranchClassifiesConventionalDefaultOnUnbornRemote(t *testing.T
 	root := t.TempDir()
 	runner := &fakeRunner{results: []CommandResult{
 		{Stdout: root + "\n"},
-		{Stdout: "\n"}, // ls-remote --symref: remote answered, zero refs
+		{Stdout: "\n"}, // ls-remote --symref: remote answered, rune refs
 		{Stdout: "\n"}, // ls-remote --heads: confirms no branches at all
 	}}
 
@@ -1741,7 +1741,7 @@ func TestResetBranchRefMovesDefaultWithoutTouchingFeature(t *testing.T) {
 	runGitCommand(t, root, "update-ref", "refs/remotes/origin/main", base)
 	writeTestFile(t, filepath.Join(root, "feature.txt"), "work\n")
 	runGitCommand(t, root, "add", "feature.txt")
-	runGitCommand(t, root, "-c", "user.name=Zero", "-c", "user.email=zero@example.invalid", "commit", "-m", "add feature")
+	runGitCommand(t, root, "-c", "user.name=Rune", "-c", "user.email=rune@example.invalid", "commit", "-m", "add feature")
 	featureTip := strings.TrimSpace(runGitCommand(t, root, "rev-parse", "HEAD"))
 	if featureTip == base {
 		t.Fatal("expected a new commit on main before branching")
@@ -1809,8 +1809,8 @@ func TestRemoteHasBranchReportsTrueForDivergedTip(t *testing.T) {
 	repo := filepath.Join(tmp, "repo")
 	runGitCommand(t, tmp, "init", "--bare", bare)
 	runGitCommand(t, tmp, "init", repo)
-	runGitCommand(t, repo, "config", "user.name", "Zero")
-	runGitCommand(t, repo, "config", "user.email", "zero@example.invalid")
+	runGitCommand(t, repo, "config", "user.name", "Rune")
+	runGitCommand(t, repo, "config", "user.email", "rune@example.invalid")
 	runGitCommand(t, repo, "checkout", "-b", "main")
 	writeTestFile(t, filepath.Join(repo, "README.md"), "initial\n")
 	runGitCommand(t, repo, "add", "README.md")
@@ -1854,8 +1854,8 @@ func TestRemoteHasBranchSeesPushWithoutLocalUpstream(t *testing.T) {
 	repo := filepath.Join(tmp, "repo")
 	runGitCommand(t, tmp, "init", "--bare", bare)
 	runGitCommand(t, tmp, "init", repo)
-	runGitCommand(t, repo, "config", "user.name", "Zero")
-	runGitCommand(t, repo, "config", "user.email", "zero@example.invalid")
+	runGitCommand(t, repo, "config", "user.name", "Rune")
+	runGitCommand(t, repo, "config", "user.email", "rune@example.invalid")
 	runGitCommand(t, repo, "checkout", "-b", "main")
 	writeTestFile(t, filepath.Join(repo, "README.md"), "initial\n")
 	runGitCommand(t, repo, "add", "README.md")
@@ -1908,8 +1908,8 @@ func TestHasUpstreamRejectsInheritedMainUpstream(t *testing.T) {
 	repo := filepath.Join(tmp, "repo")
 	runGitCommand(t, tmp, "init", "--bare", bare)
 	runGitCommand(t, tmp, "init", repo)
-	runGitCommand(t, repo, "config", "user.name", "Zero")
-	runGitCommand(t, repo, "config", "user.email", "zero@example.invalid")
+	runGitCommand(t, repo, "config", "user.name", "Rune")
+	runGitCommand(t, repo, "config", "user.email", "rune@example.invalid")
 	runGitCommand(t, repo, "checkout", "-b", "main")
 	writeTestFile(t, filepath.Join(repo, "README.md"), "initial\n")
 	runGitCommand(t, repo, "add", "README.md")
@@ -1963,12 +1963,12 @@ func TestResetBranchRefRefusesConcurrentDefaultAdvance(t *testing.T) {
 	base := strings.TrimSpace(runGitCommand(t, root, "rev-parse", "HEAD"))
 	writeTestFile(t, filepath.Join(root, "feature.txt"), "feature\n")
 	runGitCommand(t, root, "add", "feature.txt")
-	runGitCommand(t, root, "-c", "user.name=Zero", "-c", "user.email=zero@example.invalid", "commit", "-m", "feature")
+	runGitCommand(t, root, "-c", "user.name=Rune", "-c", "user.email=rune@example.invalid", "commit", "-m", "feature")
 	featureTip := strings.TrimSpace(runGitCommand(t, root, "rev-parse", "HEAD"))
 	runGitCommand(t, root, "checkout", "-b", "someone/feature")
 	writeTestFile(t, filepath.Join(root, "concurrent.txt"), "concurrent\n")
 	runGitCommand(t, root, "add", "concurrent.txt")
-	runGitCommand(t, root, "-c", "user.name=Zero", "-c", "user.email=zero@example.invalid", "commit", "-m", "concurrent")
+	runGitCommand(t, root, "-c", "user.name=Rune", "-c", "user.email=rune@example.invalid", "commit", "-m", "concurrent")
 	concurrentTip := strings.TrimSpace(runGitCommand(t, root, "rev-parse", "HEAD"))
 	runGitCommand(t, root, "update-ref", "refs/heads/main", concurrentTip)
 	err := ResetBranchRef(context.Background(), root, "main", base, nil, base)

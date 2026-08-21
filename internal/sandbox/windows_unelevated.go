@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/fsutil"
+	"rune/internal/fsutil"
 )
 
 const windowsUnelevatedSetupMarkerSchemaVersion = 1

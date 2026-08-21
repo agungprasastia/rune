@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/usage"
-	"github.com/rune-ai/rune/internal/zerogit"
+	"rune/internal/modelregistry"
+	"rune/internal/sessions"
+	"rune/internal/usage"
+	"rune/internal/zerogit"
 )
 
 type usageOptions struct {
@@ -118,7 +118,7 @@ func runUsage(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) i
 	events := filterEventsSince(set.events, since)
 
 	// The net-LOC column is best-effort garnish on a token report: outside a
-	// git repository (or on any git failure) it degrades to zero instead of
+	// git repository (or on any git failure) it degrades to rune instead of
 	// aborting the entire report.
 	diff := zerogit.DiffStat{}
 	if workspaceRoot, err := resolveWorkspaceRoot("", deps); err == nil {
@@ -299,10 +299,10 @@ func groupThousands(value int) string {
 
 func writeUsageHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero usage report [flags]
+  rune usage report [flags]
 
 Summarizes token usage and reconstructed (estimated) cost from persisted local
-Zero session usage events, plus a working-tree net-LOC efficiency estimate.
+Rune session usage events, plus a working-tree net-LOC efficiency estimate.
 
 Flags:
       --json                 Print JSON report

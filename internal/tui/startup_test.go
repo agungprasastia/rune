@@ -15,14 +15,14 @@ func TestEmptyStateShowsBrandAndTaglineOnly(t *testing.T) {
 	view := plainRender(t, m.View())
 	assertContains(t, view, "███████╗███████╗██████╗  ██████╗")
 	assertContains(t, view, emptyStateTagline)
-	assertNotContains(t, view, "running zero against ")
+	assertNotContains(t, view, "running rune against ")
 	assertNotContains(t, view, "add a --version flag")
 	assertNotContains(t, view, "explain internal/agent/loop.go")
 	assertNotContains(t, view, "fix the failing test in internal/tools")
 }
 
 // TestWordmarkIsPlain guards the --version banner: it must carry no ANSI
-// escapes, because this renderer never resolves --theme/ZERO_THEME and any
+// escapes, because this renderer never resolves --theme/RUNE_THEME and any
 // palette color could be unreadable on the user's background.
 func TestWordmarkIsPlain(t *testing.T) {
 	wordmark := Wordmark()

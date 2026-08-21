@@ -2,8 +2,8 @@
 package zerocommands
 
 import (
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/mcp"
+	"rune/internal/hooks"
+	"rune/internal/mcp"
 )
 
 // HookSnapshotsWithSource converts a slice of hooks.Definition and
@@ -17,7 +17,7 @@ func HookSnapshotsWithSource(definitions []hooks.Definition, source hooks.Config
 // MCPServerSnapshotWithCounts returns a snapshot that also records
 // how many tools the server exposes and how many persistent
 // approvals are currently recorded. A nil counts struct is treated
-// as zero values so callers that do not have a live registry can
+// as rune values so callers that do not have a live registry can
 // still call this helper.
 func MCPServerSnapshotWithCounts(server mcp.Server, counts *MCPServerCounts) MCPServerSnapshot {
 	snapshot := MCPServerSnapshotFromServer(server)

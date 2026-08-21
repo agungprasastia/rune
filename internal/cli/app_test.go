@@ -14,14 +14,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/tui"
-	"github.com/rune-ai/rune/internal/update"
-	"github.com/rune-ai/rune/internal/workspacetrust"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/mcp"
+	"rune/internal/tools"
+	"rune/internal/tui"
+	"rune/internal/update"
+	"rune/internal/workspacetrust"
+	"rune/internal/zeroruntime"
 )
 
 var errWriteFailed = errors.New("write failed")
@@ -42,8 +42,8 @@ func TestRunPrintsVersion(t *testing.T) {
 		t.Fatalf("expected exit code 0, got %d", exitCode)
 	}
 	// Non-terminal stdout keeps the machine-readable contract: exactly one
-	// "zero <version>" record, no wordmark banner, no ANSI.
-	if got := stdout.String(); got != "zero dev\n" {
+	// "rune <version>" record, no wordmark banner, no ANSI.
+	if got := stdout.String(); got != "rune dev\n" {
 		t.Fatalf("expected version output, got %q", got)
 	}
 	if stderr.Len() != 0 {
@@ -51,7 +51,7 @@ func TestRunPrintsVersion(t *testing.T) {
 	}
 }
 
-// TestRunVersionRedirectedFile covers the `zero --version > file` path: stdout
+// TestRunVersionRedirectedFile covers the `rune --version > file` path: stdout
 // is a real *os.File but not a terminal, so the single-line contract must hold.
 func TestRunVersionRedirectedFile(t *testing.T) {
 	stdout, err := os.CreateTemp(t.TempDir(), "version-stdout")
@@ -70,7 +70,7 @@ func TestRunVersionRedirectedFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read temp stdout: %v", err)
 	}
-	if got := string(content); got != "zero dev\n" {
+	if got := string(content); got != "rune dev\n" {
 		t.Fatalf("expected version output, got %q", got)
 	}
 	if stderr.Len() != 0 {
@@ -115,14 +115,14 @@ func TestRunNoArgsLaunchesSetupTUIWithNilProviderWhenNoProviderConfigured(t *tes
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
 	setCLIUserConfigRoot(t)
-	projectConfigPath := filepath.Join(cwd, ".zero", "config.json")
+	projectConfigPath := filepath.Join(cwd, ".rune", "config.json")
 	if err := os.MkdirAll(filepath.Dir(projectConfigPath), 0o700); err != nil {
 		t.Fatalf("create project config parent: %v", err)
 	}
 	if err := os.WriteFile(projectConfigPath, []byte("{}"), 0o600); err != nil {
 		t.Fatalf("write project config: %v", err)
 	}
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	var launchedOptions tui.Options
 
 	exitCode := runWithDeps([]string{}, &stdout, &stderr, appDeps{
@@ -273,7 +273,7 @@ func TestRunNoArgsEntersSetupWhenResolveReportsNoActiveProvider(t *testing.T) {
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
 	setCLIUserConfigRoot(t)
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	var launchedOptions tui.Options
 	launched := false
 
@@ -320,7 +320,7 @@ func TestRunNoArgsFallsBackToUsableProviderWhenNoneMarkedActive(t *testing.T) {
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
 	setCLIUserConfigRoot(t)
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	var launchedOptions tui.Options
 	launched := false
 	var providerProfile config.ProviderProfile
@@ -396,7 +396,7 @@ func TestRunNoArgsFailsWhenResolveErrorIsNotProviderRelated(t *testing.T) {
 	})
 
 	if exitCode == 0 {
-		t.Fatal("exit code = 0, want non-zero for fatal config error")
+		t.Fatal("exit code = 0, want non-rune for fatal config error")
 	}
 	if !strings.Contains(stderr.String(), "invalid config JSON") {
 		t.Fatalf("stderr = %q, want the underlying config error", stderr.String())
@@ -407,7 +407,7 @@ func TestRunNoArgsLaunchesTUIWithMCPState(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	mcpConfig := config.MCPConfig{Servers: map[string]config.MCPServerConfig{
 		"docs": {Type: "stdio", Command: "docs-mcp"},
 	}}
@@ -490,7 +490,7 @@ func TestTUIMCPCommandUsesLastGoodConfigOnRefreshError(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	startupConfig := config.MCPConfig{Servers: map[string]config.MCPServerConfig{
 		"docs": {Type: "stdio", Command: "docs-mcp"},
 	}}
@@ -555,7 +555,7 @@ func TestRunNoArgsClosesPartialMCPRuntimeWhenRegistrationFails(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	permissionStore, err := mcp.NewPermissionStore(mcp.StoreOptions{FilePath: filepath.Join(t.TempDir(), "mcp-permissions.json")})
 	if err != nil {
 		t.Fatalf("NewPermissionStore() error = %v", err)
@@ -614,7 +614,7 @@ func TestRunNoArgsSoftFailsMCPTokenStoreInit(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	permissionStore, err := mcp.NewPermissionStore(mcp.StoreOptions{FilePath: filepath.Join(t.TempDir(), "mcp-permissions.json")})
 	if err != nil {
 		t.Fatalf("NewPermissionStore() error = %v", err)
@@ -661,7 +661,7 @@ func TestRunNoArgsLaunchesTUIWithResolvedProviderMetadata(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cwd := t.TempDir()
-	userConfigPath := filepath.Join(t.TempDir(), "zero", "config.json")
+	userConfigPath := filepath.Join(t.TempDir(), "rune", "config.json")
 	fake := &cliFakeProvider{}
 	var launchedOptions tui.Options
 	var providerProfile config.ProviderProfile
@@ -775,15 +775,15 @@ func TestRunNoArgsLaunchesTUIInAskPermissionMode(t *testing.T) {
 // untrusted repo whose only project config is MCP must print the notice before runTUI;
 // trusting it silences it. runTUI is stubbed so nothing renders; resolveMCPConfig
 // returns no servers so nothing spawns -- the notice depends only on the trust verdict
-// and the real ./.zero/config.json.
+// and the real ./.rune/config.json.
 func TestRunInteractiveSurfacesMCPTrustNotice(t *testing.T) {
 	setTrustConfigRoot(t)
 	repo := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(repo, ".zero"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".rune"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	body := `{"mcp":{"servers":{"proj":{"type":"stdio","command":"proj-cmd"}}}}`
-	if err := os.WriteFile(filepath.Join(repo, ".zero", "config.json"), []byte(body), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, ".rune", "config.json"), []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -804,7 +804,7 @@ func TestRunInteractiveSurfacesMCPTrustNotice(t *testing.T) {
 	}
 
 	untrusted := run()
-	if !strings.Contains(untrusted, "MCP servers") || !strings.Contains(untrusted, "zero trust") {
+	if !strings.Contains(untrusted, "MCP servers") || !strings.Contains(untrusted, "rune trust") {
 		t.Fatalf("untrusted interactive launch must surface the MCP trust notice, stderr=%q", untrusted)
 	}
 
@@ -823,7 +823,7 @@ func TestRunSkipPermissionsUnsafeLaunchesTUIInUnsafeMode(t *testing.T) {
 	launched := false
 	var launchedOptions tui.Options
 
-	// "zero --skip-permissions-unsafe" must launch the interactive TUI in unsafe
+	// "rune --skip-permissions-unsafe" must launch the interactive TUI in unsafe
 	// mode (not fall through to "unknown command"). This is the only way to reach
 	// unsafe mode in the shell, which the "!" escape is gated behind.
 	exitCode := runWithDeps([]string{"--skip-permissions-unsafe"}, &stdout, &stderr, appDeps{
@@ -1217,7 +1217,7 @@ func TestRunSetupProviderWritesActiveConfig(t *testing.T) {
 	if len(cfg.Providers) != 1 || cfg.Providers[0].CatalogID != "ollama" || cfg.Providers[0].Model == "" {
 		t.Fatalf("Providers = %#v, want ollama provider with model", cfg.Providers)
 	}
-	if !strings.Contains(stdout.String(), "Zero setup complete") || !strings.Contains(stdout.String(), "next: zero") {
+	if !strings.Contains(stdout.String(), "Rune setup complete") || !strings.Contains(stdout.String(), "next: rune") {
 		t.Fatalf("unexpected setup output: %q", stdout.String())
 	}
 	if stderr.Len() != 0 {
@@ -1234,10 +1234,10 @@ func TestRunUpdateCheckTextAndJSON(t *testing.T) {
 		ReleaseAsset: update.AssetCheck{
 			Platform:      "linux",
 			Arch:          "x64",
-			ArchiveName:   "zero-v0.2.0-linux-x64.tar.gz",
-			ArchiveURL:    "https://example.test/zero-v0.2.0-linux-x64.tar.gz",
-			ChecksumName:  "zero-v0.2.0-linux-x64.tar.gz.sha256",
-			ChecksumURL:   "https://example.test/zero-v0.2.0-linux-x64.tar.gz.sha256",
+			ArchiveName:   "rune-v0.2.0-linux-x64.tar.gz",
+			ArchiveURL:    "https://example.test/rune-v0.2.0-linux-x64.tar.gz",
+			ChecksumName:  "rune-v0.2.0-linux-x64.tar.gz.sha256",
+			ChecksumURL:   "https://example.test/rune-v0.2.0-linux-x64.tar.gz.sha256",
 			ArchiveFound:  true,
 			ChecksumFound: true,
 			Verified:      true,
@@ -1260,7 +1260,7 @@ func TestRunUpdateCheckTextAndJSON(t *testing.T) {
 	if !strings.Contains(stdout.String(), "Update available: dev -> 0.2.0") {
 		t.Fatalf("unexpected update text: %q", stdout.String())
 	}
-	if !strings.Contains(stdout.String(), "Release asset: zero-v0.2.0-linux-x64.tar.gz") || !strings.Contains(stdout.String(), "Checksum asset: zero-v0.2.0-linux-x64.tar.gz.sha256") {
+	if !strings.Contains(stdout.String(), "Release asset: rune-v0.2.0-linux-x64.tar.gz") || !strings.Contains(stdout.String(), "Checksum asset: rune-v0.2.0-linux-x64.tar.gz.sha256") {
 		t.Fatalf("unexpected update asset text: %q", stdout.String())
 	}
 	if stderr.Len() != 0 {
@@ -1466,7 +1466,7 @@ func TestTopLevelHelpDocumentsRequiredUpdateMode(t *testing.T) {
 	if exitCode != exitSuccess {
 		t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
-	if got := stdout.String(); !strings.Contains(got, "update     Check or apply Zero CLI updates (requires --check or --apply)") {
+	if got := stdout.String(); !strings.Contains(got, "update     Check or apply Rune CLI updates (requires --check or --apply)") {
 		t.Fatalf("expected top-level help to document required update mode, got %q", got)
 	}
 }
@@ -1507,7 +1507,7 @@ func TestRunUpdateApplyTextAndJSON(t *testing.T) {
 		},
 		Applied:       true,
 		InstallMethod: update.InstallMethodStandalone,
-		BinaryPath:    "/usr/local/bin/zero",
+		BinaryPath:    "/usr/local/bin/rune",
 		Message:       "updated to 0.2.0",
 	}
 	var gotOptions update.Options
@@ -1562,7 +1562,7 @@ func TestRunUpgradeDefaultsToApply(t *testing.T) {
 			return update.ApplyResult{Message: "already up to date"}, nil
 		},
 		checkUpdate: func(context.Context, update.Options) (update.Result, error) {
-			t.Fatal("checkUpdate should not run for `zero upgrade`")
+			t.Fatal("checkUpdate should not run for `rune upgrade`")
 			return update.Result{}, nil
 		},
 	}
@@ -1574,7 +1574,7 @@ func TestRunUpgradeDefaultsToApply(t *testing.T) {
 		t.Fatalf("expected exit code %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
 	if !applyCalled {
-		t.Fatal("expected `zero upgrade` to call applyUpdate")
+		t.Fatal("expected `rune upgrade` to call applyUpdate")
 	}
 }
 
@@ -1659,9 +1659,9 @@ func assertHelpOutput(t *testing.T, args []string) {
 
 	output := stdout.String()
 	for _, want := range []string{
-		"ZERO terminal coding agent",
+		"RUNE terminal coding agent",
 		"Usage:",
-		"zero [command]",
+		"rune [command]",
 		"exec",
 		"config",
 		"models",
@@ -1807,7 +1807,7 @@ func assertAgentOptions(t *testing.T, options tui.Options, maxTurns int, permiss
 
 func TestRunThemeFlagPopulatesTUIOptions(t *testing.T) {
 	// The --theme flag must reach tui.Options.Theme (resolveThemeMode prefers it
-	// over ZERO_THEME). Previously Options.Theme was read but never set by the CLI.
+	// over RUNE_THEME). Previously Options.Theme was read but never set by the CLI.
 	for _, tc := range []struct {
 		args []string
 		want string
@@ -1856,8 +1856,8 @@ func TestRunThemeFlagRejectsBadValue(t *testing.T) {
 	}
 }
 
-// A custom endpoint saved without a model previously bricked bare `zero` and
-// `zero setup` — the exact commands that could have fixed it (the resolve
+// A custom endpoint saved without a model previously bricked bare `rune` and
+// `rune setup` — the exact commands that could have fixed it (the resolve
 // error escaped before the wizard could open). The interactive TUI now treats
 // the requires-model failure as "needs onboarding", same as a missing active
 // provider. The error comes from a REAL Resolve over a real config file, so
@@ -1886,7 +1886,7 @@ func TestRunNoArgsEntersSetupWhenActiveProviderMissesModel(t *testing.T) {
 			t.Fatal("newProvider must not be called without a resolved provider")
 			return nil, nil
 		},
-		userConfigPath: func() (string, error) { return filepath.Join(t.TempDir(), "zero", "config.json"), nil },
+		userConfigPath: func() (string, error) { return filepath.Join(t.TempDir(), "rune", "config.json"), nil },
 		registerMCPTools: func(context.Context, *tools.Registry, config.MCPConfig, mcp.RegisterOptions) (mcpToolRuntime, error) {
 			return noopMCPRuntime{}, nil
 		},
@@ -1908,7 +1908,7 @@ func TestRunNoArgsEntersSetupWhenActiveProviderMissesModel(t *testing.T) {
 	}
 }
 
-// `zero login`/`zero logout` don't exist (it's `zero auth login`); first-run
+// `rune login`/`rune logout` don't exist (it's `rune auth login`); first-run
 // users try them (reported in the wild), so the unknown-command error points at
 // the real command.
 func TestRunUnknownLoginSuggestsAuthLogin(t *testing.T) {
@@ -1917,8 +1917,8 @@ func TestRunUnknownLoginSuggestsAuthLogin(t *testing.T) {
 	if exitCode != 2 {
 		t.Fatalf("exit = %d, want 2 (unknown command)", exitCode)
 	}
-	if !strings.Contains(stderr.String(), `"zero auth login"`) {
-		t.Fatalf("stderr = %q, want a zero auth login suggestion", stderr.String())
+	if !strings.Contains(stderr.String(), `"rune auth login"`) {
+		t.Fatalf("stderr = %q, want a rune auth login suggestion", stderr.String())
 	}
 	// An unrelated unknown command gets no misleading suggestion.
 	stderr.Reset()

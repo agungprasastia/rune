@@ -6,8 +6,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/sessions"
+	"rune/internal/zeroruntime"
 )
 
 func TestStartNewSessionResetsState(t *testing.T) {

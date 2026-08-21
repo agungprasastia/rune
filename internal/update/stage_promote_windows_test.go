@@ -15,7 +15,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	stateDir, err := os.MkdirTemp("", "zero-update-recovery-test-")
+	stateDir, err := os.MkdirTemp("", "rune-update-recovery-test-")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "create updater test state directory: %v\n", err)
 		os.Exit(1)
@@ -33,7 +33,7 @@ func TestMain(m *testing.M) {
 // at the staging pathname is simply not what gets promoted.
 func TestPromoteInstallsTheStagedObjectNotTheStagedPath(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("old-binary"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestPromoteInstallsTheStagedObjectNotTheStagedPath(t *testing.T) {
 // update that actually stranded the user without an executable at all.
 func TestPromoteRejectsALyingRenameByHandle(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("old-binary"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -163,7 +163,7 @@ func TestPromoteRejectsALyingRenameByHandle(t *testing.T) {
 // sentinel that callers of Apply use to distinguish possible path tampering.
 func TestInstallBinaryPreservesPossibleTamperingError(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("old-binary"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -204,7 +204,7 @@ func TestInstallBinaryPreservesPossibleTamperingError(t *testing.T) {
 	if strings.Contains(err.Error(), "original preserved at "+targetPath+".old") {
 		t.Fatalf("installBinary error falsely claims the relocated copy remains at .old: %v", err)
 	}
-	expectedRecovery := targetPath + ".zero-update-" + suffix + ".old." + suffix + ".recovery"
+	expectedRecovery := targetPath + ".rune-update-" + suffix + ".old." + suffix + ".recovery"
 	if !strings.Contains(err.Error(), expectedRecovery) {
 		t.Fatalf("installBinary error = %v, want the authoritative relocated recovery path", err)
 	}
@@ -218,7 +218,7 @@ func TestInstallBinaryPreservesPossibleTamperingError(t *testing.T) {
 // restoreOriginalBinary could only move those unverified bytes back.
 func TestPromoteRefusesWhileRecoveryCopyIsMarked(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	oldPath := targetPath + ".old"
 	if err := os.WriteFile(targetPath, []byte("unverified"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
@@ -270,7 +270,7 @@ func TestPromoteRefusesWhileRecoveryCopyIsMarked(t *testing.T) {
 
 func TestPromoteRefusesRetryAfterInterruptedAside(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	oldPath := targetPath + ".old"
 	if err := os.WriteFile(oldPath, []byte("known-good"), 0o755); err != nil {
 		t.Fatalf("WriteFile recovery copy: %v", err)
@@ -294,7 +294,7 @@ func TestPromoteRefusesRetryAfterInterruptedAside(t *testing.T) {
 
 func TestPromoteRefusesMarkedRandomAsideRecovery(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	canonicalOld := targetPath + ".old"
 	randomOld := targetPath + ".deadbeef.old"
 	if err := os.WriteFile(targetPath, []byte("unverified"), 0o755); err != nil {
@@ -333,7 +333,7 @@ func TestPromoteRefusesMarkedRandomAsideRecovery(t *testing.T) {
 
 func TestPromoteRefusesAmbiguousRecoveryWhenTargetIsMissing(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	canonicalOld := targetPath + ".old"
 	randomOld := targetPath + ".deadbeef.old"
 	if err := os.WriteFile(canonicalOld, []byte("older-binary"), 0o755); err != nil {
@@ -364,7 +364,7 @@ func TestPromoteRefusesAmbiguousRecoveryWhenTargetIsMissing(t *testing.T) {
 func TestVerifyPromotedTargetRejectsDifferentRegularFile(t *testing.T) {
 	dir := t.TempDir()
 	stagedPath := filepath.Join(dir, "staged.exe")
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(stagedPath, []byte("verified"), 0o755); err != nil {
 		t.Fatalf("WriteFile staged: %v", err)
 	}
@@ -385,7 +385,7 @@ func TestVerifyPromotedTargetRejectsDifferentRegularFile(t *testing.T) {
 func TestVerifyPromotedTargetRejectsAHardLinkedName(t *testing.T) {
 	dir := t.TempDir()
 	stagedPath := filepath.Join(dir, "staged.exe")
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(stagedPath, []byte("verified"), 0o755); err != nil {
 		t.Fatalf("WriteFile staged: %v", err)
 	}
@@ -413,7 +413,7 @@ func TestInstallBinaryThroughReparsePointAncestor(t *testing.T) {
 	if err := os.Symlink(realDir, linkedDir); err != nil {
 		t.Skipf("directory symlink unavailable: %v", err)
 	}
-	targetPath := filepath.Join(linkedDir, "zero.exe")
+	targetPath := filepath.Join(linkedDir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("old-binary"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -425,7 +425,7 @@ func TestInstallBinaryThroughReparsePointAncestor(t *testing.T) {
 	if err := installBinary(sourcePath, targetPath); err != nil {
 		t.Fatalf("installBinary through reparse-point ancestor: %v", err)
 	}
-	installed, err := os.ReadFile(filepath.Join(realDir, "zero.exe"))
+	installed, err := os.ReadFile(filepath.Join(realDir, "rune.exe"))
 	if err != nil {
 		t.Fatalf("ReadFile installed: %v", err)
 	}
@@ -439,7 +439,7 @@ func TestInstallBinaryThroughReparsePointAncestor(t *testing.T) {
 // an updater-owned recovery path, and no staging artifact survives.
 func TestInstallBinaryInstallsVerifiedBytes(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("old-binary"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -462,7 +462,7 @@ func TestInstallBinaryInstallsVerifiedBytes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("existingRecoveryPaths: %v", err)
 	}
-	if len(recoveries) != 1 || !strings.Contains(filepath.Base(recoveries[0]), ".zero-update-") {
+	if len(recoveries) != 1 || !strings.Contains(filepath.Base(recoveries[0]), ".rune-update-") {
 		t.Fatalf("recovery paths = %v, want one namespaced updater recovery", recoveries)
 	}
 	if old, err := os.ReadFile(recoveries[0]); err != nil {
@@ -475,7 +475,7 @@ func TestInstallBinaryInstallsVerifiedBytes(t *testing.T) {
 
 func TestInstallBinaryPreservesArbitraryOldFilesDuringCleanup(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("version-0"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -485,11 +485,11 @@ func TestInstallBinaryPreservesArbitraryOldFilesDuringCleanup(t *testing.T) {
 	}
 	// Also cover a name that resembles the updater namespace but does not carry
 	// the exact 128-bit hexadecimal suffix generated by randomStagingSuffix.
-	lookalike := targetPath + ".zero-update-not-owned.old"
+	lookalike := targetPath + ".rune-update-not-owned.old"
 	if err := os.WriteFile(lookalike, []byte("lookalike-backup"), 0o755); err != nil {
 		t.Fatalf("WriteFile lookalike backup: %v", err)
 	}
-	plantedNamespaced := targetPath + ".zero-update-00000000000000000000000000000000.old"
+	plantedNamespaced := targetPath + ".rune-update-00000000000000000000000000000000.old"
 	if err := os.WriteFile(plantedNamespaced, []byte("planted-namespaced-backup"), 0o755); err != nil {
 		t.Fatalf("WriteFile planted namespaced backup: %v", err)
 	}
@@ -521,8 +521,8 @@ func TestInstallBinaryPreservesArbitraryOldFilesDuringCleanup(t *testing.T) {
 // candidate, so the substitute is not deleted on the next promotion.
 func TestRecoveryCleanupRefusesSubstitutedAside(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
-	recoveryPath := targetPath + ".zero-update-0123456789abcdef0123456789abcdef.old"
+	targetPath := filepath.Join(dir, "rune.exe")
+	recoveryPath := targetPath + ".rune-update-0123456789abcdef0123456789abcdef.old"
 	if err := os.WriteFile(recoveryPath, []byte("moved-aside-binary"), 0o755); err != nil {
 		t.Fatalf("WriteFile recovery: %v", err)
 	}
@@ -560,7 +560,7 @@ func TestRecoveryCleanupRefusesSubstitutedAside(t *testing.T) {
 // what stops cleanup from deleting an operator's own backup.
 func TestAppendRecoveryCleanupRecordRejectsForeignPath(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	foreign := targetPath + ".before-manual-patch.old"
 	if err := os.WriteFile(foreign, []byte("operator-backup"), 0o755); err != nil {
 		t.Fatalf("WriteFile backup: %v", err)
@@ -583,7 +583,7 @@ func TestAppendRecoveryCleanupRecordRejectsForeignPath(t *testing.T) {
 // actionable, so it must not be carried forever.
 func TestRecoveryCleanupRetiresRecordsForVanishedCopies(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("version-0"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -620,7 +620,7 @@ func recordedRecoveryCleanupCount(t *testing.T, targetPath string) int {
 
 func TestInstallBinaryBoundsRecoveryCopiesAcrossRepeatedUpgrades(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("version-0"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -654,7 +654,7 @@ func TestInstallBinaryBoundsRecoveryCopiesAcrossRepeatedUpgrades(t *testing.T) {
 
 func TestInstallBinaryRetainsLockedCleanupRecordUntilLaterRetry(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("version-0"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -688,7 +688,7 @@ func TestInstallBinaryRetainsLockedCleanupRecordUntilLaterRetry(t *testing.T) {
 
 func TestPromoteRestoresOriginalObjectWhenAsidePathIsSubstituted(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("known-good"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -735,7 +735,7 @@ func TestPromoteRestoresOriginalObjectWhenAsidePathIsSubstituted(t *testing.T) {
 
 func TestInstallBinaryRefusesRelocatedRecoveryCopy(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("unverified"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -765,7 +765,7 @@ func TestInstallBinaryRefusesRelocatedRecoveryCopy(t *testing.T) {
 
 func TestInstallBinaryRefusesRecoveryRelocatedFromRandomizedAside(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("unverified"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -788,7 +788,7 @@ func TestInstallBinaryRefusesRecoveryRelocatedFromRandomizedAside(t *testing.T) 
 }
 
 func TestPromotionLockSerializesSameTarget(t *testing.T) {
-	targetPath := filepath.Join(t.TempDir(), "zero.exe")
+	targetPath := filepath.Join(t.TempDir(), "rune.exe")
 	releaseFirst, err := acquirePromotionLock(targetPath)
 	if err != nil {
 		t.Fatalf("acquire first promotion lock: %v", err)
@@ -842,7 +842,7 @@ func TestPromotionLockSerializesSameTarget(t *testing.T) {
 // attempt now uses a fresh random name that the next attempt never reuses.
 func TestInstallBinaryCleansUpWhenStagingFails(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	if err := os.WriteFile(targetPath, []byte("old-binary"), 0o755); err != nil {
 		t.Fatalf("WriteFile target: %v", err)
 	}
@@ -858,7 +858,7 @@ func TestInstallBinaryCleansUpWhenStagingFails(t *testing.T) {
 // staging name after the handle is released.
 func TestDiscardDeletesTheStagedObjectThroughItsHandle(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	staged, err := createStagedBinary(targetPath)
 	if err != nil {
 		t.Fatalf("createStagedBinary: %v", err)
@@ -881,7 +881,7 @@ func TestDiscardDeletesTheStagedObjectThroughItsHandle(t *testing.T) {
 // makes it impossible while the updater still holds the object.
 func TestDiscardLeavesASubstitutedStagingEntryAlone(t *testing.T) {
 	dir := t.TempDir()
-	targetPath := filepath.Join(dir, "zero.exe")
+	targetPath := filepath.Join(dir, "rune.exe")
 	staged, err := createStagedBinary(targetPath)
 	if err != nil {
 		t.Fatalf("createStagedBinary: %v", err)

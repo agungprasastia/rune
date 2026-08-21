@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
@@ -36,7 +36,7 @@ func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
 		BaseURL:   server.URL + "/",
 		Model:     "models/gemini-2.5-flash",
 		MaxTokens: 65_536,
-		UserAgent: "zero-test",
+		UserAgent: "rune-test",
 	})
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
@@ -44,7 +44,7 @@ func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
 
 	stream, err := provider.StreamCompletion(context.Background(), zeroruntime.CompletionRequest{
 		Messages: []zeroruntime.Message{
-			{Role: zeroruntime.MessageRoleSystem, Content: "You are Zero."},
+			{Role: zeroruntime.MessageRoleSystem, Content: "You are Rune."},
 			{Role: zeroruntime.MessageRoleUser, Content: "Read the file."},
 			{
 				Role:    zeroruntime.MessageRoleAssistant,
@@ -56,7 +56,7 @@ func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
 				}},
 			},
 			{Role: zeroruntime.MessageRoleTool, Content: "file contents", ToolCallID: "call_1"},
-			{Role: zeroruntime.MessageRoleUser, Content: "Now grep for Zero."},
+			{Role: zeroruntime.MessageRoleUser, Content: "Now grep for Rune."},
 		},
 		Tools: []zeroruntime.ToolDefinition{{
 			Name:        "read_file",
@@ -78,8 +78,8 @@ func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
 	if gotAPIKey != "sk-google" {
 		t.Fatalf("x-goog-api-key = %q, want key", gotAPIKey)
 	}
-	if gotUserAgent != "zero-test" {
-		t.Fatalf("User-Agent = %q, want zero-test", gotUserAgent)
+	if gotUserAgent != "rune-test" {
+		t.Fatalf("User-Agent = %q, want rune-test", gotUserAgent)
 	}
 	systemInstruction := gotBody["systemInstruction"].(map[string]any)
 	if _, ok := systemInstruction["role"]; ok {
@@ -107,7 +107,7 @@ func TestStreamCompletionPostsGenerateContentRequest(t *testing.T) {
 	if mergedUserParts[0].(map[string]any)["functionResponse"].(map[string]any)["name"] != "read_file" {
 		t.Fatalf("unexpected functionResponse: %#v", mergedUserParts[0])
 	}
-	if mergedUserParts[1].(map[string]any)["text"] != "Now grep for Zero." {
+	if mergedUserParts[1].(map[string]any)["text"] != "Now grep for Rune." {
 		t.Fatalf("user text after tool result was not merged: %#v", mergedUserParts)
 	}
 	tools := gotBody["tools"].([]any)
@@ -255,7 +255,7 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 		Model:         "gemini-test",
 		AuthHeader:    "Authorization",
 		AuthScheme:    "Bearer",
-		CustomHeaders: map[string]string{"X-Tenant": "zero"},
+		CustomHeaders: map[string]string{"X-Tenant": "rune"},
 	})
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
@@ -274,7 +274,7 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 	if gotCustomAuth != "Bearer sk-google" {
 		t.Fatalf("Authorization = %q, want bearer token", gotCustomAuth)
 	}
-	if gotTenant != "zero" {
+	if gotTenant != "rune" {
 		t.Fatalf("X-Tenant = %q, want custom header", gotTenant)
 	}
 }
@@ -282,13 +282,13 @@ func TestStreamCompletionAppliesCustomAuthAndHeaders(t *testing.T) {
 func TestStreamCompletionEmitsTextUsageAndReasoningTokens(t *testing.T) {
 	provider := newTestProvider(t, func(w http.ResponseWriter, r *http.Request) {
 		writeSSE(w, `{"candidates":[{"content":{"parts":[{"text":"Hello"}]}}]}`)
-		writeSSE(w, `{"candidates":[{"content":{"parts":[{"text":" Zero"}]}}],"usageMetadata":{"promptTokenCount":25,"candidatesTokenCount":15,"thoughtsTokenCount":3,"cachedContentTokenCount":7}}`)
+		writeSSE(w, `{"candidates":[{"content":{"parts":[{"text":" Rune"}]}}],"usageMetadata":{"promptTokenCount":25,"candidatesTokenCount":15,"thoughtsTokenCount":3,"cachedContentTokenCount":7}}`)
 	})
 
 	events := collectProviderEvents(t, provider)
 	want := []zeroruntime.StreamEvent{
 		{Type: zeroruntime.StreamEventText, Content: "Hello"},
-		{Type: zeroruntime.StreamEventText, Content: " Zero"},
+		{Type: zeroruntime.StreamEventText, Content: " Rune"},
 		{Type: zeroruntime.StreamEventUsage, Usage: zeroruntime.Usage{InputTokens: 25, OutputTokens: 18, PromptTokens: 25, CompletionTokens: 18, ReasoningTokens: 3, CachedInputTokens: 7}},
 		{Type: zeroruntime.StreamEventDone},
 	}
@@ -299,7 +299,7 @@ func TestStreamCompletionEmitsTextUsageAndReasoningTokens(t *testing.T) {
 
 func TestStreamCompletionEmitsCandidateFunctionCalls(t *testing.T) {
 	provider := newTestProvider(t, func(w http.ResponseWriter, r *http.Request) {
-		writeSSE(w, `{"candidates":[{"content":{"parts":[{"functionCall":{"id":"call_1","name":"read_file","args":{"path":"src/index.ts"}}},{"functionCall":{"id":"call_2","name":"grep","args":{"pattern":"Zero"}}}]}}]}`)
+		writeSSE(w, `{"candidates":[{"content":{"parts":[{"functionCall":{"id":"call_1","name":"read_file","args":{"path":"src/index.ts"}}},{"functionCall":{"id":"call_2","name":"grep","args":{"pattern":"Rune"}}}]}}]}`)
 	})
 
 	events := collectProviderEvents(t, provider)
@@ -308,7 +308,7 @@ func TestStreamCompletionEmitsCandidateFunctionCalls(t *testing.T) {
 		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_1", ArgumentsFragment: `{"path":"src/index.ts"}`},
 		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_1"},
 		{Type: zeroruntime.StreamEventToolCallStart, ToolCallID: "call_2", ToolName: "grep"},
-		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_2", ArgumentsFragment: `{"pattern":"Zero"}`},
+		{Type: zeroruntime.StreamEventToolCallDelta, ToolCallID: "call_2", ArgumentsFragment: `{"pattern":"Rune"}`},
 		{Type: zeroruntime.StreamEventToolCallEnd, ToolCallID: "call_2"},
 		{Type: zeroruntime.StreamEventDone},
 	}
@@ -336,7 +336,7 @@ func TestStreamCompletionEmitsTopLevelFunctionCalls(t *testing.T) {
 
 func TestStreamCompletionUsesSyntheticToolIDsWhenMissing(t *testing.T) {
 	provider := newTestProvider(t, func(w http.ResponseWriter, r *http.Request) {
-		writeSSE(w, `{"functionCalls":[{"name":"grep","args":{"pattern":"Zero"}}]}`)
+		writeSSE(w, `{"functionCalls":[{"name":"grep","args":{"pattern":"Rune"}}]}`)
 	})
 
 	events := collectProviderEvents(t, provider)
@@ -629,7 +629,7 @@ func assertNoAdditionalProps(t *testing.T, node any, path string) {
 }
 
 // TestGeminiRequestOmitsAdditionalPropertiesInToolSchema: end-to-end, the tool
-// parameters Zero emits (schemaToRuntimeMap always writes additionalProperties)
+// parameters Rune emits (schemaToRuntimeMap always writes additionalProperties)
 // must not reach Gemini — otherwise every functionDeclaration is 400-rejected
 // ("Unknown name additionalProperties"), which broke all tool-using exec calls
 // against Google (issue #373).

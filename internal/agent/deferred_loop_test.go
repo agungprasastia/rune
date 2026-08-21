@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func TestOptionsDeferThresholdFieldExists(t *testing.T) {
@@ -24,7 +24,7 @@ func TestToolResultLoadedToolsField(t *testing.T) {
 	if len(result.LoadedTools) != 2 || result.LoadedTools[0] != "Alpha" || result.LoadedTools[1] != "Beta" {
 		t.Fatalf("expected LoadedTools [Alpha Beta], got %#v", result.LoadedTools)
 	}
-	// Default zero value is nil for an ordinary result.
+	// Default rune value is nil for an ordinary result.
 	if (ToolResult{}).LoadedTools != nil {
 		t.Fatalf("expected nil LoadedTools by default")
 	}

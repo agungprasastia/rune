@@ -76,7 +76,7 @@ func TestSTTConfigDefaults(t *testing.T) {
 		t.Error("auto-submit should default off (insert-for-review is the safety net)")
 	}
 	if !cfg.Empty() {
-		t.Error("zero-value STTConfig should be Empty")
+		t.Error("rune-value STTConfig should be Empty")
 	}
 }
 

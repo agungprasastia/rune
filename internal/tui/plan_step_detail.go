@@ -13,7 +13,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // planStepWork is one captured unit of implementation attributed to a plan step:
@@ -571,7 +571,7 @@ func planStepDetailHint(status string) string {
 }
 
 // formatPlanStepDuration renders a step's span in a friendlier form than the raw
-// footer clock: seconds under a minute, "Nm Ns" above. A zero or negative span
+// footer clock: seconds under a minute, "Nm Ns" above. A rune or negative span
 // renders empty so callers can drop the clause.
 func formatPlanStepDuration(d time.Duration) string {
 	if d <= 0 {

@@ -7,8 +7,8 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/dictation"
+	"rune/internal/config"
+	"rune/internal/dictation"
 )
 
 // sttKeyPromptState is the inline API-key prompt shown when a cloud dictation
@@ -146,11 +146,11 @@ func (m model) sttKeyPromptOverlay(width int) string {
 	}
 	input := zeroTheme.userPrompt.Render("api key > ") + value
 	intro := p.label + " isn't set up yet. Paste or type your " + p.label + " API key:"
-	footer := "⏎ save · Esc cancel · stored in Zero's credential store"
+	footer := "⏎ save · Esc cancel · stored in Rune's credential store"
 	if p.optional {
 		// A key already resolves — this pass is for replacing an invalid/old one.
 		intro = p.label + " already has an API key. Paste a new one to replace it, or press Esc to keep it:"
-		footer = "⏎ replace · Esc keep saved key · stored in Zero's credential store"
+		footer = "⏎ replace · Esc keep saved key · stored in Rune's credential store"
 	}
 	lines := []string{
 		zeroTheme.ink.Render(intro),

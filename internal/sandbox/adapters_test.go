@@ -77,15 +77,15 @@ func TestSelectBackendChoosesPlatformAdapterWithFallback(t *testing.T) {
 			GOOS: "windows",
 			LookupExecutable: func(name string) (string, error) {
 				if name == WindowsSandboxCommandRunnerName {
-					return `C:\zero\rune-windows-command-runner.exe`, nil
+					return `C:\rune\rune-windows-command-runner.exe`, nil
 				}
 				if name == WindowsSandboxSetupName {
-					return `C:\zero\rune-windows-sandbox-setup.exe`, nil
+					return `C:\rune\rune-windows-sandbox-setup.exe`, nil
 				}
 				return "", errors.New("missing")
 			},
 		})
-		if backend.Name != BackendWindowsRestrictedToken || !backend.Available || backend.Executable != `C:\zero\rune-windows-command-runner.exe` {
+		if backend.Name != BackendWindowsRestrictedToken || !backend.Available || backend.Executable != `C:\rune\rune-windows-command-runner.exe` {
 			t.Fatalf("windows backend = %#v, want available restricted-token runner", backend)
 		}
 		if backend.Platform != "windows" || backend.Fallback || !backend.CommandWrapping || !backend.NativeIsolation {
@@ -105,10 +105,10 @@ func TestSelectBackendChoosesPlatformAdapterWithFallback(t *testing.T) {
 
 	t.Run("windows missing helper exes self-dispatch", func(t *testing.T) {
 		// No adjacent or PATH helper .exe (the dev / plain `go build` case): the
-		// backend self-dispatches via the running zero binary, so it is AVAILABLE
+		// backend self-dispatches via the running rune binary, so it is AVAILABLE
 		// rather than failing every command. Pin os.Executable for determinism.
 		restore := osExecutable
-		osExecutable = func() (string, error) { return `C:\zero\zero.exe`, nil }
+		osExecutable = func() (string, error) { return `C:\rune\rune.exe`, nil }
 		defer func() { osExecutable = restore }()
 		backend := SelectBackend(BackendOptions{
 			GOOS:             "windows",
@@ -117,7 +117,7 @@ func TestSelectBackendChoosesPlatformAdapterWithFallback(t *testing.T) {
 		if backend.Name != BackendWindowsRestrictedToken || !backend.Available || backend.Platform != "windows" {
 			t.Fatalf("windows backend = %#v, want available via self-dispatch", backend)
 		}
-		if backend.Executable != `C:\zero\zero.exe` {
+		if backend.Executable != `C:\rune\rune.exe` {
 			t.Fatalf("self-dispatch executable = %q, want the running binary", backend.Executable)
 		}
 		if len(backend.ExecutableArgsPrefix) != 1 || backend.ExecutableArgsPrefix[0] != WindowsCommandRunnerSubcommand {

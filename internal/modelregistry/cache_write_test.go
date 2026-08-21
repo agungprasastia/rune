@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // A premium cache-write rate prices cache-creation tokens separately from the

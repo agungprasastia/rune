@@ -8,8 +8,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/background"
-	"github.com/rune-ai/rune/internal/streamjson"
+	"rune/internal/background"
+	"rune/internal/streamjson"
 )
 
 func NewOutputTool(manager *background.Manager) *OutputTool {

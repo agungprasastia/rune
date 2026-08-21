@@ -9,8 +9,8 @@ model-specific, so a single snapshot here would mislead rather than inform.
 Run the harness over the checked-in manifest:
 
 ```sh
-make baseline ZERO_BENCH_MODEL=<model>              # uses ./zero
-make baseline ZERO_BENCH_MODEL=<model> ZERO_BENCH_BINARY=/path/to/zero
+make baseline RUNE_BENCH_MODEL=<model>              # uses ./zero
+make baseline RUNE_BENCH_MODEL=<model> RUNE_BENCH_BINARY=/path/to/zero
 ```
 
 This builds `zero`, then runs `zero-perf-bench turn` over

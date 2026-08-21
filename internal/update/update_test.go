@@ -71,7 +71,7 @@ func TestCheckReportsAvailableUpdate(t *testing.T) {
 	if !result.UpdateAvailable || result.LatestVersion != "0.2.0" {
 		t.Fatalf("unexpected update result: %#v", result)
 	}
-	if !result.ReleaseAsset.Verified || result.ReleaseAsset.ArchiveName != "zero-v0.2.0-linux-x64.tar.gz" || result.ReleaseAsset.ChecksumName != "zero-v0.2.0-linux-x64.tar.gz.sha256" {
+	if !result.ReleaseAsset.Verified || result.ReleaseAsset.ArchiveName != "rune-v0.2.0-linux-x64.tar.gz" || result.ReleaseAsset.ChecksumName != "rune-v0.2.0-linux-x64.tar.gz.sha256" {
 		t.Fatalf("unexpected release asset check: %#v", result.ReleaseAsset)
 	}
 }
@@ -187,7 +187,7 @@ func TestCheckRejectsInvalidLatestVersion(t *testing.T) {
 func TestCheckFallsBackReleaseURL(t *testing.T) {
 	result, err := Check(context.Background(), Options{
 		CurrentVersion: "0.1.0",
-		Repository:     "Gitlawb/zero",
+		Repository:     "rune-ai/rune",
 		GOOS:           "linux",
 		GOARCH:         "amd64",
 		Fetch: func(context.Context, string) (Release, error) {
@@ -207,7 +207,7 @@ func TestCheckFallsBackReleaseURL(t *testing.T) {
 }
 
 func TestCheckFetchesDataEndpoint(t *testing.T) {
-	payload := url.QueryEscape(`{"tag_name":"v0.2.0","html_url":"https://example.test/release","assets":[{"name":"zero-v0.2.0-linux-x64.tar.gz","browser_download_url":"https://example.test/zero-v0.2.0-linux-x64.tar.gz"},{"name":"zero-v0.2.0-linux-x64.tar.gz.sha256","browser_download_url":"https://example.test/zero-v0.2.0-linux-x64.tar.gz.sha256"}]}`)
+	payload := url.QueryEscape(`{"tag_name":"v0.2.0","html_url":"https://example.test/release","assets":[{"name":"rune-v0.2.0-linux-x64.tar.gz","browser_download_url":"https://example.test/rune-v0.2.0-linux-x64.tar.gz"},{"name":"rune-v0.2.0-linux-x64.tar.gz.sha256","browser_download_url":"https://example.test/rune-v0.2.0-linux-x64.tar.gz.sha256"}]}`)
 
 	result, err := Check(context.Background(), Options{
 		CurrentVersion: "0.1.0",
@@ -233,20 +233,20 @@ func TestCheckResolvesEndpointPrecedence(t *testing.T) {
 	}{
 		{
 			name:    "endpoint option wins",
-			options: Options{Endpoint: "Gitlawb/option-zero", Repository: "Gitlawb/repo-zero"},
-			env:     "Gitlawb/env-zero",
-			want:    Endpoint("Gitlawb/option-zero"),
+			options: Options{Endpoint: "Gitlawb/option-rune", Repository: "Gitlawb/repo-rune"},
+			env:     "Gitlawb/env-rune",
+			want:    Endpoint("Gitlawb/option-rune"),
 		},
 		{
 			name:    "environment wins over repository",
-			options: Options{Repository: "Gitlawb/repo-zero"},
-			env:     "Gitlawb/env-zero",
-			want:    Endpoint("Gitlawb/env-zero"),
+			options: Options{Repository: "Gitlawb/repo-rune"},
+			env:     "Gitlawb/env-rune",
+			want:    Endpoint("Gitlawb/env-rune"),
 		},
 		{
 			name:     "repository wins over default",
-			options:  Options{Repository: "Gitlawb/repo-zero"},
-			want:     Endpoint("Gitlawb/repo-zero"),
+			options:  Options{Repository: "Gitlawb/repo-rune"},
+			want:     Endpoint("Gitlawb/repo-rune"),
 			clearEnv: true,
 		},
 		{
@@ -259,9 +259,9 @@ func TestCheckResolvesEndpointPrecedence(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.clearEnv {
-				t.Setenv("ZERO_UPDATE_RELEASE_URL", "")
+				t.Setenv("RUNE_UPDATE_RELEASE_URL", "")
 			} else {
-				t.Setenv("ZERO_UPDATE_RELEASE_URL", tt.env)
+				t.Setenv("RUNE_UPDATE_RELEASE_URL", tt.env)
 			}
 			options := tt.options
 			options.CurrentVersion = "0.1.0"
@@ -290,7 +290,7 @@ func TestCheckRejectsMissingReleaseAssets(t *testing.T) {
 			return Release{
 				TagName: "v0.2.0",
 				Assets: []Asset{
-					{Name: "zero-v0.2.0-linux-arm64.tar.gz"},
+					{Name: "rune-v0.2.0-linux-arm64.tar.gz"},
 				},
 			}, nil
 		},
@@ -299,7 +299,7 @@ func TestCheckRejectsMissingReleaseAssets(t *testing.T) {
 	if err == nil {
 		t.Fatal("Check should reject release metadata without expected assets")
 	}
-	if !strings.Contains(err.Error(), "zero-v0.2.0-linux-x64.tar.gz") || !strings.Contains(err.Error(), "zero-v0.2.0-linux-x64.tar.gz.sha256") {
+	if !strings.Contains(err.Error(), "rune-v0.2.0-linux-x64.tar.gz") || !strings.Contains(err.Error(), "rune-v0.2.0-linux-x64.tar.gz.sha256") {
 		t.Fatalf("Check error = %v, want missing archive and checksum names", err)
 	}
 }
@@ -319,7 +319,7 @@ func TestExpectedAssetCheckUsesInstallerArchiveNames(t *testing.T) {
 			version:     "0.2.0",
 			goos:        "linux",
 			goarch:      "amd64",
-			archiveName: "zero-v0.2.0-linux-x64.tar.gz",
+			archiveName: "rune-v0.2.0-linux-x64.tar.gz",
 			platform:    "linux",
 			arch:        "x64",
 		},
@@ -328,7 +328,7 @@ func TestExpectedAssetCheckUsesInstallerArchiveNames(t *testing.T) {
 			version:     "0.2.0",
 			goos:        "darwin",
 			goarch:      "arm64",
-			archiveName: "zero-v0.2.0-macos-arm64.tar.gz",
+			archiveName: "rune-v0.2.0-macos-arm64.tar.gz",
 			platform:    "macos",
 			arch:        "arm64",
 		},
@@ -337,7 +337,7 @@ func TestExpectedAssetCheckUsesInstallerArchiveNames(t *testing.T) {
 			version:     "0.2.0",
 			goos:        "windows",
 			goarch:      "amd64",
-			archiveName: "zero-v0.2.0-windows-x64.zip",
+			archiveName: "rune-v0.2.0-windows-x64.zip",
 			platform:    "windows",
 			arch:        "x64",
 		},
@@ -389,11 +389,11 @@ func TestCheckReportsInvalidHTTPJSON(t *testing.T) {
 }
 
 func TestResolveEndpointAcceptsURLAndRepositorySlug(t *testing.T) {
-	got, err := ResolveEndpoint("Gitlawb/alt-zero", DefaultRepository)
+	got, err := ResolveEndpoint("Gitlawb/alt-rune", DefaultRepository)
 	if err != nil {
 		t.Fatalf("ResolveEndpoint returned error: %v", err)
 	}
-	if got != Endpoint("Gitlawb/alt-zero") {
+	if got != Endpoint("Gitlawb/alt-rune") {
 		t.Fatalf("slug endpoint = %q", got)
 	}
 
@@ -434,7 +434,7 @@ func TestFormatResult(t *testing.T) {
 	if !strings.Contains(output, "Update available: 0.1.0 -> 0.2.0") {
 		t.Fatalf("unexpected update output: %q", output)
 	}
-	if !strings.Contains(output, "Release asset: zero-v0.2.0-linux-x64.tar.gz") || !strings.Contains(output, "Checksum asset: zero-v0.2.0-linux-x64.tar.gz.sha256") {
+	if !strings.Contains(output, "Release asset: rune-v0.2.0-linux-x64.tar.gz") || !strings.Contains(output, "Checksum asset: rune-v0.2.0-linux-x64.tar.gz.sha256") {
 		t.Fatalf("update output did not include release assets: %q", output)
 	}
 	if !strings.Contains(output, "Release target: linux-x64") {
@@ -456,8 +456,8 @@ func TestFormatResult(t *testing.T) {
 		ReleaseAsset:    assetCheckForTest(t, "v0.2.0", runtime.GOOS, runtime.GOARCH),
 		UpdateAvailable: true,
 	})
-	if !strings.Contains(local, "Run `zero upgrade` to download, verify, and install") {
-		t.Fatalf("current-platform check did not recommend zero upgrade: %q", local)
+	if !strings.Contains(local, "Run `rune upgrade` to download, verify, and install") {
+		t.Fatalf("current-platform check did not recommend rune upgrade: %q", local)
 	}
 
 	output = Format(Result{
@@ -477,7 +477,7 @@ func TestFormatResult(t *testing.T) {
 }
 
 // TestFormatCustomSourceCheckRepeatsTheSourceFlag covers jatmn's #489 finding:
-// `zero upgrade` is a fresh invocation that reads from the DEFAULT source, so
+// `rune upgrade` is a fresh invocation that reads from the DEFAULT source, so
 // recommending it bare after `--check --repo <fork>` sends the user to install
 // from a repository they never asked about. The pre-PR text pointed at the
 // printed asset URLs instead; this keeps a runnable command by naming the flag
@@ -489,8 +489,8 @@ func TestFormatCustomSourceCheckRepeatsTheSourceFlag(t *testing.T) {
 		options Options
 		want    string
 	}{
-		{name: "repo flag", options: Options{Repository: "someone/fork"}, want: "zero upgrade --repo someone/fork"},
-		{name: "endpoint flag", options: Options{Endpoint: "https://example.test/releases/latest?channel=$preview"}, want: "zero upgrade --endpoint 'https://example.test/releases/latest?channel=$preview'"},
+		{name: "repo flag", options: Options{Repository: "someone/fork"}, want: "rune upgrade --repo someone/fork"},
+		{name: "endpoint flag", options: Options{Endpoint: "https://example.test/releases/latest?channel=$preview"}, want: "rune upgrade --endpoint 'https://example.test/releases/latest?channel=$preview'"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			output := Format(Result{
@@ -505,7 +505,7 @@ func TestFormatCustomSourceCheckRepeatsTheSourceFlag(t *testing.T) {
 			if !strings.Contains(output, tc.want) {
 				t.Fatalf("output = %q, want it to repeat %q", output, tc.want)
 			}
-			if !strings.Contains(output, "bare `zero upgrade` does not repeat") {
+			if !strings.Contains(output, "bare `rune upgrade` does not repeat") {
 				t.Fatalf("output = %q, want it to distinguish a bare upgrade", output)
 			}
 		})
@@ -523,18 +523,18 @@ func TestFormatCustomSourceCheckRepeatsTheSourceFlag(t *testing.T) {
 			UpdateAvailable: true,
 			SourceFlag:      upgradeSourceFlag(options),
 		})
-		if !strings.Contains(output, "Run `zero upgrade` to download") {
+		if !strings.Contains(output, "Run `rune upgrade` to download") {
 			t.Fatalf("default-source output = %q, want the plain upgrade recommendation", output)
 		}
 	}
 }
 
 // TestCheckRecordsTheSourceFlagItWasGiven pins where SourceFlag comes from: the
-// per-invocation flags, and not ZERO_UPDATE_RELEASE_URL — the env var is read by
-// every Check including the one inside Apply, so a bare `zero upgrade` already
+// per-invocation flags, and not RUNE_UPDATE_RELEASE_URL — the env var is read by
+// every Check including the one inside Apply, so a bare `rune upgrade` already
 // follows it and telling the user to repeat it would be wrong.
 func TestCheckRecordsTheSourceFlagItWasGiven(t *testing.T) {
-	t.Setenv("ZERO_UPDATE_RELEASE_URL", "")
+	t.Setenv("RUNE_UPDATE_RELEASE_URL", "")
 	fetch := func(context.Context, string) (Release, error) {
 		return releaseForTarget(t, "v0.2.0", "linux", "amd64"), nil
 	}
@@ -558,7 +558,7 @@ func TestCheckRecordsTheSourceFlagItWasGiven(t *testing.T) {
 		t.Fatalf("SourceFlag = %q, want empty for the default source", result.SourceFlag)
 	}
 
-	t.Setenv("ZERO_UPDATE_RELEASE_URL", "https://example.test/releases/latest")
+	t.Setenv("RUNE_UPDATE_RELEASE_URL", "https://example.test/releases/latest")
 	for _, options := range []Options{base, withRepo} {
 		result, err = Check(context.Background(), options)
 		if err != nil {
@@ -587,7 +587,7 @@ func TestFormatNpmCustomSourceExplainsInstallSource(t *testing.T) {
 		SourceFlag: "--repo someone/fork", installMethod: InstallMethodNpm,
 	}
 	output := Format(result)
-	if strings.Contains(output, "zero upgrade --repo") || !strings.Contains(output, "npm install -g @gitlawb/zero@latest") || !strings.Contains(output, "only affects the release check and update gating") {
+	if strings.Contains(output, "rune upgrade --repo") || !strings.Contains(output, "npm install -g @rune-ai/rune@latest") || !strings.Contains(output, "only affects the release check and update gating") {
 		t.Fatalf("npm custom-source guidance is misleading: %q", output)
 	}
 }
@@ -602,14 +602,14 @@ func TestFormatCrossTargetCustomSourceKeepsAccurateGuidance(t *testing.T) {
 		ReleaseAsset: assetCheckForTest(t, "v0.2.0", goos, goarch), UpdateAvailable: true,
 		SourceFlag: "--repo someone/fork",
 	})
-	if strings.Contains(output, "Run `zero upgrade") || !strings.Contains(output, "Download the verified") || !strings.Contains(output, "custom source selected by `--repo someone/fork`") || !strings.Contains(output, "bare `zero upgrade` does not repeat that source") {
+	if strings.Contains(output, "Run `rune upgrade") || !strings.Contains(output, "Download the verified") || !strings.Contains(output, "custom source selected by `--repo someone/fork`") || !strings.Contains(output, "bare `rune upgrade` does not repeat that source") {
 		t.Fatalf("cross-target custom-source guidance is misleading: %q", output)
 	}
 }
 
 // TestFormatCrossTargetCheckDoesNotRecommendLocalUpgrade is the regression test
-// for jatmn's #489 finding: `zero update --check --target <other>` answers a
-// question about a different machine, but the output recommended `zero upgrade`,
+// for jatmn's #489 finding: `rune update --check --target <other>` answers a
+// question about a different machine, but the output recommended `rune upgrade`,
 // which only ever installs onto this one. That replaced the target-specific
 // manual-download guidance the flag used to print.
 func TestFormatCrossTargetCheckDoesNotRecommendLocalUpgrade(t *testing.T) {
@@ -627,7 +627,7 @@ func TestFormatCrossTargetCheckDoesNotRecommendLocalUpgrade(t *testing.T) {
 		ReleaseAsset:    other,
 		UpdateAvailable: true,
 	})
-	if strings.Contains(output, "Run `zero upgrade`") {
+	if strings.Contains(output, "Run `rune upgrade`") {
 		t.Fatalf("a cross-target check must not recommend the local upgrade: %q", output)
 	}
 	target := other.Platform + "-" + other.Arch
@@ -635,7 +635,7 @@ func TestFormatCrossTargetCheckDoesNotRecommendLocalUpgrade(t *testing.T) {
 		t.Fatalf("cross-target check lost its target-specific guidance: %q", output)
 	}
 	if localReleaseTarget() != "" && !strings.Contains(output, "installs onto this machine") {
-		t.Fatalf("cross-target check should say which machine zero upgrade would touch: %q", output)
+		t.Fatalf("cross-target check should say which machine rune upgrade would touch: %q", output)
 	}
 }
 

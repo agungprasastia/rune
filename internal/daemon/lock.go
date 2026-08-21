@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/rune-ai/rune/internal/lockutil"
+	"rune/internal/lockutil"
 )
 
 // Single-instance lock. Mirrors reference-daemon-code-agent-js/supervisor.js's

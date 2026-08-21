@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/mcp"
+	"rune/internal/redaction"
+	"rune/internal/tools"
 )
 
 type serveOptions struct {
@@ -43,7 +43,7 @@ func runServe(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) i
 		return exitSuccess
 	}
 	if !options.mcp {
-		return writeExecUsageError(stderr, "serve requires --mcp. Use `zero serve --mcp`.")
+		return writeExecUsageError(stderr, "serve requires --mcp. Use `rune serve --mcp`.")
 	}
 
 	workspaceRoot, err := resolveWorkspaceRoot(options.cwd, deps)
@@ -56,13 +56,13 @@ func runServe(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) i
 	}
 	registry := newServeRegistry(workspaceRoot, scope, options.allowUnsafeTools)
 	if options.allowUnsafeTools {
-		if _, err := fmt.Fprintln(stderr, "[zero] Unsafe MCP server tools enabled because --allow-unsafe-tools was passed."); err != nil {
+		if _, err := fmt.Fprintln(stderr, "[rune] Unsafe MCP server tools enabled because --allow-unsafe-tools was passed."); err != nil {
 			return exitCrash
 		}
 	}
 
 	err = mcp.Serve(context.Background(), deps.stdin, stdout, registry, mcp.ServeOptions{
-		Name:              "zero",
+		Name:              "rune",
 		Version:           version,
 		PermissionGranted: options.allowUnsafeTools,
 		WorkspaceRoot:     workspaceRoot,
@@ -178,9 +178,9 @@ func parseServeArgs(args []string) (serveOptions, bool, error) {
 
 func writeServeHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero serve --mcp [flags]
+  rune serve --mcp [flags]
 
-Starts Zero as an MCP stdio server.
+Starts Rune as an MCP stdio server.
 
 Flags:
       --mcp                   Run the MCP stdio server

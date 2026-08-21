@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // recentEdits extracts each mutated file's path and a one-line note from the

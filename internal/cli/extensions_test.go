@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/mcp"
-	"github.com/rune-ai/rune/internal/plugins"
-	"github.com/rune-ai/rune/internal/tools"
+	"rune/internal/config"
+	"rune/internal/hooks"
+	"rune/internal/mcp"
+	"rune/internal/plugins"
+	"rune/internal/tools"
 )
 
 func TestRunPluginsListsJSONAndText(t *testing.T) {
@@ -22,7 +22,7 @@ func TestRunPluginsListsJSONAndText(t *testing.T) {
 	result := plugins.LoadResult{
 		Plugins: []plugins.LoadedPlugin{{
 			SchemaVersion: 1,
-			ID:            "zero.docs",
+			ID:            "rune.docs",
 			Name:          "Docs",
 			Version:       "1.0.0",
 			Enabled:       true,
@@ -60,7 +60,7 @@ func TestRunPluginsListsJSONAndText(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
 		t.Fatalf("plugin JSON failed to decode: %v\n%s", err, stdout.String())
 	}
-	if payload.Plugins[0].ID != "zero.docs" || payload.Plugins[0].Name != "Docs" || payload.Plugins[0].Version != "1.0.0" {
+	if payload.Plugins[0].ID != "rune.docs" || payload.Plugins[0].Name != "Docs" || payload.Plugins[0].Version != "1.0.0" {
 		t.Fatalf("unexpected plugin JSON: %#v", payload)
 	}
 
@@ -70,7 +70,7 @@ func TestRunPluginsListsJSONAndText(t *testing.T) {
 	if exitCode != exitSuccess {
 		t.Fatalf("exitCode = %d stderr=%s", exitCode, stderr.String())
 	}
-	for _, want := range []string{"Zero Plugins:", "zero.docs", "Docs", "1.0.0", "1 prompts"} {
+	for _, want := range []string{"Rune Plugins:", "rune.docs", "Docs", "1.0.0", "1 prompts"} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Fatalf("plugin text missing %q: %s", want, stdout.String())
 		}
@@ -83,7 +83,7 @@ func TestRunHooksListsRedactedJSONAndText(t *testing.T) {
 		Config: hooks.Config{
 			Enabled: true,
 			Hooks: []hooks.Definition{{
-				ID:      "zero.preflight",
+				ID:      "rune.preflight",
 				Event:   hooks.EventBeforeTool,
 				Matcher: "bash",
 				Command: "node",
@@ -118,7 +118,7 @@ func TestRunHooksListsRedactedJSONAndText(t *testing.T) {
 	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
 		t.Fatalf("hook JSON failed to decode: %v\n%s", err, stdout.String())
 	}
-	if payload.Hooks.Hooks[0].ID != "zero.preflight" {
+	if payload.Hooks.Hooks[0].ID != "rune.preflight" {
 		t.Fatalf("unexpected hook JSON: %#v", payload)
 	}
 
@@ -128,7 +128,7 @@ func TestRunHooksListsRedactedJSONAndText(t *testing.T) {
 	if exitCode != exitSuccess {
 		t.Fatalf("exitCode = %d stderr=%s", exitCode, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "Zero Hooks") || !strings.Contains(stdout.String(), "zero.preflight") {
+	if !strings.Contains(stdout.String(), "Rune Hooks") || !strings.Contains(stdout.String(), "rune.preflight") {
 		t.Fatalf("unexpected hook text: %s", stdout.String())
 	}
 	if strings.Contains(stdout.String(), secret) || !strings.Contains(stdout.String(), "[REDACTED]") {
@@ -327,7 +327,7 @@ func TestRunMCPPermissionsHelpDoesNotOpenStore(t *testing.T) {
 			if stderr.Len() != 0 {
 				t.Fatalf("expected empty stderr, got %q", stderr.String())
 			}
-			if !strings.Contains(stdout.String(), "zero mcp permissions") {
+			if !strings.Contains(stdout.String(), "rune mcp permissions") {
 				t.Fatalf("expected help output, got %q", stdout.String())
 			}
 		})

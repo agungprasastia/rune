@@ -1,6 +1,6 @@
 package tools
 
-import "github.com/rune-ai/rune/internal/execution"
+import "rune/internal/execution"
 
 // markStructuredSandboxDenial mirrors typed adapter facts into legacy metadata
 // for presentation and backward-compatible session readers. Classification is

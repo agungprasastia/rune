@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/config"
+	"rune/internal/sandbox"
 )
 
 func sandboxCheckDeps(t *testing.T) (appDeps, string) {

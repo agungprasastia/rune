@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/review"
+	"rune/internal/review"
 )
 
 func main() {
@@ -55,13 +55,13 @@ func writeHelp(w io.Writer) error {
 Builds the deterministic PR review markdown used by GitHub Actions.
 
 Environment:
-  ZERO_REVIEW_DIFF_CHECK      Outcome for diff hygiene
-  ZERO_REVIEW_TEST            Outcome for tests
-  ZERO_REVIEW_BUILD           Outcome for build
-  ZERO_REVIEW_SMOKE           Outcome for smoke build
-  ZERO_CHANGED_FILES          Newline-separated changed file paths
-  ZERO_REVIEW_HEAD_SHA        Pull request head SHA
-  ZERO_PR_NUMBER              Pull request number
+  RUNE_REVIEW_DIFF_CHECK      Outcome for diff hygiene
+  RUNE_REVIEW_TEST            Outcome for tests
+  RUNE_REVIEW_BUILD           Outcome for build
+  RUNE_REVIEW_SMOKE           Outcome for smoke build
+  RUNE_CHANGED_FILES          Newline-separated changed file paths
+  RUNE_REVIEW_HEAD_SHA        Pull request head SHA
+  RUNE_PR_NUMBER              Pull request number
 `)
 	return err
 }

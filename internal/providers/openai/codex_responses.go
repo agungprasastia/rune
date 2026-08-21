@@ -47,8 +47,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/providers/providerio"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/providers/providerio"
+	"rune/internal/zeroruntime"
 )
 
 // Codex Responses API event type names. Only the ones the Codex backend
@@ -90,7 +90,7 @@ type responsesReasoning struct {
 	Effort string `json:"effort,omitempty"`
 	// Summary requests a streamed reasoning summary ("auto" lets the API pick a
 	// level). Without it the backend emits no reasoning events, so a long thinking
-	// phase produces zero visible output and reads as a hang in the UI.
+	// phase produces rune visible output and reads as a hang in the UI.
 	Summary string `json:"summary,omitempty"`
 }
 
@@ -462,7 +462,7 @@ func (p *CodexProvider) emitResponsesHTTPError(
 }
 
 // emitResponsesEvent decodes one Responses SSE data payload and converts
-// it into zero or more runtime events. Returns false to stop the scan
+// it into rune or more runtime events. Returns false to stop the scan
 // after emitting a terminal event (error / completion-with-error).
 func (p *CodexProvider) emitResponsesEvent(
 	ctx context.Context,

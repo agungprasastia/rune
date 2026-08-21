@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	SpecDirName = ".zero/specs"
+	SpecDirName = ".rune/specs"
 )
 
 type SaveOptions struct {

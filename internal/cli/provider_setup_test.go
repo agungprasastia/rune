@@ -3,10 +3,10 @@ package cli
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
-// Regression for issue #555's follow-up: `zero providers check` must not
+// Regression for issue #555's follow-up: `rune providers check` must not
 // error that a no-auth custom endpoint requires an API key, matching what
 // /model and /providers already treat as usable.
 func TestValidateProviderRuntimeReadyCustomEndpoint(t *testing.T) {

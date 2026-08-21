@@ -13,13 +13,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/specmode"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/trace"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/execution"
+	"rune/internal/hooks"
+	"rune/internal/sandbox"
+	"rune/internal/specmode"
+	"rune/internal/tools"
+	"rune/internal/trace"
+	"rune/internal/zeroruntime"
 )
 
 type mockProvider struct {
@@ -54,7 +54,7 @@ func TestTypedExecutionOutcomeOverridesLegacySandboxHeuristics(t *testing.T) {
 		State: execution.StateDenied,
 		Kind:  execution.OutcomeEnforcementDenied,
 		Denial: &execution.Denial{
-			Capability: execution.Capability{Kind: execution.CapabilityProtectedMetadata, Scope: "/workspace/.zero"},
+			Capability: execution.Capability{Kind: execution.CapabilityProtectedMetadata, Scope: "/workspace/.rune"},
 			Source:     execution.DenialSourceConfiguredPolicy,
 			Reason:     "protected metadata",
 			NextAction: execution.DenialNextActionRequestApproval,
@@ -121,8 +121,8 @@ func TestRunDispatchesSessionLifecycleHooks(t *testing.T) {
 		Config: hooks.Config{
 			Enabled: true,
 			Hooks: []hooks.Definition{
-				{ID: "zero.session-start", Event: hooks.EventSessionStart, Command: "zero-missing-hook-command", Enabled: true},
-				{ID: "zero.session-end", Event: hooks.EventSessionEnd, Command: "zero-missing-hook-command", Enabled: true},
+				{ID: "rune.session-start", Event: hooks.EventSessionStart, Command: "rune-missing-hook-command", Enabled: true},
+				{ID: "rune.session-end", Event: hooks.EventSessionEnd, Command: "rune-missing-hook-command", Enabled: true},
 			},
 		},
 		Audit: audit,
@@ -206,7 +206,7 @@ func TestRunDispatchesSessionEndHookAfterContextCancellation(t *testing.T) {
 		Config: hooks.Config{
 			Enabled: true,
 			Hooks: []hooks.Definition{
-				{ID: "zero.session-end", Event: hooks.EventSessionEnd, Command: goBinary, Args: []string{"version"}, Enabled: true},
+				{ID: "rune.session-end", Event: hooks.EventSessionEnd, Command: goBinary, Args: []string{"version"}, Enabled: true},
 			},
 		},
 		Audit: audit,
@@ -829,7 +829,7 @@ func TestRunReturnsProviderText(t *testing.T) {
 	provider := &mockProvider{
 		turns: [][]zeroruntime.StreamEvent{{
 			{Type: zeroruntime.StreamEventText, Content: "hello"},
-			{Type: zeroruntime.StreamEventText, Content: " zero"},
+			{Type: zeroruntime.StreamEventText, Content: " rune"},
 			{Type: zeroruntime.StreamEventDone},
 		}},
 	}
@@ -841,7 +841,7 @@ func TestRunReturnsProviderText(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.FinalAnswer != "hello zero" {
+	if result.FinalAnswer != "hello rune" {
 		t.Fatalf("expected final answer, got %q", result.FinalAnswer)
 	}
 	if len(provider.requests) != 1 {
@@ -950,7 +950,7 @@ func TestRunEmitsTextDeltas(t *testing.T) {
 	provider := &mockProvider{
 		turns: [][]zeroruntime.StreamEvent{{
 			{Type: zeroruntime.StreamEventText, Content: "hello"},
-			{Type: zeroruntime.StreamEventText, Content: " zero"},
+			{Type: zeroruntime.StreamEventText, Content: " rune"},
 			{Type: zeroruntime.StreamEventDone},
 		}},
 	}
@@ -964,7 +964,7 @@ func TestRunEmitsTextDeltas(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Join(deltas, "|") != "hello| zero" {
+	if strings.Join(deltas, "|") != "hello| rune" {
 		t.Fatalf("expected text deltas, got %#v", deltas)
 	}
 }
@@ -1126,7 +1126,7 @@ func TestRunRejectsLocalWebFetchBeforePermissionRequest(t *testing.T) {
 }
 
 func TestRunAdvertisesPromptedWebSearchInAutoMode(t *testing.T) {
-	t.Setenv("ZERO_WEBSEARCH_BASE_URL", "https://search.example/api")
+	t.Setenv("RUNE_WEBSEARCH_BASE_URL", "https://search.example/api")
 	registry := tools.NewRegistry()
 	for _, tool := range tools.CoreNetworkTools() {
 		if tool.Name() == "web_search" {
@@ -3127,7 +3127,7 @@ func TestRunAppendsConfirmationPolicyToSystemPrompt(t *testing.T) {
 		t.Fatalf("expected first message to be system, got %s", system.Role)
 	}
 	// The overhauled core prompt: identity + the mandatory testing gate.
-	for _, marker := range []string{"You are Zero", "Testing gate"} {
+	for _, marker := range []string{"You are Rune", "Testing gate"} {
 		if !strings.Contains(system.Content, marker) {
 			t.Fatalf("system prompt missing core marker %q: %q", marker, system.Content)
 		}
@@ -3142,7 +3142,7 @@ func TestRunAppendsConfirmationPolicyToSystemPrompt(t *testing.T) {
 
 func TestSystemPromptEmbedsConfirmationPolicy(t *testing.T) {
 	prompt := buildSystemPrompt(Options{})
-	if !strings.HasPrefix(prompt, "You are Zero") {
+	if !strings.HasPrefix(prompt, "You are Rune") {
 		t.Fatalf("system prompt should start with the core instructions, got %q", prompt)
 	}
 	if !strings.Contains(prompt, "Confirmation Modes") {
@@ -3791,7 +3791,7 @@ func TestRunStopsWhenSubmitSpecReturnsReviewControl(t *testing.T) {
 	if len(provider.requests) != 1 {
 		t.Fatalf("expected run to stop after submit_spec, got %d requests", len(provider.requests))
 	}
-	if !strings.Contains(result.FinalAnswer, ".zero/specs/") {
+	if !strings.Contains(result.FinalAnswer, ".rune/specs/") {
 		t.Fatalf("final answer should mention saved spec, got %q", result.FinalAnswer)
 	}
 }
@@ -4123,9 +4123,9 @@ func TestRunTracingWrapperStampsUsage(t *testing.T) {
 		t.Fatal("tracing wrapper did not Start the recorder")
 	}
 	// FirstTokenAt must stamp even though no OnText/OnReasoning user callback is
-	// set: a headless traced run (e.g. `zero exec --trace`) sets Trace but no UI
+	// set: a headless traced run (e.g. `rune exec --trace`) sets Trace but no UI
 	// callbacks, so the loop installs trace-only forwarding handlers to capture
-	// TTFT. Without them FirstTokenAt stays zero and the trace loses its signal.
+	// TTFT. Without them FirstTokenAt stays rune and the trace loses its signal.
 	if tr.FirstTokenAt.IsZero() {
 		t.Fatal("FirstTokenAt not stamped for a traced run with no OnText/OnReasoning callbacks")
 	}
@@ -4202,10 +4202,10 @@ func TestRunSuppressesAdvisoryHooksInPlanMode(t *testing.T) {
 		Config: hooks.Config{
 			Enabled: true,
 			Hooks: []hooks.Definition{
-				{ID: "zero.session-start", Event: hooks.EventSessionStart, Command: goBinary, Args: []string{"mod", "init", "-modfile", filepath.Join(sessionMarker, "go.mod"), "marker"}, Enabled: true},
-				{ID: "zero.session-end", Event: hooks.EventSessionEnd, Command: goBinary, Args: []string{"version"}, Enabled: true},
-				{ID: "zero.before-tool", Event: hooks.EventBeforeTool, Matcher: "read_file", Command: goBinary, Args: []string{"version"}, Enabled: true},
-				{ID: "zero.after-tool", Event: hooks.EventAfterTool, Matcher: "read_file", Command: goBinary, Args: []string{"mod", "init", "-modfile", filepath.Join(afterToolMarker, "go.mod"), "marker"}, Enabled: true},
+				{ID: "rune.session-start", Event: hooks.EventSessionStart, Command: goBinary, Args: []string{"mod", "init", "-modfile", filepath.Join(sessionMarker, "go.mod"), "marker"}, Enabled: true},
+				{ID: "rune.session-end", Event: hooks.EventSessionEnd, Command: goBinary, Args: []string{"version"}, Enabled: true},
+				{ID: "rune.before-tool", Event: hooks.EventBeforeTool, Matcher: "read_file", Command: goBinary, Args: []string{"version"}, Enabled: true},
+				{ID: "rune.after-tool", Event: hooks.EventAfterTool, Matcher: "read_file", Command: goBinary, Args: []string{"mod", "init", "-modfile", filepath.Join(afterToolMarker, "go.mod"), "marker"}, Enabled: true},
 			},
 		},
 		Audit: audit,
@@ -4283,13 +4283,13 @@ func TestPlanModeHonorsBeforeToolVeto(t *testing.T) {
 			t.Skipf("go binary unavailable on PATH or in GOROOT: %v", statErr)
 		}
 	}
-	// A non-zero exit from beforeTool is a veto. "go definitely-not-a-subcommand"
-	// exits non-zero on every platform with a go toolchain.
+	// A non-rune exit from beforeTool is a veto. "go definitely-not-a-subcommand"
+	// exits non-rune on every platform with a go toolchain.
 	dispatcher := hooks.NewDispatcher(hooks.DispatcherOptions{
 		Config: hooks.Config{
 			Enabled: true,
 			Hooks: []hooks.Definition{
-				{ID: "zero.veto", Event: hooks.EventBeforeTool, Matcher: "read_file", Command: goBinary, Args: []string{"definitely-not-a-go-subcommand"}, Enabled: true},
+				{ID: "rune.veto", Event: hooks.EventBeforeTool, Matcher: "read_file", Command: goBinary, Args: []string{"definitely-not-a-go-subcommand"}, Enabled: true},
 			},
 		},
 	})
@@ -4336,7 +4336,7 @@ func TestPlanModeHonorsBeforeToolVeto(t *testing.T) {
 	if strings.Contains(combined, "SUPERSECRET") {
 		t.Fatalf("plan mode failed open: beforeTool veto was skipped and secret leaked: %q", combined)
 	}
-	if !strings.Contains(combined, "blocked") && !strings.Contains(combined, "zero.veto") && !strings.Contains(strings.ToLower(combined), "hook") {
+	if !strings.Contains(combined, "blocked") && !strings.Contains(combined, "rune.veto") && !strings.Contains(strings.ToLower(combined), "hook") {
 		t.Fatalf("expected tool result to mention the beforeTool veto, got %q", combined)
 	}
 }

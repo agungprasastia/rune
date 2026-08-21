@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/usage"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/usage"
+	"rune/internal/zeroruntime"
 )
 
 // The context-fill gauge is empty before any request, then shows

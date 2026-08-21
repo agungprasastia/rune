@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
+	"rune/internal/agent"
 )
 
 // FIX 3 (safety): "!cmd" runs only in unsafe permission mode; auto/ask gate it.

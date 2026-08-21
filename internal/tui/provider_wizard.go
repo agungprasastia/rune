@@ -15,14 +15,14 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/aimlapi"
-	"github.com/rune-ai/rune/internal/browser"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/oauth"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/provideroauth"
-	"github.com/rune-ai/rune/internal/redaction"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/aimlapi"
+	"rune/internal/browser"
+	"rune/internal/config"
+	"rune/internal/oauth"
+	"rune/internal/providercatalog"
+	"rune/internal/provideroauth"
+	"rune/internal/redaction"
+	"rune/internal/zeroruntime"
 )
 
 // providerWizardOAuthMsg carries the result of an in-wizard browser OAuth login.
@@ -227,7 +227,7 @@ func appendOAuthLoginProfile(saved []config.ProviderProfile, providerID string) 
 // persistOAuthLoginProvider guarantees the stored login is reachable from the
 // provider list even when the wizard is abandoned before the model step: the
 // token alone is invisible — no profile means no entry in /provider, /model, or
-// `zero providers use`, which reads as the login having vanished.
+// `rune providers use`, which reads as the login having vanished.
 //
 // MUST run on the Update goroutine (call it from a message handler, never from
 // inside a tea.Cmd): config.json writes are unlocked read-modify-writes, and a
@@ -244,8 +244,8 @@ func persistOAuthLoginProvider(configPath string, catalogID string) error {
 }
 
 // buildOAuthPresetEnv layers the process env with the preset opt-in so a
-// `zero` launch from a TUI session can use the baked-in ChatGPT client_id
-// without requiring the user to export ZERO_OAUTH_ALLOW_PRESETS themselves.
+// `rune` launch from a TUI session can use the baked-in ChatGPT client_id
+// without requiring the user to export RUNE_OAUTH_ALLOW_PRESETS themselves.
 func buildOAuthPresetEnv() map[string]string {
 	env := map[string]string{}
 	for _, kv := range os.Environ() {
@@ -253,7 +253,7 @@ func buildOAuthPresetEnv() map[string]string {
 			env[kv[:eq]] = kv[eq+1:]
 		}
 	}
-	env["ZERO_OAUTH_ALLOW_PRESETS"] = "1"
+	env["RUNE_OAUTH_ALLOW_PRESETS"] = "1"
 	return env
 }
 
@@ -1249,7 +1249,7 @@ func (m model) applyProviderWizard() (model, tea.Cmd) {
 	// Build and persist into LOCALS first, committing live state only once BOTH
 	// succeed. A persist failure (read-only config, disk full) must not leave the
 	// chat running on the new provider while the status line, m.providerProfile,
-	// and the ZERO_PROVIDER export (which pins spawned children) still point at
+	// and the RUNE_PROVIDER export (which pins spawned children) still point at
 	// the old one — parent and children would silently run on different providers.
 	var nextProvider zeroruntime.Provider
 	if m.newProvider != nil {
@@ -1287,7 +1287,7 @@ func (m model) applyProviderWizard() (model, tea.Cmd) {
 	m.savedProviders = upsertSavedProviderProfile(m.savedProviders, profile)
 	// Keep sub-agent child processes on the same provider we just switched to —
 	// same as the /model and /provider switch paths (command_center.go). Without
-	// this, a ZERO_PROVIDER exported by an earlier switch stays pointing at the
+	// this, a RUNE_PROVIDER exported by an earlier switch stays pointing at the
 	// OLD provider and wins over config in every spawned child (applyEnv), so
 	// specialists/swarm members run on the wrong provider's credentials.
 	config.SetActiveProviderEnv(profile.Name)
@@ -1687,9 +1687,9 @@ func (wizard *providerWizardState) renderOAuthWaiting(width int) []string {
 // OAuth login (fallback when the browser doesn't open).
 func providerWizardOAuthCLIHint(provider providercatalog.Descriptor) string {
 	if provider.OAuthMintsKey {
-		return "zero auth openrouter"
+		return "rune auth openrouter"
 	}
-	return "zero auth login " + provider.ID
+	return "rune auth login " + provider.ID
 }
 
 func (wizard *providerWizardState) renderProviderStep(width int) []string {
@@ -1732,7 +1732,7 @@ func (wizard *providerWizardState) renderProviderSearch(width int) string {
 func providerWizardOAuthErrHint(provider providercatalog.Descriptor) string {
 	if strings.EqualFold(provider.ID, "huggingface") {
 		return "Hugging Face needs your own app: create one at " +
-			"https://huggingface.co/settings/applications/new, then set ZERO_OAUTH_HUGGINGFACE_CLIENT_ID."
+			"https://huggingface.co/settings/applications/new, then set RUNE_OAUTH_HUGGINGFACE_CLIENT_ID."
 	}
 	return ""
 }

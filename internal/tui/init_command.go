@@ -3,7 +3,7 @@ package tui
 import (
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/agentinit"
+	"rune/internal/agentinit"
 )
 
 // handleInitCommand runs the guided /init flow: build a bootstrap prompt seeded

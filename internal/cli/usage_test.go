@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/zerogit"
+	"rune/internal/sessions"
+	"rune/internal/zerogit"
 )
 
 func seedUsageStore(t *testing.T) *sessions.Store {
@@ -138,7 +138,7 @@ func TestRunUsageHelp(t *testing.T) {
 	if exitCode != exitSuccess {
 		t.Fatalf("expected exit %d, got %d: %s", exitSuccess, exitCode, stderr.String())
 	}
-	for _, want := range []string{"zero usage report", "--json", "--days", "--since", "--session"} {
+	for _, want := range []string{"rune usage report", "--json", "--days", "--since", "--session"} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Fatalf("usage help missing %q in:\n%s", want, stdout.String())
 		}
@@ -316,7 +316,7 @@ func TestRunUsageInvalidSince(t *testing.T) {
 }
 
 // TestRunUsageEmptyStore verifies that running `usage report` against a store
-// with no usage events exits successfully, prints the header, shows a zero
+// with no usage events exits successfully, prints the header, shows a rune
 // total, and does not panic.
 func TestRunUsageEmptyStore(t *testing.T) {
 	store := sessions.NewStore(sessions.StoreOptions{RootDir: t.TempDir()})
@@ -332,7 +332,7 @@ func TestRunUsageEmptyStore(t *testing.T) {
 	if !strings.Contains(output, "Usage report") {
 		t.Fatalf("empty store: expected header in output, got:\n%s", output)
 	}
-	// Total row must show zero requests / tokens.
+	// Total row must show rune requests / tokens.
 	if !strings.Contains(output, "total") {
 		t.Fatalf("empty store: expected 'total' row in output, got:\n%s", output)
 	}

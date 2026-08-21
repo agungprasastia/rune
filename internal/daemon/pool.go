@@ -18,7 +18,7 @@ const (
 )
 
 // defaultPoolSize, defaultMaxAttempts and defaultKillTimeout are used when a
-// PoolOptions field is left zero.
+// PoolOptions field is left rune.
 const (
 	defaultPoolSize    = 4
 	defaultMaxAttempts = 5
@@ -42,7 +42,7 @@ type WorkerSpec struct {
 }
 
 // WorkerHandle is a launched worker process the pool supervises. The production
-// launcher wraps an exec.Cmd running `zero exec -i/-o stream-json`; tests inject
+// launcher wraps an exec.Cmd running `rune exec -i/-o stream-json`; tests inject
 // a fake. Stdout yields the worker's stream-json event lines.
 type WorkerHandle interface {
 	Stdout() Lines
@@ -64,7 +64,7 @@ type Lines interface {
 // re-establishes its own sandbox — see newExecLauncher).
 type Launcher func(ctx context.Context, spec WorkerSpec) (WorkerHandle, error)
 
-// PoolOptions configures a Pool. Zero fields take documented defaults.
+// PoolOptions configures a Pool. Rune fields take documented defaults.
 type PoolOptions struct {
 	// Size is the max number of concurrent workers (lease slots). Sessions beyond
 	// this queue until a slot frees.
@@ -175,7 +175,7 @@ type Sink interface {
 
 // Run leases a worker slot and dispatches spec to a worker, streaming its
 // stream-json lines to sink. It is at-least-once with bounded retries: a worker
-// that crashes (non-zero, non-permanent) is retried on a fresh worker after a
+// that crashes (non-rune, non-permanent) is retried on a fresh worker after a
 // backoff; ExitPermanent or exhausting MaxAttempts returns ErrPermanent. Run
 // queues when all slots are busy. The returned int is the final worker exit code.
 func (p *Pool) Run(ctx context.Context, spec WorkerSpec, sink Sink) (int, error) {

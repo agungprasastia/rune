@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // fakeProvider streams a canned assistant message and ends the turn — enough to
@@ -50,7 +50,7 @@ func testDeps(t *testing.T) Deps {
 			}, nil
 		},
 		NewProvider: func(config.ProviderProfile) (zeroruntime.Provider, error) {
-			return fakeProvider{text: "Hello from ZERO"}, nil
+			return fakeProvider{text: "Hello from RUNE"}, nil
 		},
 		RunAgent: agent.Run,
 		BuildWorkspace: func(string, config.ResolvedConfig) (*tools.Registry, *sandbox.Engine, error) {
@@ -60,7 +60,7 @@ func testDeps(t *testing.T) Deps {
 		},
 		ResolveWorkspaceRoot: func(cwd string) (string, error) { return cwd, nil },
 		Store:                store,
-		AgentInfo:            Implementation{Name: "zero", Version: "test"},
+		AgentInfo:            Implementation{Name: "rune", Version: "test"},
 	}
 }
 
@@ -159,7 +159,7 @@ func TestACPEndToEndPrompt(t *testing.T) {
 	}
 
 	// The streamed agent_message_chunk(s) should carry the assistant text.
-	if got := drainText(t, h.updates); !strings.Contains(got, "Hello from ZERO") {
+	if got := drainText(t, h.updates); !strings.Contains(got, "Hello from RUNE") {
 		t.Fatalf("streamed text = %q, want it to contain the assistant message", got)
 	}
 }
@@ -540,7 +540,7 @@ func TestACPPromptWarnsWhenTurnPersistenceFails(t *testing.T) {
 		t.Fatalf("stopReason = %q, want %q", promptRes.StopReason, StopEndTurn)
 	}
 	got := drainTextUntil(t, h.updates, func(text string) bool {
-		return strings.Contains(text, "Hello from ZERO") &&
+		return strings.Contains(text, "Hello from RUNE") &&
 			strings.Contains(text, "Could not save session history")
 	})
 	if !strings.Contains(got, "Could not save session history") {
@@ -579,7 +579,7 @@ func TestACPLoadWarnsWhenHistoryReadFails(t *testing.T) {
 func drainText(t *testing.T, ch <-chan string) string {
 	t.Helper()
 	return drainTextUntil(t, ch, func(text string) bool {
-		return strings.Contains(text, "Hello from ZERO")
+		return strings.Contains(text, "Hello from RUNE")
 	})
 }
 

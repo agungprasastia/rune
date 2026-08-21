@@ -13,13 +13,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
 	"github.com/ledongthuc/pdf"
+	"rune/internal/zeroruntime"
 )
 
 // Dependency posture (see stage 12): the DEFAULT build extracts a PDF's text
 // layer in pure Go via github.com/ledongthuc/pdf (BSD-licensed, no CGO, no
-// transitive deps), so ZERO stays a single static cross-compilable binary with
+// transitive deps), so RUNE stays a single static cross-compilable binary with
 // no runtime dependencies. Rasterizing pages to images for vision models needs
 // real font/graphics rendering, which no maintained pure-Go library does well;
 // that path is OPTIONAL and uses the poppler tools (pdftotext / pdftoppm) only
@@ -72,7 +72,7 @@ type DocumentOptions struct {
 	// vision-capable model. It is best-effort: when no rasterizer is available the
 	// load degrades to the text layer rather than erroring.
 	Vision bool
-	// MaxPages bounds how many pages the vision path renders. Zero means
+	// MaxPages bounds how many pages the vision path renders. Rune means
 	// defaultMaxRasterPages.
 	MaxPages int
 
@@ -88,7 +88,7 @@ func isPDF(data []byte) bool {
 	return bytes.HasPrefix(data, pdfMagic)
 }
 
-// IsProbablyDocumentPath reports whether a path looks like a document ZERO can
+// IsProbablyDocumentPath reports whether a path looks like a document RUNE can
 // ingest (currently: a ".pdf" extension, case-insensitive). It is only a routing
 // hint for input surfaces deciding whether to call LoadDocument vs LoadFile;
 // LoadDocument re-verifies the real content via magic bytes.
@@ -359,7 +359,7 @@ func rasterizeWithPoppler(data []byte, maxPages int) ([]zeroruntime.ImageBlock, 
 		maxPages = defaultMaxRasterPages
 	}
 
-	dir, err := os.MkdirTemp("", "zero-pdf-raster-")
+	dir, err := os.MkdirTemp("", "rune-pdf-raster-")
 	if err != nil {
 		return nil, fmt.Errorf("cannot create temp dir for rasterization: %w", err)
 	}
@@ -386,7 +386,7 @@ func rasterizeWithPoppler(data []byte, maxPages int) ([]zeroruntime.ImageBlock, 
 	if len(entries) == 0 {
 		return nil, fmt.Errorf("rasterization produced no pages")
 	}
-	// Glob order is lexical; pdftoppm zero-pads page numbers, so a numeric-aware
+	// Glob order is lexical; pdftoppm rune-pads page numbers, so a numeric-aware
 	// sort keeps page 10 after page 9 rather than after page 1.
 	sort.Strings(entries)
 

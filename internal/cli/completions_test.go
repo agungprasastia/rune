@@ -14,11 +14,11 @@ func TestCompletionsHelpAndRootHelp(t *testing.T) {
 		t.Fatalf("completion help exit code = %d, want %d: %s", code, exitSuccess, stderr.String())
 	}
 	for _, want := range []string{
-		"zero completions <shell>",
+		"rune completions <shell>",
 		"bash, zsh, fish, powershell, or elvish",
-		"source <(zero completions bash)",
-		"~/.config/fish/completions/zero.fish",
-		"eval (zero completions elvish | slurp)",
+		"source <(rune completions bash)",
+		"~/.config/fish/completions/rune.fish",
+		"eval (rune completions elvish | slurp)",
 	} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Errorf("completion help missing %q:\n%s", want, stdout.String())
@@ -68,11 +68,11 @@ func TestCompletionsGeneratesEverySupportedShell(t *testing.T) {
 		marker      string
 		syntaxShell string
 	}{
-		{shell: "bash", marker: "complete -F _zero zero", syntaxShell: "bash"},
-		{shell: "zsh", marker: "#compdef zero", syntaxShell: "zsh"},
-		{shell: "fish", marker: "complete -c zero"},
-		{shell: "powershell", marker: "Register-ArgumentCompleter -Native -CommandName zero"},
-		{shell: "elvish", marker: "edit:completion:arg-completer[zero]"},
+		{shell: "bash", marker: "complete -F _zero rune", syntaxShell: "bash"},
+		{shell: "zsh", marker: "#compdef rune", syntaxShell: "zsh"},
+		{shell: "fish", marker: "complete -c rune"},
+		{shell: "powershell", marker: "Register-ArgumentCompleter -Native -CommandName rune"},
+		{shell: "elvish", marker: "edit:completion:arg-completer[rune]"},
 	}
 	for _, test := range tests {
 		t.Run(test.shell, func(t *testing.T) {

@@ -104,7 +104,7 @@ Skills are markdown instruction packs the agent can pull in on demand. Each skil
 
 Discovery roots (earlier wins on name collisions):
 
-1. **Primary Zero dir** — `$ZERO_SKILLS_DIR` if set, else `$XDG_DATA_HOME/zero/skills`, else `~/.local/share/zero/skills/`
+1. **Primary Zero dir** — `$RUNE_SKILLS_DIR` if set, else `$XDG_DATA_HOME/zero/skills`, else `~/.local/share/zero/skills/`
 2. **Shared multi-agent dir** — `~/.agents/skills/` when present (read-only discovery; never an install target)
 3. **Plugin skill roots** — skills bundled by active plugins (section 6)
 
@@ -308,7 +308,7 @@ Five configuration sources, in precedence order (later sources override earlier 
 | Built-in defaults | compiled in | Lowest priority. |
 | User config | `~/.config/zero/config.json` | Your machine. Never committed. |
 | Project config | `./.zero/config.json` | The repo. Committed (or not, your call). |
-| Environment | `ZERO_*` | Provider commands, secrets, skills dir override. |
+| Environment | `RUNE_*` | Provider commands, secrets, skills dir override. |
 | CLI flags | `--model`, `--mode`, ... | Highest priority, per-invocation. |
 
 The user config holds things that should follow the user across projects (default provider, default model, theme). The project config holds things the team agreed on (provider catalog, sandbox policies, model restrictions).

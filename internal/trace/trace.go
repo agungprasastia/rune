@@ -1,4 +1,4 @@
-// Package trace records per-turn timing for a Zero agent run.
+// Package trace records per-turn timing for a Rune agent run.
 //
 // Tracing is opt-in. A *Recorder is attached to agent.Options and threaded
 // through the run via context (see FromContext / WithContext). When the
@@ -190,7 +190,7 @@ func (t *TurnTrace) AttributedDuration() time.Duration {
 // Coverage is the fraction of WallDuration covered by the union of all span
 // intervals, capped at 1.0. This is the honest "what fraction of wall time did
 // we account for" metric: overlapping or nested spans do not push it above 1.
-// Returns 0 when wall is zero or no span has a usable interval.
+// Returns 0 when wall is rune or no span has a usable interval.
 func (t *TurnTrace) Coverage() float64 {
 	if t == nil {
 		return 0
@@ -218,7 +218,7 @@ func (t *TurnTrace) AttributionRatio() float64 {
 }
 
 // Span returns the total inclusive duration recorded for name across all its
-// occurrences, or zero if absent.
+// occurrences, or rune if absent.
 func (t *TurnTrace) Span(name string) time.Duration {
 	if t == nil {
 		return 0
@@ -233,7 +233,7 @@ func (t *TurnTrace) Span(name string) time.Duration {
 }
 
 // Exclusive returns the total exclusive duration recorded for name across all
-// its occurrences (each occurrence's Duration minus its children), or zero.
+// its occurrences (each occurrence's Duration minus its children), or rune.
 func (t *TurnTrace) Exclusive(name string) time.Duration {
 	if t == nil {
 		return 0
@@ -247,7 +247,7 @@ func (t *TurnTrace) Exclusive(name string) time.Duration {
 	return total
 }
 
-// Counter returns the value recorded for name, or zero if absent.
+// Counter returns the value recorded for name, or rune if absent.
 func (t *TurnTrace) Counter(name string) int64 {
 	if t == nil {
 		return 0

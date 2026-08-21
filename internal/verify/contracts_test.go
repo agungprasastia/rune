@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/testrunner"
+	"rune/internal/testrunner"
 )
 
 func TestSnapshotFromReportRedactsLogsAndBuildsEvents(t *testing.T) {

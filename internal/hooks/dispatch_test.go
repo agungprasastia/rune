@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/execution"
 )
 
 type hookExecutionPreparer struct {
@@ -185,7 +185,7 @@ func TestExecCommandRunnerCapturesExitAndStdin(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("uses /bin/sh")
 	}
-	// Echoes stdin to stderr and exits non-zero so we exercise both paths.
+	// Echoes stdin to stderr and exits non-rune so we exercise both paths.
 	result := execCommandRunner(context.Background(), "/bin/sh", []string{"-c", "cat 1>&2; exit 4"}, []byte("payload-123"), t.TempDir(), nil)
 	if result.Err != nil {
 		t.Fatalf("unexpected launch error: %v", result.Err)

@@ -10,18 +10,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providers/openai"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/providers/openai"
+	"rune/internal/zeroruntime"
 )
 
 // TestRunExecOptimizedSessionUnderGate proves the end-to-end wiring: with
-// ZERO_OPENAI_TURN_SESSION on and a real official-OpenAI provider, a headless
+// RUNE_OPENAI_TURN_SESSION on and a real official-OpenAI provider, a headless
 // run streams through the optimized session — the server sees the prewarm HEAD
 // probe in addition to the turn's POST.
 func TestRunExecOptimizedSessionUnderGate(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", t.TempDir())
-	t.Setenv("ZERO_OPENAI_TURN_SESSION", "1")
+	t.Setenv("RUNE_OPENAI_TURN_SESSION", "1")
 	cwd := t.TempDir()
 
 	var heads, posts atomic.Int64
@@ -128,7 +128,7 @@ func TestRunExecOptimizedSessionUnderGate(t *testing.T) {
 // proceeds on the default path exactly as today.
 func TestRunExecGateOnFallsBackForFakeProvider(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", t.TempDir())
-	t.Setenv("ZERO_OPENAI_TURN_SESSION", "1")
+	t.Setenv("RUNE_OPENAI_TURN_SESSION", "1")
 	cwd := t.TempDir()
 
 	var builds int

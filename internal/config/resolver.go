@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/aimlapi"
-	"github.com/rune-ai/rune/internal/modelregistry"
-	"github.com/rune-ai/rune/internal/notify"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/aimlapi"
+	"rune/internal/modelregistry"
+	"rune/internal/notify"
+	"rune/internal/providercatalog"
+	"rune/internal/sandbox"
 )
 
 // ErrNoActiveProvider marks a resolve failure caused solely by a missing or
@@ -23,10 +23,10 @@ var ErrNoActiveProvider = errors.New("no active provider configured")
 
 // ErrProviderRequiresModel marks a resolve failure caused solely by the active
 // provider missing a model with no catalog default to fall back on (custom
-// openai-/anthropic-compatible endpoints — Zero cannot guess a gateway's model).
+// openai-/anthropic-compatible endpoints — Rune cannot guess a gateway's model).
 // Like ErrNoActiveProvider, the interactive TUI treats it as "needs onboarding"
 // and drops into the setup wizard so the user can fix it; headless commands
-// (zero config, zero exec) still fail with the actionable message.
+// (rune config, rune exec) still fail with the actionable message.
 var ErrProviderRequiresModel = errors.New("provider requires model")
 
 // setupFixableError tags an error with a sentinel for errors.Is WITHOUT
@@ -54,7 +54,7 @@ const defaultMaxTurns = 80
 const MaxTurnsCeiling = 500
 
 // defaultDeferThreshold is the number of deferred-eligible (MCP) tools at which
-// Zero collapses their full JSON schemas into compact `tool_search` reminder
+// Rune collapses their full JSON schemas into compact `tool_search` reminder
 // lines instead of advertising every schema on every turn. MCP tool schemas run
 // 300-600 tokens each, so eagerly shipping even a small server's toolset wastes
 // thousands of input tokens per message. Kept low so a typical single-server set
@@ -180,7 +180,7 @@ func Resolve(options ResolveOptions) (ResolvedConfig, error) {
 }
 
 func ResolveMCP(options ResolveOptions) (MCPConfig, error) {
-	// Seed Zero's built-in default MCP servers (e.g. keyless Exa for free,
+	// Seed Rune's built-in default MCP servers (e.g. keyless Exa for free,
 	// no-setup web search/scrape) BEFORE merging user/project config, so the user
 	// can override any field or disable a default by writing over it.
 	cfg := FileConfig{MCP: MCPConfig{Servers: DefaultMCPServers()}}
@@ -194,13 +194,13 @@ func ResolveMCP(options ResolveOptions) (MCPConfig, error) {
 		// server the user disabled (a user-level disable is sticky, but the user
 		// scope itself may lift it).
 		mergeMCPConfig(&cfg.MCP, fileConfig.MCP, true)
-		// Reconcile config written against a default Zero has since retired,
+		// Reconcile config written against a default Rune has since retired,
 		// here while the user layer is the only one merged — so a carried-over
 		// disable counts as a user-level decision the project layer cannot lift.
 		migrateRetiredDefaultMCPServers(&cfg.MCP)
 	}
 	// Drop the project layer when the workspace is untrusted, so a cloned repo's
-	// ./.zero/config.json cannot register (and spawn) MCP servers. Fail-closed:
+	// ./.rune/config.json cannot register (and spawn) MCP servers. Fail-closed:
 	// only a trusted workspace clears ExcludeProject. Defaults and user config still load.
 	if options.ProjectConfigPath != "" && !options.ExcludeProject {
 		fileConfig, err := loadConfigFile(options.ProjectConfigPath)
@@ -306,11 +306,11 @@ func mergeProjectConfig(dst *FileConfig, src FileConfig) error {
 		return err
 	}
 	// Sandbox.Enabled is intentionally NOT merged from project config: a cloned
-	// repo's .zero/config.json must not be able to disable the sandbox that
+	// repo's .rune/config.json must not be able to disable the sandbox that
 	// constrains it. Only global config and CLI can turn the sandbox off.
 	//
 	// Sandbox.AdditionalWriteRoots is intentionally NOT merged from project
-	// config: a cloned repo's .zero/config.json must not be able to grant
+	// config: a cloned repo's .rune/config.json must not be able to grant
 	// itself write access outside the workspace. Global config and CLI flags
 	// are the only config sources for write roots.
 	//
@@ -479,7 +479,7 @@ func effectiveProviderKind(profile ProviderProfile) ProviderKind {
 // catalogDefaultModel returns the default model of a catalog provider ("" when
 // the id is unknown), used to fill a missing profile.Model for the official-API
 // kinds so a hand-written profile without a model resolves instead of bricking
-// every command that resolves config up front (zero config, bare zero setup).
+// every command that resolves config up front (rune config, bare rune setup).
 func catalogDefaultModel(catalogID string) string {
 	descriptor, ok := providercatalog.Get(catalogID)
 	if !ok {
@@ -562,7 +562,7 @@ func mergeProfile(base ProviderProfile, next ProviderProfile) ProviderProfile {
 }
 
 // ActiveProviderEnv selects the active provider profile by name (read in applyEnv).
-const ActiveProviderEnv = "ZERO_PROVIDER"
+const ActiveProviderEnv = "RUNE_PROVIDER"
 
 // SetActiveProviderEnv exports the active provider name to the process environment
 // so a spawned child process (which inherits the environment) resolves the SAME
@@ -582,7 +582,7 @@ func SetActiveProviderEnv(name string) {
 }
 
 // MaxTurnsEnv overrides the per-run tool-turn budget by name (read in applyEnv).
-const MaxTurnsEnv = "ZERO_MAX_TURNS"
+const MaxTurnsEnv = "RUNE_MAX_TURNS"
 
 // SetMaxTurnsEnv exports the per-run tool-turn budget to the process environment so
 // a spawned child (sub-agent / swarm member, which inherits the environment) runs
@@ -991,7 +991,7 @@ func normalizeProvidersWithOptions(providers []ProviderProfile, activeName strin
 	}
 	if active.Model == "" {
 		return nil, ProviderProfile{}, &setupFixableError{
-			err:      providerError(active, "provider %s requires model — add \"model\" to its entry in config.json, or re-run: zero setup <catalog-id> --model <model>", active.Name),
+			err:      providerError(active, "provider %s requires model — add \"model\" to its entry in config.json, or re-run: rune setup <catalog-id> --model <model>", active.Name),
 			sentinel: ErrProviderRequiresModel,
 		}
 	}

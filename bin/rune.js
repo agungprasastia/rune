@@ -6,8 +6,8 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-function zeroBinaryName(platform = process.platform) {
-  return platform === 'win32' ? 'zero.exe' : 'zero';
+function runeBinaryName(platform = process.platform) {
+  return platform === 'win32' ? 'rune.exe' : 'rune';
 }
 
 function helperShimNames(name, platform = process.platform) {
@@ -58,7 +58,7 @@ function localControlHelperManifest(packageRoot) {
 // Mirrors internal/cli/observability.go parseDoctorArgs + writeDoctorHelp so the
 // wrapper's missing-binary doctor fallback matches the Go doctor CLI surface.
 const DOCTOR_HELP = `Usage:
-  zero doctor [flags]
+  rune doctor [flags]
 
 Runs Go backend health checks for config and provider setup.
 
@@ -71,7 +71,7 @@ Flags:
 const EXIT_USAGE = 2;
 
 function installedByBun() {
-  if (process.env.ZERO_WRAPPER_SIMULATE_BUN === '1') {
+  if (process.env.RUNE_WRAPPER_SIMULATE_BUN === '1') {
     return true;
   }
   return process.execPath.includes('bun') || !!process.versions?.bun;
@@ -81,10 +81,10 @@ function bunRecoveryParagraph() {
   return (
     'You installed with Bun, which does not run dependency lifecycle scripts\n' +
     'by default. Trust the package to run the blocked postinstall:\n' +
-    '  bun pm trust @gitlawb/zero       (project install)\n' +
-    '  bun pm -g trust @gitlawb/zero    (global install)\n' +
+    '  bun pm trust @rune-ai/rune       (project install)\n' +
+    '  bun pm -g trust @rune-ai/rune    (global install)\n' +
     'On Bun versions without `bun pm trust`, add\n' +
-    '  "trustedDependencies": ["@gitlawb/zero"]\n' +
+    '  "trustedDependencies": ["@rune-ai/rune"]\n' +
     'to your project package.json and reinstall.\n' +
     '\n'
   );
@@ -93,14 +93,14 @@ function bunRecoveryParagraph() {
 function buildFromSourceParagraph() {
   return (
     'If this platform has no prebuilt binary, build from source:\n' +
-    'https://github.com/Gitlawb/zero (go run ./cmd/zero, requires Go 1.26+).'
+    'https://github.com/rune-ai/rune (go run ./cmd/rune, requires Go 1.26+).'
   );
 }
 
 function missingBinaryContextParagraph() {
   return (
-    'Normally npm installs it as an optional dependency of @gitlawb/zero\n' +
-    `(@gitlawb/zero-${process.platform}-${process.arch}), and the wrapper can\n` +
+    'Normally npm installs it as an optional dependency of @rune-ai/rune\n' +
+    `(@rune-ai/rune-${process.platform}-${process.arch}), and the wrapper can\n` +
     'also download it from the GitHub Release when it is missing.'
   );
 }
@@ -113,7 +113,7 @@ function missingNativeRecoveryParagraphs(postinstallScript) {
     '\n' +
     'Things to try:\n' +
     '  - reinstall without omitting optional dependencies:\n' +
-    '      npm install -g @gitlawb/zero\n' +
+    '      npm install -g @rune-ai/rune\n' +
     '  - run the downloader manually (needs write access to the package dir):\n' +
     `      node "${postinstallScript}"\n` +
     '\n' +
@@ -124,7 +124,7 @@ function missingNativeRecoveryParagraphs(postinstallScript) {
 
 function formatGenericMissingNativeBinaryMessage(postinstallScript) {
   return (
-    '[zero] No native binary is available for this install.\n' +
+    '[rune] No native binary is available for this install.\n' +
     missingNativeRecoveryParagraphs(postinstallScript)
   );
 }
@@ -158,7 +158,7 @@ function missingNativeDoctorJSONReport(postinstallScript) {
         id: 'runtime.go',
         label: 'Go runtime',
         status: 'fail',
-        message: 'Native zero binary is missing next to the npm wrapper.',
+        message: 'Native rune binary is missing next to the npm wrapper.',
         details: {
           remedy: `node "${postinstallScript}"`,
         },
@@ -169,11 +169,11 @@ function missingNativeDoctorJSONReport(postinstallScript) {
 
 function missingNativeDoctorTextReport(postinstallScript) {
   return (
-    'Zero doctor report (' +
+    'Rune doctor report (' +
     new Date().toISOString() +
     ')\n' +
     'Overall: fail\n' +
-    '[fail] runtime.go - Native zero binary is missing next to the npm wrapper.\n' +
+    '[fail] runtime.go - Native rune binary is missing next to the npm wrapper.\n' +
     '  remedy: node "' +
     postinstallScript +
     '"\n' +
@@ -182,19 +182,19 @@ function missingNativeDoctorTextReport(postinstallScript) {
   );
 }
 
-// The platform payload is a version of @gitlawb/zero itself, installed under
+// The platform payload is a version of @rune-ai/rune itself, installed under
 // an npm: alias (see docs/NPM_PACKAGING.md). The alias name is derived from
 // process.platform/process.arch, so an unsupported platform simply fails to
 // resolve and we fall through to the downloader.
 function platformPackageBinary() {
-  const aliasedName = `@gitlawb/zero-${process.platform}-${process.arch}`;
+  const aliasedName = `@rune-ai/rune-${process.platform}-${process.arch}`;
   let manifestPath;
   try {
     manifestPath = createRequire(import.meta.url).resolve(`${aliasedName}/package.json`);
   } catch {
     return null;
   }
-  const candidate = join(dirname(manifestPath), zeroBinaryName());
+  const candidate = join(dirname(manifestPath), runeBinaryName());
   return existsSync(candidate) ? candidate : null;
 }
 
@@ -220,7 +220,7 @@ function downloadMissingBinary(packageRoot) {
   const downloadScript = join(packageRoot, 'scripts', 'postinstall.mjs');
   if (!existsSync(downloadScript) || !releaseAssetAvailable()) return;
   console.error(
-    '[zero] no platform package installed — fetching the native binary from the GitHub Release (retried on each run until it succeeds).',
+    '[rune] no platform package installed — fetching the native binary from the GitHub Release (retried on each run until it succeeds).',
   );
   spawnSync(process.execPath, [downloadScript], {
     stdio: ['ignore', 'inherit', 'inherit'],
@@ -232,7 +232,7 @@ const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 function resolveNativeBinary() {
   const fromPlatformPackage = platformPackageBinary();
   if (fromPlatformPackage) return fromPlatformPackage;
-  const downloaded = join(packageRoot, zeroBinaryName());
+  const downloaded = join(packageRoot, runeBinaryName());
   if (existsSync(downloaded)) return downloaded;
   downloadMissingBinary(packageRoot);
   return existsSync(downloaded) ? downloaded : null;
@@ -259,7 +259,7 @@ if (!nativePath) {
       process.exit(0);
     }
     if (parsed.kind === 'error') {
-      process.stderr.write(`[zero] ${parsed.message}\n`);
+      process.stderr.write(`[rune] ${parsed.message}\n`);
       process.exit(EXIT_USAGE);
     }
 
@@ -279,9 +279,9 @@ if (!nativePath) {
 const env = { ...process.env };
 const localControlHelpers = localControlHelperManifest(packageRoot);
 if (localControlHelpers) {
-  env.ZERO_LOCAL_CONTROL_HELPERS = localControlHelpers;
+  env.RUNE_LOCAL_CONTROL_HELPERS = localControlHelpers;
 } else {
-  delete env.ZERO_LOCAL_CONTROL_HELPERS;
+  delete env.RUNE_LOCAL_CONTROL_HELPERS;
 }
 
 const child = spawnSync(nativePath, process.argv.slice(2), {
@@ -290,7 +290,7 @@ const child = spawnSync(nativePath, process.argv.slice(2), {
 });
 
 if (child.error) {
-  console.error(`[zero] Failed to launch wrapper target: ${child.error.message}`);
+  console.error(`[rune] Failed to launch wrapper target: ${child.error.message}`);
   process.exit(1);
 }
 

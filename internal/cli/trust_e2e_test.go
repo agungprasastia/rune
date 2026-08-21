@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/workspacetrust"
-	"github.com/rune-ai/rune/internal/worktrees"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/tools"
+	"rune/internal/workspacetrust"
+	"rune/internal/worktrees"
+	"rune/internal/zeroruntime"
 )
 
 // These tests close the end-to-end gap the chokepoint unit tests leave open:
@@ -68,7 +68,7 @@ func (p toolThenTextProvider) StreamCompletion(_ context.Context, req zeroruntim
 	return ch, nil
 }
 
-// writeMarkerHook writes a ./.zero/hooks.json under dir whose enabled beforeTool
+// writeMarkerHook writes a ./.rune/hooks.json under dir whose enabled beforeTool
 // hook touches markerPath when it fires. The hook shells out to /bin/sh, so the
 // trusted-case assertion (the marker must appear) is meaningless on Windows, where
 // that interpreter does not exist; skip there, matching writeMarkerHookScript.
@@ -77,11 +77,11 @@ func writeMarkerHook(t *testing.T, dir, markerPath string) {
 	if runtime.GOOS == "windows" {
 		t.Skip("marker hook is POSIX-shell based (/bin/sh)")
 	}
-	if err := os.MkdirAll(filepath.Join(dir, ".zero"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(dir, ".rune"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	body := `{"enabled":true,"hooks":[{"id":"m","event":"beforeTool","command":"/bin/sh","args":["-c","touch '` + markerPath + `'"],"enabled":true}]}`
-	if err := os.WriteFile(filepath.Join(dir, ".zero", "hooks.json"), []byte(body), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".rune", "hooks.json"), []byte(body), 0o644); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -192,18 +192,18 @@ func TestTrustGateFiresInDefaultAutoMode(t *testing.T) {
 // pieces work in isolation: an untrusted repo whose only project config is MCP prints
 // the notice through the real runExec wiring; trusting it silences it. resolveMCPConfig
 // is stubbed to return no servers so nothing spawns -- the notice depends only on the
-// trust verdict and the real ./.zero/config.json that projectMCPConfigExists reads.
+// trust verdict and the real ./.rune/config.json that projectMCPConfigExists reads.
 func TestExecSurfacesMCPTrustNotice(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("exec fake-provider harness assumes a POSIX process environment")
 	}
 	setTrustConfigRoot(t)
 	repo := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(repo, ".zero"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".rune"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	body := `{"mcp":{"servers":{"proj":{"type":"stdio","command":"proj-cmd"}}}}`
-	if err := os.WriteFile(filepath.Join(repo, ".zero", "config.json"), []byte(body), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, ".rune", "config.json"), []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -226,7 +226,7 @@ func TestExecSurfacesMCPTrustNotice(t *testing.T) {
 	// Untrusted: the project MCP layer is dropped, so the notice must name it. The repo
 	// has no project hooks/plugins, so the MCP skip is the ONLY thing that can fire it.
 	untrusted := run()
-	if !strings.Contains(untrusted, "MCP servers") || !strings.Contains(untrusted, "zero trust") {
+	if !strings.Contains(untrusted, "MCP servers") || !strings.Contains(untrusted, "rune trust") {
 		t.Fatalf("untrusted exec must surface the MCP trust notice, stderr=%q", untrusted)
 	}
 
@@ -241,7 +241,7 @@ func TestExecSurfacesMCPTrustNotice(t *testing.T) {
 
 // TestExecSpecSurfacesMCPTrustNotice is the --use-spec analogue of the test above:
 // the spec-draft path (exec_spec.go) must also thread the MCP skip into its notice.
-// The fake provider never submits a spec, so the run exits non-zero; that is
+// The fake provider never submits a spec, so the run exits non-rune; that is
 // orthogonal to trust, so we assert only the notice, not the exit code.
 func TestExecSpecSurfacesMCPTrustNotice(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -249,11 +249,11 @@ func TestExecSpecSurfacesMCPTrustNotice(t *testing.T) {
 	}
 	setTrustConfigRoot(t)
 	repo := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(repo, ".zero"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(repo, ".rune"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	body := `{"mcp":{"servers":{"proj":{"type":"stdio","command":"proj-cmd"}}}}`
-	if err := os.WriteFile(filepath.Join(repo, ".zero", "config.json"), []byte(body), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(repo, ".rune", "config.json"), []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -266,7 +266,7 @@ func TestExecSpecSurfacesMCPTrustNotice(t *testing.T) {
 		},
 		resolveMCPConfig: func(string, bool) (config.MCPConfig, error) { return config.MCPConfig{}, nil },
 	})
-	if !strings.Contains(errBuf.String(), "MCP servers") || !strings.Contains(errBuf.String(), "zero trust") {
+	if !strings.Contains(errBuf.String(), "MCP servers") || !strings.Contains(errBuf.String(), "rune trust") {
 		t.Fatalf("untrusted --use-spec exec must surface the MCP trust notice, stderr=%q", errBuf.String())
 	}
 }
@@ -296,7 +296,7 @@ func runExecTrust(t *testing.T, extraArgs []string, launchDir, worktreeDir strin
 
 // TestExecWorktreeInheritsTrustEndToEnd closes gap #1 for the exec path: trust is
 // keyed on the ORIGINAL launch dir, not the generated worktree path. The worktree
-// checkout carries the committed .zero/hooks.json; the gate must load it only when
+// checkout carries the committed .rune/hooks.json; the gate must load it only when
 // the SOURCE repo (launch dir) is trusted, proving exec.go captures trustRoot
 // before the --worktree reassignment and threads it into the chokepoint.
 func TestExecWorktreeInheritsTrustEndToEnd(t *testing.T) {
@@ -338,7 +338,7 @@ func TestExecSpecWorktreeInheritsTrustEndToEnd(t *testing.T) {
 	marker := filepath.Join(t.TempDir(), "marker")
 	writeMarkerHook(t, worktree, marker)
 
-	// The spec-draft flow itself exits non-zero here (the fake provider does not
+	// The spec-draft flow itself exits non-rune here (the fake provider does not
 	// submit a real spec), which is orthogonal to trust: the hook dispatcher is
 	// built (keyed on run.trustRoot) before the agent runs, and glob (a read-only
 	// allow tool) is advertised in spec-draft, so beforeTool still fires. We assert

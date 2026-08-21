@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/pathjail"
+	"rune/internal/pathjail"
 )
 
 const (
@@ -573,7 +573,7 @@ func writeStructuredPatchFile(root *os.Root, target structuredPatchTarget, conte
 	if err := root.MkdirAll(parent, 0o755); err != nil {
 		return false, fmt.Errorf("creating parent directory for %s: %w", target.relative, err)
 	}
-	temp, tempName, err := pathjail.CreateTemp(root, parent, "zero-patch", ".tmp")
+	temp, tempName, err := pathjail.CreateTemp(root, parent, "rune-patch", ".tmp")
 	if err != nil {
 		return false, fmt.Errorf("writing %s: %w", target.relative, err)
 	}

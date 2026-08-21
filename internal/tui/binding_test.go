@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/rune-ai/rune/internal/config"
+	"rune/internal/config"
 )
 
 func TestParseBindingLabel(t *testing.T) {
@@ -166,7 +166,7 @@ func TestParseBindingUTF8Character(t *testing.T) {
 	// not be rejected by a byte-length check.
 	p := parseBinding("é")
 	if p.isZero() {
-		t.Errorf("parseBinding('é') should not be zero — it's a valid single character")
+		t.Errorf("parseBinding('é') should not be rune — it's a valid single character")
 	}
 	if p.code != 'é' {
 		t.Errorf("parseBinding('é').code = %d (U+%04X), want %d (U+00E9)", p.code, p.code, 'é')
@@ -238,7 +238,7 @@ func TestConfigToBindingPipeline(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.binding.isZero() {
-				t.Errorf("%s binding is zero (unset) — config not loaded", tt.name)
+				t.Errorf("%s binding is rune (unset) — config not loaded", tt.name)
 			}
 			if got := tt.binding.Label(); got != tt.wantKey {
 				t.Errorf("%s.Label() = %q, want %q", tt.name, got, tt.wantKey)
@@ -362,7 +362,7 @@ func TestSanitizeKeyBindingsDropsCollisionWithOtherDefault(t *testing.T) {
 		t.Errorf("toggleDetailed should be reverted to default, got %q", sanitized.toggleDetailed.Label())
 	}
 	if !sanitized.cycleReasoning.isZero() {
-		t.Errorf("cycleReasoning should remain default (zero), got %q", sanitized.cycleReasoning.Label())
+		t.Errorf("cycleReasoning should remain default (rune), got %q", sanitized.cycleReasoning.Label())
 	}
 	if len(warnings) != 1 {
 		t.Fatalf("want exactly 1 warning, got %d: %v", len(warnings), warnings)

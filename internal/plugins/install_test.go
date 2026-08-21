@@ -45,15 +45,15 @@ func TestInstallFromRealLocalGitRepo(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Install from git: %v", err)
 	}
-	if result.ID != "zero.demo" {
-		t.Fatalf("ID = %q, want zero.demo", result.ID)
+	if result.ID != "rune.demo" {
+		t.Fatalf("ID = %q, want rune.demo", result.ID)
 	}
 	loaded, err := Load(LoadOptions{Roots: []Root{{Source: SourceUser, Path: destDir}}})
 	if err != nil || len(loaded.Plugins) != 1 {
 		t.Fatalf("installed git plugin not discoverable: err=%v plugins=%#v", err, loaded.Plugins)
 	}
 	// copyTree must skip .git so clone metadata never lands in the plugins dir.
-	if _, err := os.Stat(filepath.Join(destDir, "zero.demo", ".git")); err == nil {
+	if _, err := os.Stat(filepath.Join(destDir, "rune.demo", ".git")); err == nil {
 		t.Fatalf(".git metadata must not be copied into the plugins dir")
 	}
 }
@@ -76,8 +76,8 @@ func writeSourcePlugin(t *testing.T, dir string, manifest map[string]any) string
 func validManifest() map[string]any {
 	return map[string]any{
 		"schemaVersion": float64(1),
-		"id":            "zero.demo",
-		"name":          "Zero Demo",
+		"id":            "rune.demo",
+		"name":          "Rune Demo",
 		"version":       "0.1.0",
 		"description":   "Demo plugin",
 	}
@@ -91,8 +91,8 @@ func TestInstallCopiesLocalPluginAndRecordsHash(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Install returned error: %v", err)
 	}
-	if result.ID != "zero.demo" {
-		t.Fatalf("ID = %q, want zero.demo", result.ID)
+	if result.ID != "rune.demo" {
+		t.Fatalf("ID = %q, want rune.demo", result.ID)
 	}
 	if result.Hash == "" {
 		t.Fatalf("expected a recorded content hash")
@@ -103,7 +103,7 @@ func TestInstallCopiesLocalPluginAndRecordsHash(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if len(loaded.Plugins) != 1 || loaded.Plugins[0].ID != "zero.demo" {
+	if len(loaded.Plugins) != 1 || loaded.Plugins[0].ID != "rune.demo" {
 		t.Fatalf("installed plugin not discoverable: %#v", loaded.Plugins)
 	}
 
@@ -112,8 +112,8 @@ func TestInstallCopiesLocalPluginAndRecordsHash(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadLock: %v", err)
 	}
-	if entries["zero.demo"].Hash != result.Hash || entries["zero.demo"].Source != canonicalSource(src) {
-		t.Fatalf("lockfile entry unexpected: %#v", entries["zero.demo"])
+	if entries["rune.demo"].Hash != result.Hash || entries["rune.demo"].Source != canonicalSource(src) {
+		t.Fatalf("lockfile entry unexpected: %#v", entries["rune.demo"])
 	}
 }
 
@@ -194,7 +194,7 @@ func TestConcurrentInstallsPreserveEveryLockEntry(t *testing.T) {
 	sources := make([]string, count)
 	for index := range count {
 		manifest := validManifest()
-		manifest["id"] = fmt.Sprintf("zero.concurrent.%02d", index)
+		manifest["id"] = fmt.Sprintf("rune.concurrent.%02d", index)
 		sources[index] = writeSourcePlugin(t, filepath.Join(t.TempDir(), "src"), manifest)
 	}
 
@@ -229,7 +229,7 @@ func TestInstallReinstallDetectsNestedFileChange(t *testing.T) {
 	src := filepath.Join(t.TempDir(), "src")
 	writeSourcePlugin(t, src, map[string]any{
 		"schemaVersion": float64(1),
-		"id":            "zero.tool",
+		"id":            "rune.tool",
 		"name":          "Tool",
 		"version":       "0.1.0",
 		"tools": []any{map[string]any{
@@ -285,8 +285,8 @@ func TestInstallNameClashWarnsAndDoesNotOverwriteWithoutForce(t *testing.T) {
 		t.Fatalf("forced reinstall: %v", err)
 	}
 	entries, _ := ReadLock(destDir)
-	if entries["zero.demo"].Source != canonicalSource(srcB) {
-		t.Fatalf("forced overwrite did not update source: %#v", entries["zero.demo"])
+	if entries["rune.demo"].Source != canonicalSource(srcB) {
+		t.Fatalf("forced overwrite did not update source: %#v", entries["rune.demo"])
 	}
 }
 
@@ -315,8 +315,8 @@ func TestInstallSameLocalSourceDifferentSpellingIsNotAClash(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadLock: %v", err)
 	}
-	if entries["zero.demo"].Source != canonicalSource(abs) {
-		t.Fatalf("lockfile should record the canonical source %q, got %q", canonicalSource(abs), entries["zero.demo"].Source)
+	if entries["rune.demo"].Source != canonicalSource(abs) {
+		t.Fatalf("lockfile should record the canonical source %q, got %q", canonicalSource(abs), entries["rune.demo"].Source)
 	}
 }
 
@@ -339,7 +339,7 @@ func TestInstallGitSourceUsesRunner(t *testing.T) {
 	if !used {
 		t.Fatalf("git runner not invoked for URL source")
 	}
-	if result.ID != "zero.demo" {
+	if result.ID != "rune.demo" {
 		t.Fatalf("ID = %q", result.ID)
 	}
 }
@@ -351,7 +351,7 @@ func TestRemoveDeletesPluginAndLockEntry(t *testing.T) {
 		t.Fatalf("install: %v", err)
 	}
 
-	if err := Remove(destDir, "zero.demo"); err != nil {
+	if err := Remove(destDir, "rune.demo"); err != nil {
 		t.Fatalf("Remove: %v", err)
 	}
 	loaded, _ := Load(LoadOptions{Roots: []Root{{Source: SourceUser, Path: destDir}}})
@@ -359,7 +359,7 @@ func TestRemoveDeletesPluginAndLockEntry(t *testing.T) {
 		t.Fatalf("plugin still present after Remove: %#v", loaded.Plugins)
 	}
 	entries, _ := ReadLock(destDir)
-	if _, ok := entries["zero.demo"]; ok {
+	if _, ok := entries["rune.demo"]; ok {
 		t.Fatalf("lockfile entry survived Remove")
 	}
 }
@@ -377,7 +377,7 @@ func TestInstallCopiesEntireTree(t *testing.T) {
 	destDir := t.TempDir()
 	src := writeSourcePlugin(t, filepath.Join(t.TempDir(), "src"), map[string]any{
 		"schemaVersion": float64(1),
-		"id":            "zero.tool",
+		"id":            "rune.tool",
 		"name":          "Tool",
 		"version":       "0.1.0",
 		"tools": []any{map[string]any{

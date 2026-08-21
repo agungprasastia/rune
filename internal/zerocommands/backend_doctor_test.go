@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/hooks"
-	"github.com/rune-ai/rune/internal/plugins"
+	"rune/internal/config"
+	"rune/internal/hooks"
+	"rune/internal/plugins"
 )
 
 func TestNewBackendDoctorReportSurfacesDiagnosticsAndActions(t *testing.T) {
@@ -29,7 +29,7 @@ func TestNewBackendDoctorReportSurfacesDiagnosticsAndActions(t *testing.T) {
 		}},
 		Hooks: hooks.LoadResult{
 			Config: hooks.Config{Enabled: false, Hooks: []hooks.Definition{{
-				ID:      "zero.preflight",
+				ID:      "rune.preflight",
 				Event:   hooks.EventBeforeTool,
 				Command: "sh",
 				Enabled: true,
@@ -38,13 +38,13 @@ func TestNewBackendDoctorReportSurfacesDiagnosticsAndActions(t *testing.T) {
 				Kind:      hooks.DiagnosticSchema,
 				Message:   "bad arg " + secret,
 				Path:      "/tmp/" + secret + "/hooks.json",
-				HookID:    "zero.preflight-" + secret,
+				HookID:    "rune.preflight-" + secret,
 				FieldPath: "hooks.0.command." + secret,
 			}},
 		},
 		Plugins: plugins.LoadResult{
 			Plugins: []plugins.LoadedPlugin{{
-				ID:      "zero.docs",
+				ID:      "rune.docs",
 				Name:    "Docs",
 				Enabled: false,
 				Source:  plugins.SourceProject,
@@ -56,7 +56,7 @@ func TestNewBackendDoctorReportSurfacesDiagnosticsAndActions(t *testing.T) {
 				PluginPath:   "/tmp/" + secret + "/plugins/docs",
 				ManifestPath: "/tmp/plugin.json?token=" + secret,
 				FieldPath:    "tools.0.command." + secret,
-				PluginID:     "zero.docs-" + secret,
+				PluginID:     "rune.docs-" + secret,
 			}},
 		},
 	})
@@ -67,13 +67,13 @@ func TestNewBackendDoctorReportSurfacesDiagnosticsAndActions(t *testing.T) {
 	if report.Status != BackendDoctorStatusFail {
 		t.Fatalf("report.Status = %q, want %q", report.Status, BackendDoctorStatusFail)
 	}
-	assertBackendDoctorCheck(t, report, "backend.mcp.server", "remote", BackendDoctorStatusPass, "zero mcp check remote")
-	assertBackendDoctorCheck(t, report, "backend.mcp.invalid", "broken", BackendDoctorStatusFail, "zero mcp add broken")
-	assertBackendDoctorCheck(t, report, "backend.mcp.disabled", "disabled", BackendDoctorStatusWarn, "zero mcp enable disabled")
-	assertBackendDoctorCheck(t, report, "backend.hooks.disabled", "hooks", BackendDoctorStatusWarn, "zero hooks list")
-	assertBackendDoctorCheck(t, report, "backend.hooks.diagnostic", "zero.preflight-[REDACTED]", BackendDoctorStatusFail, "zero hooks list")
-	assertBackendDoctorCheck(t, report, "backend.plugins.disabled", "zero.docs", BackendDoctorStatusWarn, "zero plugins list")
-	assertBackendDoctorCheck(t, report, "backend.plugins.diagnostic", "zero.docs-[REDACTED]", BackendDoctorStatusWarn, "zero plugins list")
+	assertBackendDoctorCheck(t, report, "backend.mcp.server", "remote", BackendDoctorStatusPass, "rune mcp check remote")
+	assertBackendDoctorCheck(t, report, "backend.mcp.invalid", "broken", BackendDoctorStatusFail, "rune mcp add broken")
+	assertBackendDoctorCheck(t, report, "backend.mcp.disabled", "disabled", BackendDoctorStatusWarn, "rune mcp enable disabled")
+	assertBackendDoctorCheck(t, report, "backend.hooks.disabled", "hooks", BackendDoctorStatusWarn, "rune hooks list")
+	assertBackendDoctorCheck(t, report, "backend.hooks.diagnostic", "rune.preflight-[REDACTED]", BackendDoctorStatusFail, "rune hooks list")
+	assertBackendDoctorCheck(t, report, "backend.plugins.disabled", "rune.docs", BackendDoctorStatusWarn, "rune plugins list")
+	assertBackendDoctorCheck(t, report, "backend.plugins.diagnostic", "rune.docs-[REDACTED]", BackendDoctorStatusWarn, "rune plugins list")
 
 	encoded, err := json.Marshal(report)
 	if err != nil {
@@ -92,9 +92,9 @@ func TestNewBackendDoctorReportPassesEmptySetup(t *testing.T) {
 	if report.Status != BackendDoctorStatusPass {
 		t.Fatalf("report.Status = %q, want %q", report.Status, BackendDoctorStatusPass)
 	}
-	assertBackendDoctorCheck(t, report, "backend.mcp.configured", "mcp", BackendDoctorStatusPass, "zero mcp add")
-	assertBackendDoctorCheck(t, report, "backend.hooks.configured", "hooks", BackendDoctorStatusPass, "zero hooks list")
-	assertBackendDoctorCheck(t, report, "backend.plugins.configured", "plugins", BackendDoctorStatusPass, "zero plugins list")
+	assertBackendDoctorCheck(t, report, "backend.mcp.configured", "mcp", BackendDoctorStatusPass, "rune mcp add")
+	assertBackendDoctorCheck(t, report, "backend.hooks.configured", "hooks", BackendDoctorStatusPass, "rune hooks list")
+	assertBackendDoctorCheck(t, report, "backend.plugins.configured", "plugins", BackendDoctorStatusPass, "rune plugins list")
 }
 
 func TestNewBackendDoctorReportWarnsWithoutFailing(t *testing.T) {

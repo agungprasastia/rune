@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/rune-ai/rune/internal/background"
+	"rune/internal/background"
 )
 
 type RuntimeOptions struct {

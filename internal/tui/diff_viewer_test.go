@@ -211,7 +211,7 @@ func TestDiffViewerSyntaxHighlightsBothChangedSides(t *testing.T) {
 
 	body := diffCardBody(diff, 100, cardRenderOptions{bodyCap: 0})
 	joined := strings.Join(body.lines, "\n")
-	// `func` uses Zero's accent and string literals use its green token style.
+	// `func` uses Rune's accent and string literals use its green token style.
 	if !strings.Contains(joined, "202;255;63") || !strings.Contains(joined, "93;209;164") {
 		t.Fatalf("diff viewer did not retain Go syntax colors in changed rows:\n%s", joined)
 	}

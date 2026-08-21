@@ -8,8 +8,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/dictation"
+	"rune/internal/config"
+	"rune/internal/dictation"
 )
 
 // sttDownloadProgressMsg carries a live download-status line (with a

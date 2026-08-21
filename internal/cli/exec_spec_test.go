@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/specmode"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/specmode"
+	"rune/internal/zeroruntime"
 )
 
 func TestRunExecUseSpecCreatesDraftSession(t *testing.T) {
@@ -84,7 +84,7 @@ func TestRunExecUseSpecCreatesDraftSession(t *testing.T) {
 	if draft.SessionKind != sessions.SessionKindSpecDraft || draft.SpecStatus != sessions.SpecStatusDraft {
 		t.Fatalf("unexpected draft session: %#v", draft)
 	}
-	if draft.SpecID == "" || !strings.Contains(filepath.ToSlash(draft.SpecFilePath), ".zero/specs/") {
+	if draft.SpecID == "" || !strings.Contains(filepath.ToSlash(draft.SpecFilePath), ".rune/specs/") {
 		t.Fatalf("draft spec metadata missing: %#v", draft)
 	}
 	if draft.SpecDraftModelID != "draft-model" || draft.ModelID != "draft-model" || draft.SpecDraftReasoning != "high" {

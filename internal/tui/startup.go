@@ -33,7 +33,7 @@ var zeroWordmarkOLines = []string{
 	` ╚═════╝ `,
 }
 
-const emptyStateTagline = "Any model. Every tool. Zero limits."
+const emptyStateTagline = "Any model. Every tool. Rune limits."
 
 // emptyState renders the centered stream-area block shown while the
 // transcript has no real content: the brand glyph and tagline.
@@ -70,7 +70,7 @@ func (m model) emptyStateLines(width int) []string {
 	}
 	lines = append(lines, "")
 	lines = append(lines, centerLine(zeroTheme.muted.Render(emptyStateTagline), width))
-	// Orientation: where ZERO is pointed (cwd · branch · model) so a returning user
+	// Orientation: where RUNE is pointed (cwd · branch · model) so a returning user
 	// sees the context before typing instead of a blank brand screen.
 	if orient := m.emptyStateOrientation(); orient != "" {
 		lines = append(lines, "")
@@ -138,8 +138,8 @@ func zeroWordmarkLines() []string {
 }
 
 // Wordmark renders the brand ASCII art shown on the TUI's empty state, for
-// reuse outside the TUI (e.g. `zero --version`). It is deliberately
-// uncolored: only newModel resolves --theme/ZERO_THEME, so painting the
+// reuse outside the TUI (e.g. `rune --version`). It is deliberately
+// uncolored: only newModel resolves --theme/RUNE_THEME, so painting the
 // global palette here would ignore a selected light theme and be unreadable
 // on light terminals. The terminal's default foreground works everywhere.
 func Wordmark() string {

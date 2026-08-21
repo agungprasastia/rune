@@ -3,7 +3,7 @@ package agent
 import (
 	"testing"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 func TestMeasureContextSplitsByCategory(t *testing.T) {
@@ -19,7 +19,7 @@ func TestMeasureContextSplitsByCategory(t *testing.T) {
 	breakdown := MeasureContext(messages, tools, 100_000)
 
 	if breakdown.SystemTokens <= 0 || breakdown.MessageTokens <= 0 || breakdown.ToolTokens <= 0 {
-		t.Fatalf("expected all categories non-zero, got %#v", breakdown)
+		t.Fatalf("expected all categories non-rune, got %#v", breakdown)
 	}
 	if got := breakdown.SystemTokens + breakdown.ToolTokens + breakdown.MessageTokens; got != breakdown.TotalTokens {
 		t.Fatalf("TotalTokens %d != sum of categories %d", breakdown.TotalTokens, got)

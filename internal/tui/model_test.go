@@ -17,14 +17,14 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/rune-ai/rune/internal/agent"
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/notify"
-	"github.com/rune-ai/rune/internal/providermodeldiscovery"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/agent"
+	"rune/internal/config"
+	"rune/internal/notify"
+	"rune/internal/providermodeldiscovery"
+	"rune/internal/sandbox"
+	"rune/internal/sessions"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 // execCmd runs a possibly-batched command synchronously and returns the first
@@ -203,7 +203,7 @@ func TestParseCommand(t *testing.T) {
 		{input: "/fast", kind: commandFast},
 		{input: "/style concise", kind: commandStyle, text: "concise"},
 		{input: "/debug-mode", kind: commandDebug},
-		{input: "hello zero", kind: commandPrompt, text: "hello zero"},
+		{input: "hello rune", kind: commandPrompt, text: "hello rune"},
 	}
 
 	for _, tc := range cases {
@@ -260,7 +260,7 @@ func TestTranscriptReducer(t *testing.T) {
 
 func TestInitialRenderShowsLimeChatSurface(t *testing.T) {
 	model := newModel(context.Background(), Options{
-		Cwd:          `/workspace/zero`,
+		Cwd:          `/workspace/rune`,
 		ProviderName: "openai",
 		ModelName:    "gpt-4.1",
 	})
@@ -268,14 +268,14 @@ func TestInitialRenderShowsLimeChatSurface(t *testing.T) {
 	model.height = 34
 
 	view := viewString(model.View())
-	assertContains(t, view, `/workspace/zero`)
+	assertContains(t, view, `/workspace/rune`)
 	assertContains(t, view, "openai/gpt-4.1")
 	assertContains(t, view, emptyStateTagline)
-	assertNotContains(t, view, "running zero against ")
+	assertNotContains(t, view, "running rune against ")
 	assertNotContains(t, view, " 0 ")
 	assertContains(t, view, composerPlaceholder)
 	assertNotContains(t, view, "interactive")
-	if strings.Contains(view, "Welcome to Zero") {
+	if strings.Contains(view, "Welcome to Rune") {
 		t.Fatalf("empty chat surface should not show welcome transcript clutter, got %q", view)
 	}
 }
@@ -471,7 +471,7 @@ func TestContextCommandShowsSessionState(t *testing.T) {
 	registry := tools.NewRegistry()
 	registry.Register(tools.NewScopedReadFileTool(".", nil))
 	m := newModel(context.Background(), Options{
-		Cwd:            `D:\codings\Opensource\Zero`,
+		Cwd:            `D:\codings\Opensource\Rune`,
 		ProviderName:   "openai",
 		ModelName:      "gpt-4.1",
 		Registry:       registry,
@@ -486,7 +486,7 @@ func TestContextCommandShowsSessionState(t *testing.T) {
 		t.Fatal("expected /context to be handled without starting an agent run")
 	}
 	for _, want := range []string{
-		`D:\codings\Opensource\Zero`,
+		`D:\codings\Opensource\Rune`,
 		"go runtime | ask permissions | 1 tool",
 		"provider   openai",
 		"model      gpt-4.1",
@@ -634,7 +634,7 @@ func TestProviderModelSwitchCandidatesPreserveGatewayModelIDs(t *testing.T) {
 }
 
 func TestModelCommandPersistsSelectedModelToUserConfig(t *testing.T) {
-	configPath := filepath.Join(t.TempDir(), "zero.json")
+	configPath := filepath.Join(t.TempDir(), "rune.json")
 	if _, err := config.UpsertProvider(configPath, config.ProviderProfile{
 		Name:         "openai",
 		ProviderKind: config.ProviderKindOpenAI,
@@ -1002,7 +1002,7 @@ func TestResumeCommandListsRecentSessions(t *testing.T) {
 		t.Fatalf("hidden session id should remain searchable, got %#v", searchByID.items)
 	}
 
-	// An empty result set reports an unambiguous zero position.
+	// An empty result set reports an unambiguous rune position.
 	noResults := next
 	noResults.picker.query = "__missing_session__"
 	noResults.picker.applyQuery()
@@ -1062,7 +1062,7 @@ func TestResumePickerSelectionHydratesSession(t *testing.T) {
 	if next.activeSession.SessionID != target.SessionID {
 		t.Fatalf("active session = %q, want %q", next.activeSession.SessionID, target.SessionID)
 	}
-	if !transcriptContains(next.transcript, "Resumed Zero session") || !transcriptContains(next.transcript, target.SessionID) {
+	if !transcriptContains(next.transcript, "Resumed Rune session") || !transcriptContains(next.transcript, target.SessionID) {
 		t.Fatalf("expected the resume summary in the transcript, got %#v", next.transcript)
 	}
 }
@@ -1164,7 +1164,7 @@ func TestResumeCommandWithUnknownIDReportsMissingSession(t *testing.T) {
 	updated, _ := m.Update(testKey(tea.KeyEnter))
 	next := updated.(model)
 
-	if !transcriptContains(next.transcript, "zero session not found: zero_123") {
+	if !transcriptContains(next.transcript, "rune session not found: zero_123") {
 		t.Fatalf("expected missing session message, got %#v", next.transcript)
 	}
 }

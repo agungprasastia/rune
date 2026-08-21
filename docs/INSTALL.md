@@ -2,7 +2,7 @@
 
 Zero is distributed as:
 
-- an npm package, `@gitlawb/zero`
+- an npm package, `@rune-ai/rune`
 - release archives on GitHub Releases
 - source builds with Go 1.26.5+
 
@@ -13,7 +13,7 @@ self-contained: the platform binary installs from the npm registry.
 ## npm
 
 ```bash
-npm install -g @gitlawb/zero
+npm install -g @rune-ai/rune
 zero
 ```
 
@@ -40,7 +40,7 @@ cannot write to keeps failing — rerun the install or the command below with
 sufficient permissions). To trigger the fetch manually:
 
 ```bash
-node "$(npm root -g)/@gitlawb/zero/scripts/postinstall.mjs"
+node "$(npm root -g)/@rune-ai/rune/scripts/postinstall.mjs"
 ```
 
 ## Linux And macOS Script
@@ -48,7 +48,7 @@ node "$(npm root -g)/@gitlawb/zero/scripts/postinstall.mjs"
 Install the latest release:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rune-ai/rune/main/scripts/install.sh | bash
 ```
 
 From a checkout:
@@ -60,20 +60,20 @@ scripts/install.sh
 Install a specific version:
 
 ```bash
-ZERO_VERSION=0.1.0 scripts/install.sh
+RUNE_VERSION=0.1.0 scripts/install.sh
 scripts/install.sh --version 0.1.0
 ```
 
 Install somewhere else:
 
 ```bash
-ZERO_INSTALL_DIR="$HOME/bin" scripts/install.sh
+RUNE_INSTALL_DIR="$HOME/bin" scripts/install.sh
 scripts/install.sh --install-dir "$HOME/bin"
 ```
 
 Defaults:
 
-- Repository: `Gitlawb/zero`
+- Repository: `rune-ai/rune`
 - Version: latest GitHub release
 - Install path: `~/.local/bin/zero`
 
@@ -84,7 +84,7 @@ Requirements: Bash, `curl` or `wget`, `tar`, and `shasum` or `sha256sum`.
 Install the latest release:
 
 ```powershell
-irm https://raw.githubusercontent.com/Gitlawb/zero/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/rune-ai/rune/main/scripts/install.ps1 | iex
 ```
 
 From a checkout:
@@ -107,14 +107,14 @@ powershell -ExecutionPolicy Bypass -File scripts/install.ps1 -InstallDir "$env:U
 
 Defaults:
 
-- Repository: `Gitlawb/zero`
+- Repository: `rune-ai/rune`
 - Version: latest GitHub release
 - Install path: `%LOCALAPPDATA%\zero\bin\zero.exe`
 
 ## From Source
 
 ```bash
-git clone https://github.com/Gitlawb/zero.git
+git clone https://github.com/rune-ai/rune.git
 cd zero
 go run ./cmd/zero
 ```
@@ -158,7 +158,7 @@ seccomp filter on Android:
 pkg install golang
 
 # Build Zero for Android
-git clone https://github.com/Gitlawb/zero.git
+git clone https://github.com/rune-ai/rune.git
 cd zero
 CGO_ENABLED=0 GOOS=android GOARCH=arm64 go build -ldflags="-s -w" -o zero ./cmd/zero
 

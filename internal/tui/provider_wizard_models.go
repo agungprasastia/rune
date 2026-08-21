@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/providermodelcatalog"
+	"rune/internal/providercatalog"
+	"rune/internal/providermodelcatalog"
 )
 
 func providerWizardModelOptions(provider providercatalog.Descriptor) []providerWizardModel {

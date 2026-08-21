@@ -8,15 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/cron"
-	"github.com/rune-ai/rune/internal/streamjson"
+	"rune/internal/cron"
+	"rune/internal/streamjson"
 )
 
-// execRunner runs a `zero exec ...` invocation and returns its exit code. The
+// execRunner runs a `rune exec ...` invocation and returns its exit code. The
 // default is cli.Run; tests inject a fake.
 type execRunner func(args []string, stdout, stderr io.Writer) int
 
-// cronRun implements `zero cron run [--once] [--catch-up] [id...]`.
+// cronRun implements `rune cron run [--once] [--catch-up] [id...]`.
 func cronRun(store *cron.Store, now func() time.Time, args []string, stdout io.Writer, stderr io.Writer, exec execRunner) int {
 	once, catchUp := false, false
 	var ids []string
@@ -180,7 +180,7 @@ func fireJob(store *cron.Store, now func() time.Time, job cron.Job, stdout io.Wr
 
 	job.FireCount++
 	// Advance the schedule. If the expression can no longer produce a future run
-	// (became invalid, or is an impossible spec whose Next is zero), pause the job
+	// (became invalid, or is an impossible spec whose Next is rune), pause the job
 	// so it cannot re-fire on every tick.
 	if sched, perr := cron.Parse(job.Expr); perr != nil {
 		job.Status = cron.StatusPaused
@@ -267,7 +267,7 @@ func claimFire(store *cron.Store, fired time.Time, id string) (bool, error) {
 			}
 		}
 		// Unparseable or unadvanceable schedule (an impossible spec whose Next is
-		// zero): pause the job inside this same locked claim so a concurrent scheduler
+		// rune): pause the job inside this same locked claim so a concurrent scheduler
 		// sees a non-active job and does NOT also fire it. The winner still fires once
 		// and fireJob's post-exec keeps it paused. Without this, both callers leave
 		// NextRunAt unchanged, both see the job due, and both fire the same slot

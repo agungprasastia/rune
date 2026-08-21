@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/sessions"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/sessions"
+	"rune/internal/zeroruntime"
 )
 
 // titleProvider is a fakeProvider that streams a single line of text as the
@@ -141,7 +141,7 @@ func TestSessionTitleIsAuto(t *testing.T) {
 	if !sessionTitleIsAuto("", events) {
 		t.Fatal("an empty title must count as auto")
 	}
-	if !sessionTitleIsAuto("Zero TUI session", events) {
+	if !sessionTitleIsAuto("Rune TUI session", events) {
 		t.Fatal("the default placeholder title must count as auto")
 	}
 	if sessionTitleIsAuto("Hand Picked Name", events) {

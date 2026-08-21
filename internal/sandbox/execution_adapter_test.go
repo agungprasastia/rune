@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/execution"
 )
 
 func TestEnginePreparesTypedCapturedExecution(t *testing.T) {

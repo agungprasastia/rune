@@ -8,10 +8,10 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/terminalpet"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/config"
+	"rune/internal/terminalpet"
+	"rune/internal/tools"
+	"rune/internal/zeroruntime"
 )
 
 func TestMouseClickSelectsThenAppliesCommandSuggestionRow(t *testing.T) {
@@ -206,7 +206,7 @@ func TestMouseCaptureOnlyWhileInteractiveSurfaceOpen(t *testing.T) {
 	m := mouseTestModel()
 	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	if !m.wantsMouseCapture() {
-		t.Fatal("chat should capture mouse for Zero-owned transcript selection")
+		t.Fatal("chat should capture mouse for Rune-owned transcript selection")
 	}
 
 	m = typeRunes(t, m, "/")
@@ -230,7 +230,7 @@ func TestMouseCaptureOnEmptyChatSplash(t *testing.T) {
 
 	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	if !m.wantsMouseCapture() {
-		t.Fatal("chat with transcript rows should keep mouse capture for Zero-owned selection")
+		t.Fatal("chat with transcript rows should keep mouse capture for Rune-owned selection")
 	}
 }
 
@@ -1050,10 +1050,10 @@ func TestParseTracerPidNonZero(t *testing.T) {
 }
 
 func TestParseTracerPidMalformed(t *testing.T) {
-	// Non-numeric values are treated as non-zero since any non-"0" string
+	// Non-numeric values are treated as non-rune since any non-"0" string
 	// indicates a tracer is attached, matching the function's semantics.
 	if got := parseTracerPid([]byte("TracerPid: abc\n")); !got {
-		t.Fatal("malformed TracerPid should return true (non-zero string)")
+		t.Fatal("malformed TracerPid should return true (non-rune string)")
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // Codex-specific headers, lifted from the openai/codex CLI's behavior. The
@@ -58,7 +58,7 @@ type CodexOptions struct {
 	Originator string
 	// UserAgent overrides the openai Options.UserAgent when non-empty. The
 	// Codex backend logs the User-Agent for diagnostics, so a "codex_cli_rs"
-	// / "zero" branded value is recommended.
+	// / "rune" branded value is recommended.
 	UserAgent string
 	// AccountID is a static `chatgpt-account-id` that bypasses the resolver.
 	// Leave empty in production wiring so the AccountResolver is consulted on
@@ -113,7 +113,7 @@ func NewCodexProvider(options CodexOptions) (*CodexProvider, error) {
 	}
 	userAgent := strings.TrimSpace(options.UserAgent)
 	if userAgent == "" {
-		// Default to the openai Options.UserAgent (typically "zero/<ver>")
+		// Default to the openai Options.UserAgent (typically "rune/<ver>")
 		// and fall back to a Codex-branded value when the caller didn't set
 		// either — the Codex backend logs the User-Agent and a clearly
 		// branded string makes operational issues easier to triage.

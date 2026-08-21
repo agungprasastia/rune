@@ -3,8 +3,8 @@ package tools
 import (
 	"context"
 
-	"github.com/rune-ai/rune/internal/imageinput"
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/imageinput"
+	"rune/internal/zeroruntime"
 )
 
 // ViewImageToolName is the canonical registry name of the image viewer.

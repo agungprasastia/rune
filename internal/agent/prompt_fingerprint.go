@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/zeroruntime"
+	"rune/internal/zeroruntime"
 )
 
 // promptSubstrings are the cacheable components of the prompt a run sends to a

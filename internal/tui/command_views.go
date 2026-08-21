@@ -8,11 +8,11 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/rune-ai/rune/internal/config"
-	"github.com/rune-ai/rune/internal/providercatalog"
-	"github.com/rune-ai/rune/internal/sandbox"
-	"github.com/rune-ai/rune/internal/tools"
-	"github.com/rune-ai/rune/internal/zerocommands"
+	"rune/internal/config"
+	"rune/internal/providercatalog"
+	"rune/internal/sandbox"
+	"rune/internal/tools"
+	"rune/internal/zerocommands"
 )
 
 func (m model) toolsText() string {
@@ -84,7 +84,7 @@ func (m *model) mcpViewState() MCPViewState {
 	if m.mcpViewStateReady {
 		return m.mcpViewStateCache
 	}
-	// Older tests may construct a zero-value model; keep that path useful, while
+	// Older tests may construct a rune-value model; keep that path useful, while
 	// production refreshes the cache before any MCP view can render.
 	m.refreshMCPViewState()
 	return m.mcpViewStateCache
@@ -194,7 +194,7 @@ func (m model) applyMCPCommandResult(args string, result MCPCommandResult) (mode
 	}
 	output := strings.TrimSpace(result.Output)
 	if output == "" {
-		output = "zero mcp " + args
+		output = "rune mcp " + args
 	}
 	return m, strings.Join([]string{
 		"MCP action complete",
@@ -410,9 +410,9 @@ func (m model) providerText() string {
 			Sections: []commandSection{
 				{Title: "Active", Lines: profileLines},
 				{Title: "Next actions", Lines: []string{
-					"zero providers catalog",
-					"zero providers setup openai --set-active",
-					"zero providers add openai --api-key-env OPENAI_API_KEY --set-active",
+					"rune providers catalog",
+					"rune providers setup openai --set-active",
+					"rune providers add openai --api-key-env OPENAI_API_KEY --set-active",
 				}},
 			},
 		})
@@ -421,7 +421,7 @@ func (m model) providerText() string {
 	snapshot := zerocommands.ProviderSnapshotFromProfile(m.providerProfile, true)
 	// A keyless profile backed by a stored OAuth login (e.g. ChatGPT) is fully
 	// authenticated — without this, /provider status showed a WORKING provider
-	// as "api key: not set" with a warning, unlike `zero providers list` which
+	// as "api key: not set" with a warning, unlike `rune providers list` which
 	// already fills OAuthLogin.
 	if !snapshot.APIKeySet {
 		snapshot.OAuthLogin = oauthLoginAvailable(m.providerProfile)
@@ -464,16 +464,16 @@ func providerNextActionLines(profile config.ProviderProfile, snapshot zerocomman
 		if envName := providerCredentialEnvName(profile, snapshot.ProviderKind); envName != "" {
 			lines = append(lines,
 				"set "+envName+" in your environment",
-				"zero providers add "+setupID+" --api-key-env "+envName+" --set-active",
+				"rune providers add "+setupID+" --api-key-env "+envName+" --set-active",
 			)
 		} else {
 			lines = append(lines, "set provider credentials in your environment")
 		}
 	}
 	return append(lines,
-		"zero providers check "+providerName+" --connectivity",
-		"zero providers catalog",
-		"zero providers setup "+setupID+" --set-active",
+		"rune providers check "+providerName+" --connectivity",
+		"rune providers catalog",
+		"rune providers setup "+setupID+" --set-active",
 	)
 }
 
@@ -729,7 +729,7 @@ func (m model) skillsText() string {
 			Lines: []string{"No skills installed."},
 		}},
 		Hints: []string{
-			"install one: create <skills-dir>/<name>/SKILL.md (see `zero skills`)",
+			"install one: create <skills-dir>/<name>/SKILL.md (see `rune skills`)",
 		},
 	})
 }

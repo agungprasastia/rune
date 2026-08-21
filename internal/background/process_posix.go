@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/execution"
 )
 
 // terminationGracePeriod is how long a process has to exit after SIGTERM before

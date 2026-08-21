@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/config"
-	zeroSandbox "github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/config"
+	zeroSandbox "rune/internal/sandbox"
 )
 
 type sandboxCommandOptions struct {
@@ -22,7 +22,7 @@ const permissionProfileScopeNote = "permissionProfile is derived from this proce
 
 func runSandbox(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) int {
 	if len(args) == 0 {
-		return writeExecUsageError(stderr, "sandbox subcommand required. Use `zero sandbox policy` or `zero sandbox grants list`.")
+		return writeExecUsageError(stderr, "sandbox subcommand required. Use `rune sandbox policy` or `rune sandbox grants list`.")
 	}
 	switch args[0] {
 	case "-h", "--help", "help":
@@ -75,7 +75,7 @@ func runSandboxPolicy(args []string, stdout io.Writer, stderr io.Writer, deps ap
 		// Compute the effective write roots exactly the way the engine does:
 		// workspace root first, then the user-granted extras from the global
 		// config. A stale config entry (e.g. a directory that no longer
-		// exists) must not crash `zero sandbox policy --effective` — fall
+		// exists) must not crash `rune sandbox policy --effective` — fall
 		// back to the workspace root and surface the error visibly instead.
 		writeRoots := []string{workspaceRoot}
 		var writeRootsErr error
@@ -93,7 +93,7 @@ func runSandboxPolicy(args []string, stdout io.Writer, stderr io.Writer, deps ap
 		return runSandboxPolicyEffective(options, workspaceRoot, policy, backend, plan, store.FilePath(), writeRoots, writeRootsErr, stdout)
 	}
 	if options.json {
-		// The profile here is built from Zero's own environment and working
+		// The profile here is built from Rune's own environment and working
 		// directory, because that is all this command has: no command has been
 		// chosen yet. A nested command carries its own cwd and env, and the
 		// credential baseline resolves relative token overrides against those, so
@@ -167,9 +167,9 @@ func runSandboxSetup(args []string, stdout io.Writer, stderr io.Writer, deps app
 	}
 	profile := zeroSandbox.PermissionProfileFromPolicy(workspaceRoot, policy, scope)
 	// Resolve the setup helper the same way the runner is resolved: a standalone
-	// .exe when shipped (release), else self-dispatch via the running zero binary
+	// .exe when shipped (release), else self-dispatch via the running rune binary
 	// (dev / plain build). This mirrors the backend's command-runner resolution
-	// so `zero sandbox setup` works in every layout, not just release.
+	// so `rune sandbox setup` works in every layout, not just release.
 	setupHelper := zeroSandbox.ResolveWindowsSandboxSetupHelper(nil)
 	if !setupHelper.Available() {
 		return writeAppError(stderr, "Windows sandbox setup helper is not available", exitProvider)
@@ -291,7 +291,7 @@ func runSandboxPolicyEffective(options sandboxCommandOptions, workspaceRoot stri
 
 func formatEffectiveSandboxPolicy(workspaceRoot string, policy zeroSandbox.Policy, backend zeroSandbox.Backend, plan zeroSandbox.BackendPlan, guards sandboxGuards, grantsPath string, writeRoots []string, writeRootsErr error) string {
 	lines := []string{
-		"Zero effective sandbox policy",
+		"Rune effective sandbox policy",
 		"root: " + workspaceRoot,
 		"mode: " + string(policy.Mode),
 		"network: " + string(policy.Network),
@@ -340,7 +340,7 @@ func enabledLabel(enabled bool) string {
 
 func runSandboxGrants(args []string, stdout io.Writer, stderr io.Writer, deps appDeps) int {
 	if len(args) == 0 {
-		return writeExecUsageError(stderr, "sandbox grants subcommand required. Use `zero sandbox grants list`.")
+		return writeExecUsageError(stderr, "sandbox grants subcommand required. Use `rune sandbox grants list`.")
 	}
 	switch args[0] {
 	case "-h", "--help", "help":
@@ -407,7 +407,7 @@ func runSandboxGrantSet(command string, args []string, stdout io.Writer, stderr 
 		return exitSuccess
 	}
 	if len(positional) != 1 {
-		return writeExecUsageError(stderr, "usage: zero sandbox grants "+command+" <tool> [--path file] [--reason text] [--json]")
+		return writeExecUsageError(stderr, "usage: rune sandbox grants "+command+" <tool> [--path file] [--reason text] [--json]")
 	}
 	decision := zeroSandbox.GrantAllow
 	if command == "deny" {
@@ -462,7 +462,7 @@ func runSandboxGrantRevoke(args []string, stdout io.Writer, stderr io.Writer, de
 		return exitSuccess
 	}
 	if len(positional) != 1 {
-		return writeExecUsageError(stderr, "usage: zero sandbox grants revoke <tool> [--path file] [--json]")
+		return writeExecUsageError(stderr, "usage: rune sandbox grants revoke <tool> [--path file] [--json]")
 	}
 	store, err := deps.newSandboxStore()
 	if err != nil {
@@ -505,7 +505,7 @@ func runSandboxGrantClear(args []string, stdout io.Writer, stderr io.Writer, dep
 		return exitSuccess
 	}
 	if !options.confirm {
-		return writeExecUsageError(stderr, "zero sandbox grants clear requires --confirm")
+		return writeExecUsageError(stderr, "rune sandbox grants clear requires --confirm")
 	}
 	store, err := deps.newSandboxStore()
 	if err != nil {
@@ -605,7 +605,7 @@ func parseSandboxPositionalOptions(args []string) (sandboxCommandOptions, []stri
 
 func formatSandboxPolicy(workspaceRoot string, policy zeroSandbox.Policy, backend zeroSandbox.Backend, plan zeroSandbox.BackendPlan, grantsPath string) string {
 	lines := []string{
-		"Zero sandbox policy",
+		"Rune sandbox policy",
 		"root: " + workspaceRoot,
 		"mode: " + string(policy.Mode),
 		"network: " + string(policy.Network),
@@ -640,7 +640,7 @@ func formatSandboxPolicy(workspaceRoot string, policy zeroSandbox.Policy, backen
 
 func writeSandboxHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox <command>
+  rune sandbox <command>
 
 Commands:
   policy      Inspect active sandbox policy and platform backend
@@ -654,7 +654,7 @@ Commands:
 
 func writeSandboxPolicyHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox policy [flags]
+  rune sandbox policy [flags]
 
 Flags:
       --effective         Print the resolved effective policy (merged config + guards)
@@ -666,7 +666,7 @@ Flags:
 
 func writeSandboxSetupHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox setup [flags]
+  rune sandbox setup [flags]
 
 Runs native platform sandbox setup when the selected backend requires it.
 
@@ -679,7 +679,7 @@ Flags:
 
 func writeSandboxGrantsHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox grants <command>
+  rune sandbox grants <command>
 
 Commands:
   list        List persistent sandbox grants
@@ -693,8 +693,8 @@ Commands:
 
 func writeSandboxGrantSetHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox grants allow <tool> [flags]
-  zero sandbox grants deny <tool> [flags]
+  rune sandbox grants allow <tool> [flags]
+  rune sandbox grants deny <tool> [flags]
 
 Flags:
       --reason <text>     Human-readable reason for the grant
@@ -707,7 +707,7 @@ Flags:
 
 func writeSandboxGrantRevokeHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox grants revoke <tool> [flags]
+  rune sandbox grants revoke <tool> [flags]
 
 Flags:
       --path <path>       Revoke only the grant scoped to this exact file/dir
@@ -720,7 +720,7 @@ Flags:
 
 func writeSandboxGrantClearHelp(w io.Writer) error {
 	_, err := fmt.Fprint(w, `Usage:
-  zero sandbox grants clear --confirm [flags]
+  rune sandbox grants clear --confirm [flags]
 
 Flags:
       --confirm           Confirm removal of all sandbox grants

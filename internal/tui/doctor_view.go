@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rune-ai/rune/internal/doctor"
-	"github.com/rune-ai/rune/internal/zerocommands"
+	"rune/internal/doctor"
+	"rune/internal/zerocommands"
 )
 
 func doctorCommandOutput(report doctor.Report, backend *zerocommands.BackendLifecycleSnapshot) commandOutput {
@@ -182,7 +182,7 @@ func doctorActions(checks []doctor.Check, backend *zerocommands.BackendLifecycle
 			if remedy := doctorCheckDetailString(check, "remedy"); remedy != "" {
 				add(remedy)
 			} else if strings.Contains(message, "unavailable") {
-				add("zero sandbox policy --effective - inspect sandbox backend and enforcement status")
+				add("rune sandbox policy --effective - inspect sandbox backend and enforcement status")
 			}
 		case "lsp.servers":
 			if strings.Contains(message, "missing") {

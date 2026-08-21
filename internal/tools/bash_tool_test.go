@@ -13,12 +13,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
-	"github.com/rune-ai/rune/internal/sandbox"
+	"rune/internal/execution"
+	"rune/internal/sandbox"
 )
 
 func TestMain(m *testing.M) {
-	if len(os.Args) >= 3 && os.Args[1] == "--zero-bash-helper" {
+	if len(os.Args) >= 3 && os.Args[1] == "--rune-bash-helper" {
 		if os.Args[2] == "echo-arg" {
 			// Echoes back exactly the one argument it received, to verify a
 			// quoted, space-and-slash-containing argument (the same shape as
@@ -70,7 +70,7 @@ func runBashToolHelper(command string) {
 		fmt.Println("listening", listener.Addr().String())
 		server := &http.Server{
 			Handler: http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-				_, _ = response.Write([]byte("zero-server-ok"))
+				_, _ = response.Write([]byte("rune-server-ok"))
 			}),
 		}
 		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
@@ -142,7 +142,7 @@ func TestBashToolDescribesHostShellSyntax(t *testing.T) {
 }
 
 func TestDetectShellCommandIssueFlagsWindowsBashisms(t *testing.T) {
-	issue := detectShellCommandIssue(`cd /d/tmp/zero-pr-158 && ls -la`, "windows")
+	issue := detectShellCommandIssue(`cd /d/tmp/rune-pr-158 && ls -la`, "windows")
 	if issue == nil {
 		t.Fatal("expected Windows bash-style cd command to be flagged")
 	}
@@ -154,7 +154,7 @@ func TestDetectShellCommandIssueFlagsWindowsBashisms(t *testing.T) {
 }
 
 func TestDetectShellCommandIssueAllowsWindowsCDSwitch(t *testing.T) {
-	issue := detectShellCommandIssue(`cd /d D:\tmp\zero-pr-158 && dir`, "windows")
+	issue := detectShellCommandIssue(`cd /d D:\tmp\rune-pr-158 && dir`, "windows")
 	if issue != nil {
 		t.Fatalf("expected valid Windows cd /d switch to pass, got %#v", issue)
 	}
@@ -311,7 +311,7 @@ func TestDetectShellOutputIssueAddsWindowsSyntaxHint(t *testing.T) {
 		t.Fatal("expected Windows syntax error to get shell guidance")
 	}
 	rendered := appendShellIssueHint("stderr:\nThe syntax of the command is incorrect.\nexit_code: 1", *issue)
-	for _, want := range []string{"[zero] shell issue:", "Windows cmd.exe", "Suggestion:"} {
+	for _, want := range []string{"[rune] shell issue:", "Windows cmd.exe", "Suggestion:"} {
 		if !strings.Contains(rendered, want) {
 			t.Fatalf("expected rendered hint to contain %q, got %q", want, rendered)
 		}
@@ -376,7 +376,7 @@ func TestBashToolReportsWorkspaceChangesAfterFailure(t *testing.T) {
 
 // A command with runaway output must not be buffered whole in memory: the capture
 // is bounded to head+tail, yet raw_bytes still reports the true (much larger) size.
-// If capture were unbounded this would balloon Zero's memory before truncation.
+// If capture were unbounded this would balloon Rune's memory before truncation.
 func TestBashToolBoundsRunawayOutputCapture(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("uses a POSIX shell pipeline (yes | head)")
@@ -632,7 +632,7 @@ func TestBashToolRequireEscalatedMsysGuard(t *testing.T) {
 			// have PowerShell 7, where && is valid and the version check does not
 			// fire, so the substitution kept this green in CI while failing on the
 			// shell a stock Windows box actually gets.
-			"command":             `cd /d/tmp/zero-pr-158`,
+			"command":             `cd /d/tmp/rune-pr-158`,
 			"sandbox_permissions": string(SandboxPermissionsRequireEscalated),
 		}, RunOptions{
 			PermissionGranted: true,
@@ -648,7 +648,7 @@ func TestBashToolRequireEscalatedMsysGuard(t *testing.T) {
 // TestBashToolIgnoresMsysMarkersInCommandArgumentsAfterFailure guards the
 // post-execution MSYS heuristic against treating the command line itself as
 // evidence. The helper command below fails for a reason unrelated to MSYS
-// (a plain non-zero exit), but its own argument text quotes an MSYS crash
+// (a plain non-rune exit), but its own argument text quotes an MSYS crash
 // marker the way a PR-comment or commit-message argument might. Before the
 // fix, detectShellOutputIssue scanned command+output together and would have
 // misdiagnosed this as an MSYS sandbox failure even though the real
@@ -852,7 +852,7 @@ func TestBashToolPreservesEmbeddedQuotesOnWindows(t *testing.T) {
 	// Space and a slash: the two characters whose position in the original
 	// bug report's SyntaxError ("print(15, truncated right before the /")
 	// showed exactly where the corruption happened.
-	commandText := executable + ` --zero-bash-helper echo-arg "hello / world"`
+	commandText := executable + ` --rune-bash-helper echo-arg "hello / world"`
 
 	result := NewScopedBashTool(root, nil).Run(context.Background(), map[string]any{
 		"command": commandText,
@@ -900,7 +900,7 @@ func TestBashToolRunsCommandLineForLoopSyntax(t *testing.T) {
 
 func helperCommand(name string) string {
 	executable := shellQuote(os.Args[0])
-	return executable + " --zero-bash-helper " + name
+	return executable + " --rune-bash-helper " + name
 }
 
 func helperFailureExitCode() int {

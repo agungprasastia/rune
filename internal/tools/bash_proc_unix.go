@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/rune-ai/rune/internal/execution"
+	"rune/internal/execution"
 )
 
 // bashWaitDelay bounds how long Wait blocks for the I/O pipes to drain after the
