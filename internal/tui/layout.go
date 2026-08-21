@@ -10,27 +10,52 @@ const (
 	SidebarHidden
 )
 
-type Layout struct {
+// ShellLayout is the canonical terminal geometry. Column allocation and
+// vertical regions live here so rendering and input cannot drift apart.
+type ShellLayout struct {
 	Width   int
 	Height  int
 	Main    tuiRect
 	Sidebar tuiRect
 	Footer  tuiRect
 	Mode    SidebarMode
+
+	headerRect      tuiRect
+	bodyRect        tuiRect
+	footerRect      tuiRect
+	composerRect    tuiRect
+	statusRect      tuiRect
+	headerLines     []string
+	bodyHeight      int
+	footerLines     []string
+	fullFooterLines []string
+	footerClip      int
 }
 
-func (m model) layout() Layout {
-	width := maxInt(m.width, 1)
+func (l ShellLayout) OverlayRect(height int) tuiRect {
+	if height <= 0 || l.bodyRect.height <= 0 {
+		return tuiRect{}
+	}
+	visible := minInt(height, l.bodyRect.height)
+	return tuiRect{x: l.bodyRect.x, y: l.bodyRect.y + (l.bodyRect.height-visible)/2, width: l.Main.width, height: visible}
+}
+
+// Layout remains an alias for package-local callers while ShellLayout is the
+// single geometry type.
+type Layout = ShellLayout
+
+func (m model) layout() ShellLayout {
+	width := chatWidth(m.width)
 	height := maxInt(m.height, 1)
 	mode := m.sidebarDisplayMode()
 	sidebar := 0
-	if mode != SidebarHidden && width >= 120 && m.sidebarAvailable() {
+	if mode != SidebarHidden && m.sidebarAvailable() {
 		sidebar = sidebarWidth(width)
 	}
 	mainWidth := width
 	if sidebar > 0 {
 		mainWidth -= sidebar + 1
-		if mainWidth < 60 {
+		if mainWidth < sidebarMinMainWidth {
 			sidebar = 0
 			mainWidth = width
 		}
@@ -55,11 +80,11 @@ func (m model) sidebarDisplayMode() SidebarMode {
 	return m.sidebarMode
 }
 
-func (l Layout) SidebarVisible() bool {
+func (l ShellLayout) SidebarVisible() bool {
 	return l.Sidebar.width > 0
 }
 
-func (l Layout) MainWidth() int {
+func (l ShellLayout) MainWidth() int {
 	return maxInt(l.Main.width, 1)
 }
 

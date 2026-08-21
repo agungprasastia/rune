@@ -88,8 +88,8 @@ func TestTranscriptFrameLayoutHandlesDegenerateDimensions(t *testing.T) {
 			if frame.bodyRect.height < 1 {
 				t.Fatalf("body rect = %#v, want protected body height", frame.bodyRect)
 			}
-			if frame.width != width {
-				t.Fatalf("frame width = %d, want chat width %d", frame.width, width)
+			if frame.Width != width {
+				t.Fatalf("frame width = %d, want chat width %d", frame.Width, width)
 			}
 		})
 	}

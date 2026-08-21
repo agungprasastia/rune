@@ -326,7 +326,7 @@ func (m model) mouseOverComposer(msg tea.MouseMsg) bool {
 	if !m.altScreen || m.height <= 0 || m.transcriptDetailed {
 		return false
 	}
-	width := m.chatColumnWidth()
+	width := chatWidth(m.width)
 	frame := m.scrollableTranscriptFrame(m.pinnedTitleBar(width), m.footerView(width))
 	return frame.composerRect.contains(mouseX(msg), mouseY(msg))
 }
@@ -392,12 +392,12 @@ func (m *model) selectMCPManagerAtMouse(msg tea.MouseMsg) (mouseSelectionTarget,
 	if len(items) == 0 {
 		return mouseSelectionTarget{}, false
 	}
-	width := chatWidth(m.width)
+	width := m.chatColumnWidth()
 	hit, ok := m.overlayMouseHit(msg, m.mcpManagerOverlay(width), width)
 	if !ok {
 		return mouseSelectionTarget{}, false
 	}
-	_, itemRows := m.renderMCPManagerItemLines(maxInt(1, chatWidth(m.width)-4), items)
+	_, itemRows := m.renderMCPManagerItemLines(maxInt(1, width-4), items)
 	baseRow := mcpManagerFirstItemRow(m.mcpViewState())
 	row := hit.y - baseRow
 	if row < 0 || row >= len(itemRows) || itemRows[row] < 0 {
@@ -621,15 +621,7 @@ func (m model) overlayMouseRect(overlayHeight int, width int) tuiRect {
 	}
 	if m.altScreen && m.height > 0 {
 		frame := m.scrollableTranscriptFrame(m.pinnedTitleBar(width), m.footerView(width))
-		visibleHeight := minInt(overlayHeight, frame.bodyRect.height)
-		if visibleHeight <= 0 {
-			return tuiRect{}
-		}
-		return tuiRect{
-			y:      frame.bodyRect.y + maxInt(0, (frame.bodyRect.height-visibleHeight)/2),
-			width:  width,
-			height: visibleHeight,
-		}
+		return frame.OverlayRect(overlayHeight)
 	}
 	return tuiRect{
 		y:      maxInt(0, (normalizedStartupHeight(m.height)-overlayHeight)/2),

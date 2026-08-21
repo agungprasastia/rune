@@ -1166,7 +1166,7 @@ func (m model) transcriptHitTestBlocked() bool {
 // transcriptHitTestLayout computes the frame/window/layout mouse hit-testing needs,
 // shared by transcriptLineAtMouse (exact match) and nearestTranscriptLineAtMouse
 // (nearest-line fallback for scroll-driven selection extension).
-func (m model) transcriptHitTestLayout() (frame transcriptFrameLayout, window transcriptViewportWindow, layout transcriptBodyLayout) {
+func (m model) transcriptHitTestLayout() (frame ShellLayout, window transcriptViewportWindow, layout transcriptBodyLayout) {
 	header, items, width := m.transcriptHitTestSource()
 	footer := m.footerView(width)
 	if m.transcriptDetailed {

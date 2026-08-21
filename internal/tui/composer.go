@@ -260,7 +260,7 @@ func (m model) composerPositionAtMouse(msg tea.MouseMsg) (int, bool) {
 	if !m.altScreen || m.height <= 0 || m.composerMouseSelectionBlocked() {
 		return 0, false
 	}
-	width := m.chatColumnWidth()
+	width := chatWidth(m.width)
 	frame := m.scrollableTranscriptFrame(m.pinnedTitleBar(width), m.footerView(width))
 	localX, localY, ok := frame.composerRect.local(mouseX(msg), mouseY(msg))
 	if !ok {
@@ -450,7 +450,7 @@ func (m model) replaceComposerRangeWithPastePreviews(state composerState, start 
 }
 
 func (m model) composerPastePreviewWrapWidth() int {
-	width := chatWidth(m.width)
+	width := m.chatColumnWidth()
 	if width < 8 {
 		width = defaultStartupWidth
 	}

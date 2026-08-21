@@ -265,11 +265,8 @@ func TestRenderContextSidebarDimensions(t *testing.T) {
 			t.Fatalf("sidebar line %d width = %d, want exactly %d", i, w, width)
 		}
 	}
-	// Section headers and the token floor should be present.
+	// Populated section headers and token floor should be present.
 	plain := stripSidebar(lines)
-	if !strings.Contains(plain, "AGENTS") {
-		t.Fatalf("sidebar missing AGENTS header:\n%s", plain)
-	}
 	if !strings.Contains(plain, "PLAN") {
 		t.Fatalf("sidebar missing PLAN header:\n%s", plain)
 	}
@@ -278,25 +275,22 @@ func TestRenderContextSidebarDimensions(t *testing.T) {
 	}
 }
 
-// TestSidebarAutoHidesWhenEmpty: with no agents and no active plan the panel
-// auto-hides and the chat reclaims the full width; adding a plan or an agent
-// brings it back.
-func TestSidebarAutoHidesWhenEmpty(t *testing.T) {
+func TestSidebarStaysStableWhenOptionalContentIsEmpty(t *testing.T) {
 	m := sidebarTestModel() // has a plan -> sidebar active
 	if !m.sidebarActive() {
 		t.Fatal("expected sidebar active when the model has a plan")
 	}
 
-	// Clear the only content (the plan) -> empty -> auto-hidden.
+	// Clear optional content. Shell remains allocated; only sections disappear.
 	m.plan.steps = nil
 	if m.sidebarHasContent() {
 		t.Fatal("model should have no sidebar content after clearing the plan")
 	}
-	if m.sidebarActive() {
-		t.Error("sidebar should auto-hide with no agents and no active plan")
+	if !m.sidebarActive() {
+		t.Error("sidebar should remain allocated when optional sections are empty")
 	}
-	if got, want := m.chatColumnWidth(), chatWidth(m.width); got != want {
-		t.Errorf("empty sidebar: chat width = %d, want full %d", got, want)
+	if got, want := m.chatColumnWidth(), m.layout().MainWidth(); got != want {
+		t.Errorf("empty sidebar: chat width = %d, want canonical main %d", got, want)
 	}
 
 	// A spawned agent brings the panel back.

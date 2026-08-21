@@ -276,11 +276,11 @@ func (l transcriptBodyLayout) visibleLines(window transcriptViewportWindow) []st
 	return append([]string(nil), l.lines[start:end]...)
 }
 
-func transcriptViewportStartForFrame(body string, frame transcriptFrameLayout, scrollOffset int) (int, int, int) {
+func transcriptViewportStartForFrame(body string, frame ShellLayout, scrollOffset int) (int, int, int) {
 	window := transcriptViewportForBody(body, frame, scrollOffset).window()
 	return window.start, window.height, frame.bodyRect.y
 }
 
-func transcriptViewportForBody(body string, frame transcriptFrameLayout, offset int) transcriptViewport {
+func transcriptViewportForBody(body string, frame ShellLayout, offset int) transcriptViewport {
 	return newTranscriptViewport(len(viewLines(body)), frame.bodyRect.height, offset)
 }

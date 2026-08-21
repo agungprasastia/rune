@@ -293,15 +293,7 @@ func (m model) sidebarFileSelectables(width int) []fileHit {
 	if len(lines) == 0 {
 		return nil
 	}
-	agentBody := len(m.sidebarAgentLines(width))
-	if agentBody == 0 {
-		agentBody = 1 // the "no agents spawned" placeholder occupies one line
-	}
-	planBody := len(m.sidebarPlanLines(width))
-	if planBody == 0 {
-		planBody = 1 // the "no active plan" placeholder occupies one line
-	}
-	base := 1 + agentBody + 2 + planBody + 2 // sections above + (blank + FILES header)
+	_, _, base := m.sidebarSectionOffsets(width)
 	for i := range hits {
 		hits[i].lineOffset += base
 	}

@@ -173,9 +173,8 @@ func TestCaptureStepNarration(t *testing.T) {
 }
 
 // TestSidebarPlanSelectablesOffsets locks the click-to-step mapping against the
-// renderContextSidebar layout: with no agents the AGENTS section is header +
-// placeholder (2 lines), then a blank + PLAN header (2 lines), so step 0 sits on
-// sidebar line 4.
+// renderContextSidebar layout: empty optional sections are hidden, so PLAN
+// starts directly at its header followed by step rows.
 func TestSidebarPlanSelectablesOffsets(t *testing.T) {
 	m := model{now: time.Now}
 	m.plan.steps = []planStep{
@@ -187,7 +186,7 @@ func TestSidebarPlanSelectablesOffsets(t *testing.T) {
 	if len(hits) != 3 {
 		t.Fatalf("want 3 hits, got %d", len(hits))
 	}
-	for i, want := range []int{4, 5, 6} {
+	for i, want := range []int{2, 3, 4} {
 		if hits[i].lineOffset != want || hits[i].stepIndex != i {
 			t.Errorf("hit %d: want offset %d idx %d, got offset %d idx %d", i, want, i, hits[i].lineOffset, hits[i].stepIndex)
 		}

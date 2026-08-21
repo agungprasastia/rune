@@ -4,6 +4,10 @@ import (
 	"context"
 	"strings"
 	"testing"
+
+	"charm.land/lipgloss/v2"
+
+	"rune/internal/config"
 )
 
 func TestM3LayoutUsesMainAndSidebarRects(t *testing.T) {
@@ -74,5 +78,71 @@ func TestM3PresentationStatesStayIndependent(t *testing.T) {
 	row.expanded = true
 	if row.executionState() != ExecutionRunning || row.displayState() != DisplayExpanded {
 		t.Fatalf("expanded tool states = %q/%q", row.executionState(), row.displayState())
+	}
+}
+
+func TestM31SidebarUsesMainAndSidebarConstraints(t *testing.T) {
+	m := newModel(context.Background(), Options{AltScreen: true})
+	m.height = 30
+	m.transcript = appendRow(m.transcript, rowAssistant, "conversation")
+	for _, width := range []int{60, 80, 100, 120, 160, 200} {
+		m.width = width
+		layout := m.layout()
+		if layout.SidebarVisible() {
+			if layout.Sidebar.width < sidebarMinWidth || layout.Sidebar.width > sidebarMaxWidth {
+				t.Fatalf("width %d sidebar = %#v, outside constraints", width, layout.Sidebar)
+			}
+			if layout.Main.width < sidebarMinMainWidth {
+				t.Fatalf("width %d main = %#v, below minimum", width, layout.Main)
+			}
+			if layout.Main.width+layout.Sidebar.width+1 != width {
+				t.Fatalf("width %d columns do not fill shell: %#v", width, layout)
+			}
+		}
+	}
+}
+
+func TestM31SidebarHidesEmptyOptionalSections(t *testing.T) {
+	m := newModel(context.Background(), Options{AltScreen: true})
+	m.width, m.height = 160, 30
+	m.transcript = appendRow(m.transcript, rowAssistant, "conversation")
+	plain := strings.Join(m.renderContextSidebar(sidebarWidth(m.width), m.height), "\n")
+	for _, filler := range []string{"no agents spawned", "no active plan", "no files touched"} {
+		if strings.Contains(plain, filler) {
+			t.Fatalf("empty sidebar contains filler %q:\n%s", filler, plain)
+		}
+	}
+}
+
+func TestM31OverlayRectUsesShellBody(t *testing.T) {
+	m := newModel(context.Background(), Options{AltScreen: true})
+	m.width, m.height = 160, 40
+	frame := m.scrollableTranscriptFrame(m.pinnedTitleBar(m.chatColumnWidth()), m.footerView(m.chatColumnWidth()))
+	rect := frame.OverlayRect(7)
+	if !frame.bodyRect.contains(rect.x, rect.y) || !frame.bodyRect.contains(rect.x, rect.y+rect.height-1) {
+		t.Fatalf("overlay rect %#v outside shell body %#v", rect, frame.bodyRect)
+	}
+	if rect.y != frame.bodyRect.y+(frame.bodyRect.height-rect.height)/2 {
+		t.Fatalf("overlay y=%d, want centered in body %#v", rect.y, frame.bodyRect)
+	}
+}
+
+func TestM31ComposedShellRowsMeetColumnSeam(t *testing.T) {
+	m := newModel(context.Background(), Options{AltScreen: true, ProviderName: "openai", ModelName: "gpt-4.1"})
+	m.width, m.height = 160, 50
+	m.transcript = appendRow(m.transcript, rowAssistant, strings.Repeat("readable transcript content ", 8))
+	m.activeSession.Title = "Indonesian Greeting Exchange"
+	m.mcpConfig.Servers = map[string]config.MCPServerConfig{"exa": {}}
+
+	layout := m.layout()
+	if !layout.SidebarVisible() {
+		t.Fatal("expected sidebar for wide shell")
+	}
+	view := plainRender(t, m.View())
+	want := layout.Main.width + 1 + layout.Sidebar.width
+	for index, line := range strings.Split(view, "\n") {
+		if got := lipgloss.Width(line); got != want {
+			t.Fatalf("row %d width = %d, want shell width %d: %q", index, got, want, line)
+		}
 	}
 }

@@ -19,19 +19,19 @@ import (
 // crowds the chat on a narrow terminal nor sprawls on a wide one. A 1-cell
 // divider sits between the two columns.
 const (
-	sidebarMinWidth  = 26
-	sidebarMaxWidth  = 40
-	sidebarMinColumn = 60 // compact sidebar is available when the main column survives
+	sidebarMinWidth     = 28
+	sidebarMaxWidth     = 38
+	sidebarMinMainWidth = 90
 )
 
 // sidebarWidth returns the sidebar column width for a given total width, or 0
 // when the terminal is too narrow to justify a second column (the caller then
 // renders the single-column chat at full width).
 func sidebarWidth(total int) int {
-	if total < sidebarMinColumn {
+	if total <= sidebarMinMainWidth+sidebarMinWidth+1 {
 		return 0
 	}
-	return clamp(total*30/100, sidebarMinWidth, sidebarMaxWidth)
+	return clamp(total*24/100, sidebarMinWidth, sidebarMaxWidth)
 }
 
 // sidebarActive is retained for the compact data helpers and legacy file-detail
@@ -51,13 +51,7 @@ func (m model) sidebarAvailable() bool {
 	if !m.altScreen || m.height <= 0 || m.subchat.active || m.transcriptDetailed {
 		return false
 	}
-	if sidebarWidth(m.width) <= 0 {
-		return false
-	}
-	// Only split once the chat column survives it: require the medium tier (>=80
-	// cols). Between 60-79 the sidebar would starve the chat to ~30 cells, so the
-	// layout commits to two healthy columns or stays cleanly single-column.
-	if widthTier(m.width) < tierMedium {
+	if sidebarWidth(m.width) <= 0 || m.width-sidebarWidth(m.width)-1 < sidebarMinMainWidth {
 		return false
 	}
 	// Full-screen overlays (setup, wizards, pickers) take over the chat column and
@@ -85,13 +79,6 @@ func (m model) sidebarAvailable() bool {
 	// Home/welcome screen: stay single-column until there's real conversation, so
 	// the empty home screen isn't split by an (empty) sidebar.
 	if m.transcriptEmpty() {
-		return false
-	}
-	// Auto-hide when the panel has nothing to show (no sub-agents and no active
-	// plan): a fixed-width column of mostly empty space is wasted, so reclaim it
-	// for the full-width chat. The panel returns the moment an agent spawns or a
-	// plan starts. (Ctrl+B still force-hides it when there IS content.)
-	if !m.sidebarHasContent() {
 		return false
 	}
 	return true
@@ -559,35 +546,37 @@ func (m model) renderContextSidebar(width, height int) []string {
 	var lines []string
 	add := func(s string) { lines = append(lines, s) }
 
-	// AGENTS section — spawned subagents and their live working detail.
-	add(m.sidebarAgentHeader(width))
-	agentLines := m.sidebarAgentLines(width)
-	if len(agentLines) == 0 {
-		add(sidebarPlaceholder("no agents spawned", width))
-	} else {
-		lines = append(lines, agentLines...)
+	// Keep the default rail quiet and useful. Empty optional sections disappear;
+	// the column itself remains stable so transcript wrapping does not jump.
+	if title := strings.TrimSpace(m.activeSession.Title); title != "" {
+		add(sidebarHeader("SESSION", width))
+		add(" " + runeTheme.ink.Render(truncateStep(title, maxInt(4, width-2))))
 	}
-
-	// PLAN section.
-	add("")
-	add(m.sidebarPlanHeader(width))
-	planLines := m.sidebarPlanLines(width)
-	if len(planLines) == 0 {
-		add(sidebarPlaceholder("no active plan", width))
-	} else {
+	if pct, _, _, style, ok := m.contextFillPercent(); ok {
+		add("")
+		add(sidebarHeader("CONTEXT", width))
+		add(" " + style.Render(fmt.Sprintf("%d%% used", pct)))
+	}
+	if len(m.mcpConfig.Servers) > 0 {
+		add("")
+		add(sidebarHeader("MCP", width))
+		for _, name := range sortedMCPServerNames(m.mcpConfig) {
+			add(" " + runeTheme.green.Render("●") + " " + runeTheme.muted.Render(truncateStep(name, maxInt(4, width-4))))
+		}
+	}
+	if agents := m.sidebarAgentLines(width); len(agents) > 0 {
+		add("")
+		add(m.sidebarAgentHeader(width))
+		lines = append(lines, agents...)
+	}
+	if planLines := m.sidebarPlanLines(width); len(planLines) > 0 {
+		add("")
+		add(m.sidebarPlanHeader(width))
 		lines = append(lines, planLines...)
 	}
-
-	// FILES section: the files this session has touched (files_panel.go).
-	// Rendered BELOW the plan steps so it never shifts sidebarPlanSelectables'
-	// click offsets; its own hits (sidebarFileSelectables) account for the
-	// sections above it.
-	add("")
-	add(m.sidebarFilesHeader(width))
-	fileLines, _ := m.sidebarFileLines(width)
-	if len(fileLines) == 0 {
-		add(sidebarPlaceholder("no files touched", width))
-	} else {
+	if fileLines, _ := m.sidebarFileLines(width); len(fileLines) > 0 {
+		add("")
+		add(m.sidebarFilesHeader(width))
 		lines = append(lines, fileLines...)
 	}
 
@@ -632,6 +621,36 @@ func (m model) renderContextSidebar(width, height int) []string {
 		lines = lines[:height]
 	}
 	return lines
+}
+
+// sidebarSectionOffsets mirrors the optional sections in renderContextSidebar.
+// Hit-testing uses these offsets instead of assumptions about empty placeholders.
+func (m model) sidebarSectionOffsets(width int) (agents, plan, files int) {
+	line := 0
+	if strings.TrimSpace(m.activeSession.Title) != "" {
+		line += 2
+	}
+	if _, _, _, _, ok := m.contextFillPercent(); ok {
+		line += 3
+	}
+	if len(m.mcpConfig.Servers) > 0 {
+		line += 2 + len(m.mcpConfig.Servers)
+	}
+	if agentLines := m.sidebarAgentLines(width); len(agentLines) > 0 {
+		line++
+		agents = line
+		line += len(agentLines)
+	}
+	if planLines := m.sidebarPlanLines(width); len(planLines) > 0 {
+		line++
+		plan = line + 1
+		line += 1 + len(planLines)
+	}
+	if fileLines, _ := m.sidebarFileLines(width); len(fileLines) > 0 {
+		line++
+		files = line + 1
+	}
+	return agents, plan, files
 }
 
 // hoveredSidebarLineOffset resolves the hovered sidebar row's CURRENT line offset

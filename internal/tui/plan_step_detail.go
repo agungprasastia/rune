@@ -108,11 +108,7 @@ func (m model) sidebarPlanSelectables(width int) []planStepHit {
 	if m.plan.isEmpty() {
 		return nil
 	}
-	agentBody := len(m.sidebarAgentLines(width))
-	if agentBody == 0 {
-		agentBody = 1 // the "no agents spawned" placeholder occupies one line
-	}
-	base := 1 + agentBody + 2 // AGENTS header + body + (blank line + PLAN header)
+	_, base, _ := m.sidebarSectionOffsets(width)
 	hits := make([]planStepHit, 0, len(m.plan.steps))
 	for i := range m.plan.steps {
 		hits = append(hits, planStepHit{lineOffset: base + i, stepIndex: i})

@@ -3028,7 +3028,10 @@ func (m model) transcriptView() string {
 		return m.floatingPetTranscriptView()
 	}
 
-	width := chatWidth(m.width)
+	// Shell content must be measured against allocated main column. Rendering at
+	// terminal width and clipping during sidebar composition creates fake ellipses
+	// and breaks borders at the column seam.
+	width := m.chatColumnWidth()
 
 	// Subchat drill-in: when active, show the child session's transcript with
 	// a nav bar instead of the main chat.
@@ -3254,22 +3257,7 @@ func (r tuiRect) local(x int, y int) (int, int, bool) {
 	return x - r.x, y - r.y, true
 }
 
-type transcriptFrameLayout struct {
-	width           int
-	height          int
-	headerRect      tuiRect
-	bodyRect        tuiRect
-	footerRect      tuiRect
-	composerRect    tuiRect
-	statusRect      tuiRect
-	headerLines     []string
-	bodyHeight      int
-	footerLines     []string
-	fullFooterLines []string
-	footerClip      int
-}
-
-func (m model) scrollableTranscriptFrame(header string, footer string) transcriptFrameLayout {
+func (m model) scrollableTranscriptFrame(header string, footer string) ShellLayout {
 	headerLines := viewLines(header)
 	fullFooterLines := viewLines(footer)
 	footerLines := append([]string(nil), fullFooterLines...)
@@ -3297,9 +3285,9 @@ func (m model) scrollableTranscriptFrame(header string, footer string) transcrip
 	}
 	width := m.chatColumnWidth()
 	footerTop := len(headerLines) + bodyHeight
-	frame := transcriptFrameLayout{
-		width:           width,
-		height:          m.height,
+	frame := ShellLayout{
+		Width:           width,
+		Height:          m.height,
 		headerRect:      tuiRect{width: width, height: len(headerLines)},
 		bodyRect:        tuiRect{y: len(headerLines), width: width, height: bodyHeight},
 		footerRect:      tuiRect{y: footerTop, width: width, height: len(footerLines)},
@@ -3309,6 +3297,11 @@ func (m model) scrollableTranscriptFrame(header string, footer string) transcrip
 		fullFooterLines: fullFooterLines,
 		footerClip:      maxInt(0, len(fullFooterLines)-len(footerLines)),
 	}
+	frame.Main = tuiRect{width: width, height: m.height}
+	frame.Footer = tuiRect{y: footerTop, width: width, height: len(footerLines)}
+	frame.Main = m.layout().Main
+	frame.Sidebar = m.layout().Sidebar
+	frame.Mode = m.layout().Mode
 	frame.composerRect = frame.footerSubrect(viewLines(m.composerBox(width)))
 	if len(fullFooterLines) > 0 {
 		frame.statusRect = frame.footerLineRect(len(fullFooterLines) - 1)
@@ -3316,7 +3309,7 @@ func (m model) scrollableTranscriptFrame(header string, footer string) transcrip
 	return frame
 }
 
-func (f transcriptFrameLayout) footerSubrect(sequence []string) tuiRect {
+func (f ShellLayout) footerSubrect(sequence []string) tuiRect {
 	if len(sequence) == 0 || len(f.footerLines) == 0 {
 		return tuiRect{}
 	}
@@ -3331,18 +3324,18 @@ func (f transcriptFrameLayout) footerSubrect(sequence []string) tuiRect {
 	}
 	return tuiRect{
 		y:      f.footerRect.y + visibleTop - f.footerClip,
-		width:  f.width,
+		width:  f.Width,
 		height: visibleBottom - visibleTop,
 	}
 }
 
-func (f transcriptFrameLayout) footerLineRect(line int) tuiRect {
+func (f ShellLayout) footerLineRect(line int) tuiRect {
 	if line < f.footerClip || line >= f.footerClip+len(f.footerLines) {
 		return tuiRect{}
 	}
 	return tuiRect{
 		y:      f.footerRect.y + line - f.footerClip,
-		width:  f.width,
+		width:  f.Width,
 		height: 1,
 	}
 }
@@ -3356,7 +3349,7 @@ func (m model) scrollableTranscriptItemsView(header string, items []transcriptBo
 	return m.renderScrollableTranscriptWindow(frame, body.lines, window, width, overlay)
 }
 
-func (m model) renderScrollableTranscriptWindow(frame transcriptFrameLayout, bodyWindow []string, window transcriptViewportWindow, width int, overlay string) string {
+func (m model) renderScrollableTranscriptWindow(frame ShellLayout, bodyWindow []string, window transcriptViewportWindow, width int, overlay string) string {
 	for len(bodyWindow) < window.height {
 		bodyWindow = append(bodyWindow, "")
 	}
