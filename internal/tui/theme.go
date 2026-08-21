@@ -78,6 +78,7 @@ type tuiTheme struct {
 
 	// Surfaces.
 	panel           lipgloss.Style // bare panel background (card padding, body fill)
+	canvas          lipgloss.Style // full terminal canvas background
 	userPromptPanel lipgloss.Style // submitted user prompt background
 
 	// Permission modes.
@@ -93,6 +94,7 @@ type tuiTheme struct {
 	accentColor color.Color
 	inkColor    color.Color
 	bgPanel     color.Color
+	bgCanvas    color.Color
 	bgPrompt    color.Color
 	bgSel       color.Color
 	bgPerm      color.Color
@@ -104,7 +106,8 @@ type tuiTheme struct {
 // darker than ink so every pairing survives 256-color downsampling; light palettes
 // are dark-on-light with the same intent inverted.
 type palette struct {
-	panel     string // card backgrounds (the terminal canvas itself is never painted full-bleed)
+	canvas    string // full terminal canvas
+	panel     string // elevated card backgrounds
 	promptBg  string // submitted user prompt background
 	line      string // default borders, rules
 	line2     string // emphasized borders
@@ -137,6 +140,9 @@ type palette struct {
 // backgrounds are intentionally limited to local cards and diff rows; View never
 // paints the full terminal canvas.
 func buildTheme(p palette) tuiTheme {
+	if p.canvas == "" {
+		p.canvas = p.panel
+	}
 	col := func(s string) color.Color { return lipgloss.Color(s) }
 	fg := func(s string) lipgloss.Style { return lipgloss.NewStyle().Foreground(col(s)) }
 	return tuiTheme{
@@ -192,6 +198,7 @@ func buildTheme(p palette) tuiTheme {
 		permBorder: fg(p.cardPerm),
 
 		panel:           lipgloss.NewStyle().Background(col(p.panel)),
+		canvas:          lipgloss.NewStyle().Background(col(p.canvas)),
 		userPromptPanel: lipgloss.NewStyle().Background(col(p.promptBg)),
 
 		modeAuto: fg(p.green).Bold(true),
@@ -205,6 +212,7 @@ func buildTheme(p palette) tuiTheme {
 		accentColor: col(p.accent),
 		inkColor:    col(p.ink),
 		bgPanel:     col(p.panel),
+		bgCanvas:    col(p.panel),
 		bgPrompt:    col(p.promptBg),
 		bgSel:       col(p.selBg),
 		bgPerm:      col(p.permBg),
@@ -238,6 +246,7 @@ func invertedPalette(p palette) palette {
 	p.line = invertPaletteColor(p.line)
 	p.line2 = invertPaletteColor(p.line2)
 	p.panel = invertPaletteColor(p.panel)
+	p.canvas = invertPaletteColor(p.canvas)
 	p.promptBg = invertPaletteColor(p.promptBg)
 	p.permBg = invertPaletteColor(p.permBg)
 	p.addBg = invertPaletteColor(p.addBg)
@@ -376,6 +385,7 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 	addBgWord := lipgloss.Color(surfaces.addWord)
 	delBgWord := lipgloss.Color(surfaces.delWord)
 	noColor := lipgloss.NoColor{}
+	canvas := lipgloss.NewStyle().Background(lipgloss.Color(darkPalette.canvas))
 	accent := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
 	green := lipgloss.NewStyle().Foreground(greenColor)
 	red := lipgloss.NewStyle().Foreground(redColor)
@@ -428,6 +438,7 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 		permBorder: amber,
 
 		panel:           base,
+		canvas:          canvas,
 		userPromptPanel: base,
 
 		modeAuto:   green.Bold(true),
@@ -438,6 +449,7 @@ func buildSystemThemeForTerminal(terminalDark bool) tuiTheme {
 		accentColor: accentColor,
 		inkColor:    noColor,
 		bgPanel:     noColor,
+		bgCanvas:    lipgloss.Color(darkPalette.canvas),
 		bgPrompt:    noColor,
 		bgSel:       selectionBg,
 		bgPerm:      noColor,

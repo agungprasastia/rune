@@ -2001,20 +2001,20 @@ func toolCard(head string, glyph string, body []string, footer string, _ lipglos
 	headBudget := maxInt(1, width-leadingWidth)
 	head = fitStyledLine(head, headBudget)
 	headPad := maxInt(0, width-leadingWidth-lipgloss.Width(head))
-	headLine := leading + head + strings.Repeat(" ", headPad)
+	headLine := runeTheme.panel.Render(leading + head + strings.Repeat(" ", headPad))
 
 	lines := make([]string, 0, len(body)+2)
 	lines = append(lines, headLine)
 	for _, line := range body {
 		fitted := fitStyledLine(line, innerWidth)
 		pad := strings.Repeat(" ", maxInt(0, width-lipgloss.Width(fitted)))
-		lines = append(lines, fitted+pad)
+		lines = append(lines, runeTheme.panel.Render(fitted+pad))
 	}
 
 	if strings.TrimSpace(footer) != "" {
 		fittedFooter := fitStyledLine(footer, width)
 		pad := strings.Repeat(" ", maxInt(0, width-lipgloss.Width(fittedFooter)))
-		lines = append(lines, fittedFooter+pad)
+		lines = append(lines, runeTheme.panel.Render(fittedFooter+pad))
 	}
 	return strings.Join(lines, "\n")
 }

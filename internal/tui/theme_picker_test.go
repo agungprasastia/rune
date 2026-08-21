@@ -206,18 +206,16 @@ func TestThemePickerSystemCommitPreservesTerminalCanvas(t *testing.T) {
 	}
 }
 
-// Themes are local styling choices. Even a named palette must not use Bubble
-// Tea's terminal-wide colour controls, which would replace the user's terminal
-// background, transparency, or wallpaper.
-func TestThemeViewLeavesTerminalCanvasUntouched(t *testing.T) {
+// Dark themes use a shared near-black canvas; foreground remains terminal-native.
+func TestThemeViewUsesDarkCanvasWithoutOverridingForeground(t *testing.T) {
 	defer applyTheme(themeDark, true)
 	for _, mode := range []themeMode{themeSystem, themeMode("dracula"), themeMode("dune")} {
 		t.Run(string(mode), func(t *testing.T) {
 			m := newModel(context.Background(), Options{SavedTheme: string(mode)})
 			m.altScreen = true
 			view := m.View()
-			if view.BackgroundColor != nil {
-				t.Fatalf("%s theme set terminal background to %T", mode, view.BackgroundColor)
+			if view.BackgroundColor == nil {
+				t.Fatalf("%s theme did not set dark canvas", mode)
 			}
 			if view.ForegroundColor != nil {
 				t.Fatalf("%s theme set terminal foreground to %T", mode, view.ForegroundColor)

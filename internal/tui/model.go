@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -1365,12 +1366,10 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, composerBlinkCmd()
 	case tea.BackgroundColorMsg:
-		// A background reading changes only the contrast direction used for named
-		// palettes. It never repaints the terminal canvas.
-		m.hasDarkBg = msg.IsDark()
-		if m.themeMode != themeSystem {
-			applyTheme(m.themeMode, m.hasDarkBg)
-		}
+		// Keep M3.3 canvas stable across terminal focus/tab repaints. The terminal
+		// probe is informational only; it must not switch Rune back to a light
+		// transparent surface after startup.
+		m.hasDarkBg = true
 		return m, nil
 	case tea.MouseMsg:
 		if m.setup.visible {
@@ -2991,6 +2990,16 @@ func (m model) View() tea.View {
 
 	view := tea.NewView(content)
 	view.AltScreen = m.altScreen
+	if m.themeMode == themeSystem || m.hasDarkBg {
+		r, g, b, a := runeTheme.bgCanvas.RGBA()
+		view.BackgroundColor = repaintCanvasColor{
+			generation: atomic.AddUint64(&canvasGeneration, 1),
+			r:          r,
+			g:          g,
+			b:          b,
+			a:          a,
+		}
+	}
 	// Keep the terminal's canvas intact. Named themes may color local cards, but
 	// Rune never replaces the user's background, opacity, wallpaper, or profile.
 	// Always requested, independent of the notifier: the composer cursor's
@@ -3013,6 +3022,21 @@ func (m model) View() tea.View {
 		view.MouseMode = mouseModeFor(runtime.GOOS, os.Getenv, isRunningUnderPRoot())
 	}
 	return view
+}
+
+var canvasGeneration uint64
+
+// repaintCanvasColor keeps RGB fixed while changing identity each frame. Bubble
+// Tea compares View colors before emitting terminal background escape sequences;
+// external tab/focus repaints can reset that background without changing its
+// cached View, so a fresh comparable value is required to restore it.
+type repaintCanvasColor struct {
+	generation uint64
+	r, g, b, a uint32
+}
+
+func (c repaintCanvasColor) RGBA() (uint32, uint32, uint32, uint32) {
+	return c.r, c.g, c.b, c.a
 }
 
 // transcriptEmpty reports whether the chat surface has no real content yet
@@ -4263,14 +4287,14 @@ func (m model) composerBox(width int) string {
 	leftPadText := strings.Repeat(" ", leftPad)
 
 	rendered := make([]string, 0, len(lines)+3)
-	rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("╭"+strings.Repeat("─", boxWidth-2)+"╮")+strings.Repeat(" ", leftPad)+rightPad)
+	rendered = append(rendered, leftPadText+runeTheme.line.Render("╭"+strings.Repeat("─", boxWidth-2)+"╮")+strings.Repeat(" ", leftPad)+rightPad)
 	// On graphics-capable terminals the first image receives a real thumbnail in
 	// this compact strip. Text-only terminals retain the numbered chip row below.
 	if m.attachmentThumbnailVisible(width) {
 		for _, line := range m.attachmentThumbnailLines(innerWidth) {
 			fitted := fitStyledLine(line, innerWidth)
 			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
+			rendered = append(rendered, leftPadText+runeTheme.panel.Render("│ ")+fitted+pad+runeTheme.panel.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
 		}
 		// A thumbnail gallery makes the first few attachments visible. Keep a compact
 		// numbered row whenever there is more than one item (or a document), so the
@@ -4278,7 +4302,7 @@ func (m model) composerBox(width int) string {
 		if chips := m.attachmentThumbnailSupplementalChips(); chips != "" {
 			fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
 			pad := strings.Repeat(" ", maxInt(0, innerWidth-lipgloss.Width(fitted)))
-			rendered = append(rendered, leftPadText+runeTheme.lineStrong.Render("│ ")+fitted+pad+runeTheme.lineStrong.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
+			rendered = append(rendered, leftPadText+runeTheme.panel.Render("│ ")+fitted+pad+runeTheme.panel.Render(" │")+strings.Repeat(" ", leftPad)+rightPad)
 		}
 	} else if chips := renderAttachmentChips(m.pendingImageLabels, m.pendingDocuments); chips != "" {
 		fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)

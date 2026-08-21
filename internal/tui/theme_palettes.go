@@ -41,6 +41,7 @@ var lightSystemSurfaces = systemSurfacePalette{
 // lime accent. bg (#070708) is the terminal's own canvas — deliberately never
 // painted — so no token references it.
 var darkPalette = palette{
+	canvas:    "#070708",
 	panel:     "#0e0e10",
 	promptBg:  "#262626",
 	line:      "#242429",
@@ -73,6 +74,7 @@ var darkPalette = palette{
 // draculaPalette — the Dracula scheme (dracula.com): muted-violet surface, purple
 // accent, high-chroma pink/green/cyan signals.
 var draculaPalette = palette{
+	canvas:    "#1b1c24",
 	panel:     "#282a36",
 	promptBg:  "#383c4d",
 	line:      "#363a4b",
@@ -105,6 +107,7 @@ var draculaPalette = palette{
 // nordPalette — the Nord scheme (nordtheme.com): cool polar-night slate with a
 // frost-blue accent and desaturated aurora signals.
 var nordPalette = palette{
+	canvas:    "#242933",
 	panel:     "#3b4252",
 	promptBg:  "#464f62",
 	line:      "#434c5e",
@@ -137,6 +140,7 @@ var nordPalette = palette{
 // gruvboxPalette — Gruvbox dark (medium): warm retro browns with an olive-green
 // accent and high-contrast cream ink.
 var gruvboxPalette = palette{
+	canvas:    "#211f1e",
 	panel:     "#32302f",
 	promptBg:  "#3c3836",
 	line:      "#504945",
@@ -169,6 +173,7 @@ var gruvboxPalette = palette{
 // tokyoNightPalette — Tokyo Night (storm): deep indigo surface, soft blue accent,
 // cool high-contrast ink.
 var tokyoNightPalette = palette{
+	canvas:    "#161925",
 	panel:     "#1e2030",
 	promptBg:  "#2c3149",
 	line:      "#262a3d",
@@ -201,6 +206,7 @@ var tokyoNightPalette = palette{
 // catppuccinPalette — Catppuccin Mocha: soft lavender surface with a mauve accent
 // and pastel signals.
 var catppuccinPalette = palette{
+	canvas:    "#181825",
 	panel:     "#1e1e2e",
 	promptBg:  "#34364b",
 	line:      "#313244",
@@ -232,6 +238,7 @@ var catppuccinPalette = palette{
 
 // oneDarkPalette — Atom One Dark: slate-gray surface with a blue accent.
 var oneDarkPalette = palette{
+	canvas:    "#20242b",
 	panel:     "#2e323b",
 	promptBg:  "#3a3f4a",
 	line:      "#393f4a",
@@ -264,6 +271,7 @@ var oneDarkPalette = palette{
 // solarizedDarkPalette — Solarized Dark (Ethan Schoonover): the signature teal
 // base03/base02 surface with a cyan accent and the fixed accent wheel.
 var solarizedDarkPalette = palette{
+	canvas:    "#002b36",
 	panel:     "#073642",
 	promptBg:  "#0b3b46",
 	line:      "#123f48",
@@ -296,6 +304,7 @@ var solarizedDarkPalette = palette{
 // rosePinePalette — Rosé Pine (main): muted rose-quartz base with a soft-rose
 // accent and cool pine/foam signals.
 var rosePinePalette = palette{
+	canvas:    "#191724",
 	panel:     "#1f1d2e",
 	promptBg:  "#2f2b47",
 	line:      "#2b2840",
@@ -328,6 +337,7 @@ var rosePinePalette = palette{
 // everforestPalette — Everforest dark (medium): warm forest-gray surface with a
 // sage-green accent.
 var everforestPalette = palette{
+	canvas:    "#272e33",
 	panel:     "#333c43",
 	promptBg:  "#3d484d",
 	line:      "#414b52",
@@ -360,6 +370,7 @@ var everforestPalette = palette{
 // neonPalette is a neon-on-black color scheme: pitch-black surface with
 // neon green ink and a cyan accent.
 var neonPalette = palette{
+	canvas:    "#020503",
 	panel:     "#050b06",
 	promptBg:  "#0c180d",
 	line:      "#1c3820",
@@ -396,6 +407,7 @@ var neonPalette = palette{
 // permission tints are light surfaces. Replaces the old flat cool-gray light set
 // whose muddy panel, sub-AA diff spans, and near-invisible selBg read as broken.
 var lightPalette = palette{
+	canvas:    "#f5f1df",
 	panel:     "#efebd4",
 	promptBg:  "#e3ddc2",
 	line:      "#d8d2bd",
@@ -428,6 +440,7 @@ var lightPalette = palette{
 // solarizedLightPalette — Solarized Light: the base3/base2 cream surface with the
 // same fixed accent wheel as Solarized Dark, dark-on-light.
 var solarizedLightPalette = palette{
+	canvas:    "#fdf6e3",
 	panel:     "#eee8d5",
 	promptBg:  "#e1d9be",
 	line:      "#d8d1bc",
@@ -460,6 +473,7 @@ var solarizedLightPalette = palette{
 // dunePalette is a warm sand-and-cream color scheme: sand/cream surface,
 // charcoal ink, and a soft amber accent.
 var dunePalette = palette{
+	canvas:    "#f7f0e3",
 	panel:     "#f2e9d8",
 	promptBg:  "#e9dcbf",
 	line:      "#d9c7a3",
