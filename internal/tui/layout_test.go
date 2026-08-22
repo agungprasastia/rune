@@ -144,7 +144,7 @@ func TestOverlayMouseHitClampsToVisibleBody(t *testing.T) {
 
 	width := m.chatColumnWidth()
 	frame := m.scrollableTranscriptFrame(m.pinnedTitleBar(width), m.footerView(width))
-	overlay := strings.Join([]string{"alpha", "bravo", "charlie", "delta", "echo", "foxtrot"}, "\n")
+	overlay := strings.Join([]string{"alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf"}, "\n")
 	rect := m.overlayMouseRect(len(viewLines(overlay)), width)
 	if rect.height != frame.bodyRect.height {
 		t.Fatalf("overlay rect = %#v, want height clamped to body rect %#v", rect, frame.bodyRect)

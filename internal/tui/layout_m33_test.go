@@ -492,7 +492,7 @@ func TestM33LayeredSurfacesSubtle(t *testing.T) {
 
 // m33ComposerGeometry reads the composer box geometry straight out of a
 // rendered view: box width (border corners inclusive), left pad column, and
-// the metadata row that follows the bottom rule.
+// the metadata row embedded just above the bottom rule.
 func m33ComposerGeometry(t *testing.T, view string) (boxWidth, leftPad, metaLead, metaVisible int) {
 	t.Helper()
 	lines := strings.Split(view, "\n")
@@ -521,11 +521,12 @@ func m33ComposerGeometry(t *testing.T, view string) (boxWidth, leftPad, metaLead
 	if topRow < 0 {
 		t.Fatal("composer top border row not found in view")
 	}
-	for index := topRow + 1; index < len(lines)-1; index++ {
+	for index := topRow + 1; index < len(lines); index++ {
 		if !strings.Contains(plainRender(t, lines[index]), "╰") {
 			continue
 		}
-		metaPlain := plainRender(t, lines[index+1])
+		// Metadata is the last row INSIDE the box, directly above the rule.
+		metaPlain := plainRender(t, lines[index-1])
 		metaLead = len(metaPlain) - len(strings.TrimLeft(metaPlain, " "))
 		metaVisible = lipgloss.Width(strings.TrimRight(metaPlain, " ")) - metaLead
 		return boxWidth, leftPad, metaLead, metaVisible
@@ -585,12 +586,15 @@ func TestM33StartupComposerStableGeometry(t *testing.T) {
 				if gotBox != wantBox || gotLeft != wantLeft {
 					t.Fatalf("%s: box geometry changed to (%d,+%d), want (%d,+%d)", sc.name, gotBox, gotLeft, wantBox, wantLeft)
 				}
-				// composerMetadataLine carries a fixed two-column inset.
-				if metaLead != wantLeft+2 {
-					t.Fatalf("%s: metadata starts at column %d, want %d (box-aligned)", sc.name, metaLead, wantLeft+2)
+				// Metadata is a boxed row: it must start exactly at the composer's
+				// left border column.
+				if metaLead != wantLeft {
+					t.Fatalf("%s: metadata starts at column %d, want %d (box-aligned)", sc.name, metaLead, wantLeft)
 				}
-				if metaVisible <= 0 || metaVisible > wantBox-2 {
-					t.Fatalf("%s: metadata width %d outside composer inner width", sc.name, metaVisible)
+				// The metadata row is part of the SAME box: its rendered width
+				// equals the composer width, never the full main width.
+				if metaVisible != wantBox {
+					t.Fatalf("%s: metadata row width %d != composer width %d", sc.name, metaVisible, wantBox)
 				}
 				m33AssertFits(t, tc.name+"/"+sc.name, plainRender(t, m.View()), tc.width, tc.height)
 			}
@@ -644,5 +648,72 @@ func TestM33FirstSubmitMovesToActiveLayout(t *testing.T) {
 	view := plainRender(t, m.View())
 	if strings.Contains(view, emptyStateTagline) {
 		t.Fatal("startup cluster must disappear once the conversation starts")
+	}
+}
+
+func TestM33MinimalChrome(t *testing.T) {
+	m := newModel(context.Background(), Options{ModelName: "gpt-4o", ProviderName: "openai"})
+	m.width, m.height = 120, 40
+	m.altScreen = true
+	m.gitBranch = "main"
+	m.cwd = `D:\proj\demo`
+	m.appVersion = "dev"
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
+	m.transcript = appendRow(m.transcript, rowAssistant, "hi there")
+
+	view := plainRender(t, m.View())
+	lines := strings.Split(view, "\n")
+
+	for _, banned := range []string{"[?]help", "[Enter]send", "[Ctrl+X]cmds", "[Shift+Tab]mode", "/ commands"} {
+		if strings.Contains(view, banned) {
+			t.Fatalf("persistent chrome %q must be gone from the conversation view", banned)
+		}
+	}
+	// Transcript-first: no workspace header row above the content and no blank
+	// placeholder left behind.
+	if strings.Contains(view, `D:\proj\demo`) && strings.Index(view, `D:\proj\demo`) < strings.Index(view, "hello") {
+		t.Fatalf("workspace path must not render as a main-view header:\n%s", firstLines(lines, 3))
+	}
+
+	// The one-line spacer sits between the transcript region and the box:
+	// the footer's FIRST line is blank, the next non-blank is the composer.
+	footerLines := viewLines(m.footerView(m.chatColumnWidth()))
+	if len(footerLines) < 2 || strings.TrimSpace(footerLines[0]) != "" {
+		t.Fatalf("expected a breathing-room spacer row before the composer, footer=%q", strings.Join(footerLines[:minInt(3, len(footerLines))], "|"))
+	}
+
+	// Project identity anchors the SIDEBAR foot, muted, no card.
+	if !strings.Contains(view, `D:\proj\demo`) || !strings.Contains(view, "main · Rune dev") {
+		t.Fatalf("sidebar must carry project path and branch·version at its foot:\n%s", view)
+	}
+}
+
+func firstLines(lines []string, count int) string {
+	end := minInt(count, len(lines))
+	return strings.Join(lines[:end], "\n")
+}
+
+func TestM33BlockingModalHidesComposer(t *testing.T) {
+	m := newModel(context.Background(), Options{ModelName: "gpt-4o", ProviderName: "openai"})
+	m.width, m.height = 120, 40
+	m.altScreen = true
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
+
+	if before := plainRender(t, m.View()); !strings.Contains(before, "╭") {
+		t.Fatal("precondition: composer visible without a modal")
+	}
+
+	m.picker = &commandPicker{}
+	over := plainRender(t, m.View())
+	// The picker draws its OWN box and model list; the composer is identified
+	// by its placeholder, which must be gone while the modal owns input.
+	if strings.Contains(over, "describe a task for rune") {
+		t.Fatalf("blocking picker must hide the composer (placeholder leaked):\n%s", over)
+	}
+
+	m.picker = nil
+	restored := plainRender(t, m.View())
+	if !strings.Contains(restored, "describe a task for rune") || !strings.Contains(restored, "gpt-4o") {
+		t.Fatalf("composer must return after the modal closes:\n%s", restored)
 	}
 }

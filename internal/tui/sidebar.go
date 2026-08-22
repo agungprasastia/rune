@@ -583,10 +583,34 @@ func (m model) renderContextSidebar(width, height int) []string {
 	// BELOW the plan steps so it never shifts sidebarPlanSelectables' click offsets,
 	// and budgeted (height-1 minus what's used) so it clips ITSELF from the bottom
 	// rather than letting the end-truncation eat into the plan. Absent when empty.
-	if activityLines := m.sidebarActivityLines(width, maxInt(0, height-1-len(lines))); len(activityLines) > 0 {
+	// The project identity is budgeted alongside it so a short rail keeps the
+	// path/branch anchor instead of clipping it away.
+	projectLines := m.sidebarProjectLines(width)
+	if activityLines := m.sidebarActivityLines(width, maxInt(0, height-1-len(lines)-len(projectLines))); len(activityLines) > 0 {
 		add("")
 		add(sidebarHeader("Activity", width))
 		lines = append(lines, activityLines...)
+	}
+	// Project anchor pins to the rail foot. Fill blank rows so a short sidebar
+	// still drops path/branch to the bottom like opencode's foot — no gap
+	// dance on tall terminals, no mid-rail stall on empty ones.
+	if len(projectLines) > 0 {
+		tokenLine := m.sidebarTokenLine(width)
+		reserveToken := 0
+		if tokenLine != "" {
+			reserveToken = 1
+		}
+		target := height - len(projectLines) - reserveToken
+		if target < len(lines)+1 {
+			target = len(lines) + 1
+		}
+		for len(lines) < target {
+			add("")
+		}
+		if len(lines) > target {
+			lines = lines[:target]
+		}
+		lines = append(lines, projectLines...)
 	}
 
 	// Token/context readout pinned to the bottom when it has something to say;
@@ -619,6 +643,32 @@ func (m model) renderContextSidebar(width, height int) []string {
 	}
 	if len(lines) > height {
 		lines = lines[:height]
+	}
+	return lines
+}
+
+// sidebarProjectLines anchors the rail's foot with the workspace identity:
+// working directory, then branch and build version, muted and unboxed.
+func (m model) sidebarProjectLines(width int) []string {
+	path := strings.TrimSpace(shortenPath(m.cwd))
+	version := displayVersion(m.appVersion)
+	branch := strings.TrimSpace(m.gitBranch)
+	if path == "" && version == "" && branch == "" {
+		return nil
+	}
+	var lines []string
+	if path != "" {
+		lines = append(lines, " "+runeTheme.faint.Render(truncateStep(path, maxInt(4, width-2))))
+	}
+	var foot []string
+	if branch != "" {
+		foot = append(foot, branch)
+	}
+	if version != "" {
+		foot = append(foot, "Rune "+version)
+	}
+	if len(foot) > 0 {
+		lines = append(lines, " "+runeTheme.faint.Render(strings.Join(foot, " · ")))
 	}
 	return lines
 }

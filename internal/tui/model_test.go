@@ -2217,7 +2217,8 @@ func TestCtrlCClearsComposerBeforeExitConfirmation(t *testing.T) {
 	status := plainRender(t, next.statusLine(80))
 	// No exit confirmation armed: the steady footer shows (mode lives in the
 	// composer metadata now), and no confirm text.
-	if strings.Contains(status, ctrlCExitConfirmText) || !strings.Contains(status, "/ commands") {
+	// Steady footer: no exit text, and no persistent "/ commands" hint anymore.
+	if strings.Contains(status, ctrlCExitConfirmText) || strings.Contains(status, "/ commands") {
 		t.Fatalf("status line = %q, want the steady footer with no exit confirmation", status)
 	}
 
@@ -2251,7 +2252,7 @@ func TestCtrlCExitConfirmationExpires(t *testing.T) {
 	}
 	status := plainRender(t, next.statusLine(80))
 	// After expiry the warning clears and the steady footer is restored.
-	if strings.Contains(status, ctrlCExitConfirmText) || !strings.Contains(status, "/ commands") {
+	if strings.Contains(status, ctrlCExitConfirmText) || strings.Contains(status, "/ commands") {
 		t.Fatalf("status line after expiry = %q, want the steady footer restored", status)
 	}
 }
@@ -2645,33 +2646,18 @@ func TestComposerIdleHintAndJumpCue(t *testing.T) {
 			idle := m
 			idle.width = test.width
 
-			// Idle, empty composer, managed mode -> the discoverability hint shows.
-			hint := plainRender(t, idle.composerIdleHint())
-			if !strings.Contains(hint, "shortcuts") && !strings.Contains(hint, "help") {
-				t.Fatalf("expected idle hint, got %q", hint)
-			}
-			if strings.Contains(hint, "sidebar") {
-				t.Fatalf("empty sidebar should not be advertised, got %q", hint)
-			}
-
-			withDetails := idle
-			withDetails.plan.steps = []planStep{{content: "inspect footer", status: "in_progress"}}
-			if hint := plainRender(t, withDetails.composerIdleHint()); !strings.Contains(hint, "Ctrl+B") || !strings.Contains(hint, "details") {
-				t.Fatalf("available run details should be advertised, got %q", hint)
+			// The permanent shortcut wall is gone: an idle prompt shows no
+			// static hint at any width tier.
+			if hint := idle.composerIdleHint(); hint != "" {
+				t.Fatalf("idle hint should be empty (shortcut wall removed), got %q", plainRender(t, hint))
 			}
 		})
 	}
-	// Hidden during a run.
-	busy := m
-	busy.pending = true
-	if h := busy.composerIdleHint(); h != "" {
-		t.Fatalf("hint should hide during a run, got %q", h)
-	}
-	// Hidden in inline mode.
-	inline := m
-	inline.altScreen = false
-	if h := inline.composerIdleHint(); h != "" {
-		t.Fatalf("hint should hide in inline mode, got %q", h)
+	// Leader-pending is the one transient state that still renders here.
+	leader := m
+	leader.leaderPending = true
+	if h := plainRender(t, leader.composerIdleHint()); !strings.Contains(h, "await shortcut") {
+		t.Fatalf("leader-pending should announce the armed chord, got %q", h)
 	}
 	// Jump cue only when scrolled up.
 	if c := m.jumpToBottomHint(); c != "" {

@@ -120,6 +120,7 @@ func TestHelpOverlayCompositesOverChatNotReplacingIt(t *testing.T) {
 	m.width = 100
 	m.height = 40
 	m.altScreen = true
+	m.transcript = appendRow(m.transcript, rowAssistant, "earlier answer")
 
 	base := plainRender(t, m.View()) // no overlay: baseline chrome
 	m.helpOverlay = true
@@ -135,11 +136,10 @@ func TestHelpOverlayCompositesOverChatNotReplacingIt(t *testing.T) {
 	if !strings.Contains(base, "gpt-4o") {
 		t.Fatalf("precondition: baseline chat should contain %q:\n%s", "gpt-4o", base)
 	}
-	// Chrome OUTSIDE the centered overlay box must survive behind it. The model
-	// text sits inside the replaced home-screen cluster, so only pinned footer
-	// chrome is asserted here.
-	if !strings.Contains(over, "/ commands") {
-		t.Fatalf("#419: help replaced the chat instead of overlaying it; footer hint gone:\n%s", over)
+	// Chrome OUTSIDE the centered overlay box must survive behind it: the
+	// raised composer box with its embedded metadata stays pinned.
+	if !strings.Contains(over, "gpt-4o") || !strings.Contains(over, "╭") {
+		t.Fatalf("#419: help replaced the chat instead of overlaying it; composer gone:\n%s", over)
 	}
 }
 

@@ -1507,7 +1507,7 @@ func TestStatusLineGroups(t *testing.T) {
 	got := plainRender(t, m.statusLine(110))
 	// M3.3: the permission mode lives in the composer metadata; the steady
 	// status line carries run annotations left and gauge + hint right.
-	if !strings.Contains(got, "/ commands") {
+	if strings.Contains(got, "/ commands") {
 		t.Fatalf("status line = %q, missing the / commands hint", got)
 	}
 	if strings.Contains(got, "auto-approve") || strings.Contains(got, "test-model") || strings.Contains(got, "test-provider") {

@@ -3291,7 +3291,9 @@ func (m model) pinnedTitleBar(width int) string {
 	if m.fileView.active {
 		return m.fileViewNavBar(width)
 	}
-	return m.titleBar(width)
+	// Transcript-first: the workspace header row is gone. Path and branch
+	// anchor the sidebar foot instead; no blank row may remain here.
+	return ""
 }
 
 func (m model) footerView(width int) string {
@@ -3318,6 +3320,14 @@ func (m model) footerView(width int) string {
 	// input from echoing in two places once "tell Rune what to do differently"
 	// opens the on-card feedback field.
 	if m.pendingPermission != nil {
+		footer.WriteString(m.footerStatusLine(width))
+		return footer.String()
+	}
+	// Any other blocking modal (command/model/theme/resume pickers, provider &
+	// MCP wizards, spec review, STT key prompt) owns the screen: the composer,
+	// its metadata, and hints stay hidden until it closes. Only the modal takes
+	// input; reopening restores whatever state the footer had before.
+	if !m.noBlockingModal() {
 		footer.WriteString(m.footerStatusLine(width))
 		return footer.String()
 	}
@@ -3366,52 +3376,17 @@ func (m model) footerView(width int) string {
 	return footer.String()
 }
 
-// composerIdleHint returns a faint one-line key-shortcut hint shown above the
-// composer on an empty, idle prompt, so the chord bindings are discoverable
-// without opening the ? overlay. Empty while typing, during a run, in the
-// full-screen transcript, or under any modal/overlay so it never competes for
-// attention. Width-tiered so a narrow terminal only shows the essential pointer.
+// composerIdleHint keeps the one-line row above the composer alive as the
+// transcript↔composer spacer. The permanent shortcut wall is gone — chords are
+// discoverable via help and the startup tip. Only transient, mid-interaction
+// feedback renders here: leader-pending while a chord is armed.
 func (m model) composerIdleHint() string {
 	// Leader-pending is always shown (even mid-type) so the user knows the next
 	// key is a chord, not composer input.
 	if m.leaderPending {
 		return runeTheme.faint.Render("Ctrl+X — await shortcut (m model · p provider · ? list · Esc cancel)")
 	}
-	// Managed (alt-screen) mode only: inline mode prints to native scrollback where
-	// this footer row isn't a stable surface. Hidden while typing, during a run, in
-	// the full-screen transcript, or under any modal/overlay.
-	if !m.altScreen || m.pending || m.composerValue() != "" || !m.noBlockingModal() ||
-		m.subchat.active || m.suggestionsActive() || m.transcriptDetailed {
-		return ""
-	}
-	sidebarKey := labelOr(m.keyBindings.toggleSidebar, "Ctrl+B")
-	detailKey := labelOr(m.keyBindings.toggleDetailed, "Ctrl+O")
-	mouseKey := labelOr(m.keyBindings.toggleMouse, "Ctrl+E")
-
-	var hint string
-	switch widthTier(m.width) {
-	case tierTiny:
-		return "" // too cramped for a hint
-	case tierNarrow:
-		// L0: universal - help + send
-		hint = "[?]help [Enter]send"
-	case tierMedium:
-		// L0 + L1: add command palette + panel toggle
-		parts := []string{"[?]help", "[Enter]send", "[Ctrl+X]cmds"}
-		if m.runDetailsAvailable() {
-			parts = append(parts, "["+sidebarKey+"]details")
-		}
-		hint = strings.Join(parts, " · ")
-	default:
-		// L0 + L1 + L2: add detail/mouse/mode
-		parts := []string{"[?]help", "[Enter]send", "[Ctrl+X]cmds"}
-		if m.runDetailsAvailable() {
-			parts = append(parts, "["+sidebarKey+"]details")
-		}
-		parts = append(parts, "["+detailKey+"]detail", "["+mouseKey+"]copy", "[Shift+Tab]mode")
-		hint = strings.Join(parts, " · ")
-	}
-	return runeTheme.faint.Render(hint)
+	return ""
 }
 
 // jumpToBottomHint returns a faint "↓ N more · PgDn" cue when the transcript is
@@ -4529,8 +4504,13 @@ func (m model) composerBox(width int) string {
 		rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
 		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, promptSurface)+strings.Repeat(" ", leftPad)+rightPad)
 	}
+	// Mode/model/provider readout sits INSIDE the raised surface, muted, so the
+	// composer reads as one clean box instead of box plus a loose caption.
+	metaFitted := fitStyledLine(m.composerMetadataLine(innerWidth), innerWidth)
+	metaPadLen := maxInt(0, innerWidth-lipgloss.Width(metaFitted))
+	metaRow := runeTheme.lineStrong.Render("│ ") + metaFitted + strings.Repeat(" ", metaPadLen) + runeTheme.lineStrong.Render(" │")
+	rendered = append(rendered, leftPadText+withSurfaceBackground(metaRow, promptSurface)+strings.Repeat(" ", leftPad)+rightPad)
 	rendered = append(rendered, m.composerDividerLineFor(boxWidth, leftPad, reserved))
-	rendered = append(rendered, leftPadText+m.composerMetadataLine(boxWidth)+rightPad)
 	return strings.Join(rendered, "\n")
 }
 

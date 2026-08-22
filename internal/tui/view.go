@@ -153,8 +153,8 @@ func (m model) composerMetadataLine(width int) string {
 // title bar and is NOT duplicated here. Groups drop with the width tier.
 // statusLine renders the bottom readout. Transient, safety-relevant states
 // (exit/cancel confirms, dictation, downloads) take over the left chip; the
-// steady state carries run annotations on the left and the context gauge plus
-// the "/ commands" hint on the right. Mode/model/provider live in the composer
+// steady state carries run annotations on the left and the context gauge on
+// the right. Mode/model/provider live in the composer
 // metadata; path/branch in the title bar — none are duplicated here.
 func (m model) statusLine(width int) string {
 	tier := widthTier(width)
@@ -240,7 +240,9 @@ func (m model) statusLine(width int) string {
 	if usage != "" {
 		rightGroups = append(rightGroups, runeTheme.muted.Render(usage))
 	}
-	rightGroups = append(rightGroups, runeTheme.faint.Render("/ commands"))
+	if len(rightGroups) == 0 {
+		return fitStyledLine(left, width)
+	}
 
 	return fitStyledLine(joinHeaderLine(left, strings.Join(rightGroups, separator), width), width)
 }
