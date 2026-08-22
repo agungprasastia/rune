@@ -10,7 +10,8 @@ import (
 
 // subchatState manages the drill-in view for a specialist's child session.
 // When active, the transcript body swaps to show the child session's events
-// instead of the parent's. ArrowUp/Esc pops back to the parent view.
+// instead of the parent's. Esc pops back to the parent view; ArrowUp scrolls
+// the child transcript.
 type subchatState struct {
 	// active is true when the transcript is showing a child session.
 	active bool
@@ -46,7 +47,6 @@ func (s *subchatState) enter(store *sessions.Store, childSessionID, title string
 // exit deactivates the subchat view and returns the saved parent scroll offset.
 func (s *subchatState) exit() int {
 	offset := s.parentScrollOffset
-	println("DEBUG exit() returning", offset)
 	s.active = false
 	s.childSessionID = ""
 	s.childSessionTitle = ""

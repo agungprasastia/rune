@@ -1419,6 +1419,9 @@ func TestComposerLineShowsRequiredCommandArgumentHint(t *testing.T) {
 
 func TestComposerBoxFramesInputAndBottomMetadata(t *testing.T) {
 	m := limeTestModel()
+	// Active-conversation layout: an empty transcript would pin the compact
+	// startup geometry regardless of the typed value.
+	m.transcript = appendRow(m.transcript, rowUser, "earlier turn")
 	m.input.SetValue("add a flag")
 
 	got := plainRender(t, m.composerBox(96))
@@ -1437,6 +1440,7 @@ func TestComposerBoxFramesInputAndBottomMetadata(t *testing.T) {
 
 func TestComposerBoxWrapsLongPrompt(t *testing.T) {
 	m := limeTestModel()
+	m.transcript = appendRow(m.transcript, rowUser, "earlier turn")
 	m.input.SetValue("Create a book library dashboard page with the Bootstrap 5.3 theme displaying a grid of book cards showing cover images, titles, authors, and reading progress bars.")
 	m.input.CursorEnd()
 

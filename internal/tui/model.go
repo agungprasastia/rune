@@ -4481,11 +4481,15 @@ func (m model) composerBox(width int) string {
 	reserved := m.petComposerReservedColumns(width)
 	boxWidth := width - reserved
 	leftPad := 0
-	if m.transcriptEmpty() && m.noBlockingModal() && m.composerValue() == "" && strings.TrimSpace(m.copyStatus) == "" {
+	// Startup home owns ONE compact geometry until the first turn starts:
+	// typing, attachments, mode cycling, and transient status never resize it.
+	// Only the conversation starting (transcriptEmpty flipping) does.
+	if m.transcriptEmpty() && m.noBlockingModal() {
 		boxWidth = clampInt(width*45/100, 44, 72)
 		boxWidth = minInt(boxWidth, width-reserved)
 		leftPad = maxInt(0, (width-reserved-boxWidth)/2)
 	}
+	promptSurface := lipgloss.NewStyle().Background(runeTheme.bgPrompt)
 	innerWidth := maxInt(1, boxWidth-4)
 	content := m.composerLine(innerWidth)
 	lines := strings.Split(content, "\n")
@@ -4494,7 +4498,7 @@ func (m model) composerBox(width int) string {
 
 	rendered := make([]string, 0, len(lines)+3)
 	topMiddle := runeTheme.line.Render("╭" + strings.Repeat("─", boxWidth-2) + "╮")
-	rendered = append(rendered, leftPadText+withSurfaceBackground(topMiddle, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
+	rendered = append(rendered, leftPadText+withSurfaceBackground(topMiddle, promptSurface)+rightPad)
 	// On graphics-capable terminals the first image receives a real thumbnail in
 	// this compact strip. Text-only terminals retain the numbered chip row below.
 	if m.attachmentThumbnailVisible(width) {
@@ -4502,7 +4506,7 @@ func (m model) composerBox(width int) string {
 			fitted := fitStyledLine(line, innerWidth)
 			padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
 			rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
-			rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
+			rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, promptSurface)+strings.Repeat(" ", leftPad)+rightPad)
 		}
 		// A thumbnail gallery makes the first few attachments visible. Keep a compact
 		// numbered row whenever there is more than one item (or a document), so the
@@ -4511,22 +4515,22 @@ func (m model) composerBox(width int) string {
 			fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
 			padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
 			rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
-			rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
+			rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, promptSurface)+strings.Repeat(" ", leftPad)+rightPad)
 		}
 	} else if chips := renderAttachmentChips(m.pendingImageLabels, m.pendingDocuments); chips != "" {
 		fitted := fitStyledLine(runeTheme.muted.Render(chips), innerWidth)
 		padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
 		rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
-		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
+		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, promptSurface)+strings.Repeat(" ", leftPad)+rightPad)
 	}
 	for _, line := range lines {
 		fitted := fitStyledLine(line, innerWidth)
 		padLen := maxInt(0, innerWidth-lipgloss.Width(fitted))
 		rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
-		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
+		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, promptSurface)+strings.Repeat(" ", leftPad)+rightPad)
 	}
 	rendered = append(rendered, m.composerDividerLineFor(boxWidth, leftPad, reserved))
-	rendered = append(rendered, leftPadText+m.composerMetadataLine(width-reserved))
+	rendered = append(rendered, leftPadText+m.composerMetadataLine(boxWidth)+rightPad)
 	return strings.Join(rendered, "\n")
 }
 

@@ -489,3 +489,160 @@ func TestM33LayeredSurfacesSubtle(t *testing.T) {
 		t.Fatal("raised surface must step further from the canvas than the base surface")
 	}
 }
+
+// m33ComposerGeometry reads the composer box geometry straight out of a
+// rendered view: box width (border corners inclusive), left pad column, and
+// the metadata row that follows the bottom rule.
+func m33ComposerGeometry(t *testing.T, view string) (boxWidth, leftPad, metaLead, metaVisible int) {
+	t.Helper()
+	lines := strings.Split(view, "\n")
+	topRow := -1
+	for index, raw := range lines {
+		runes := []rune(ansiPattern.ReplaceAllString(raw, ""))
+		start, end := -1, -1
+		for pos, glyph := range runes {
+			switch glyph {
+			case '╭':
+				if start < 0 {
+					start = pos
+				}
+			case '╮':
+				end = pos
+			}
+		}
+		if start < 0 || end < start {
+			continue
+		}
+		boxWidth = end - start + 1
+		leftPad = start
+		topRow = index
+		break
+	}
+	if topRow < 0 {
+		t.Fatal("composer top border row not found in view")
+	}
+	for index := topRow + 1; index < len(lines)-1; index++ {
+		if !strings.Contains(plainRender(t, lines[index]), "╰") {
+			continue
+		}
+		metaPlain := plainRender(t, lines[index+1])
+		metaLead = len(metaPlain) - len(strings.TrimLeft(metaPlain, " "))
+		metaVisible = lipgloss.Width(strings.TrimRight(metaPlain, " ")) - metaLead
+		return boxWidth, leftPad, metaLead, metaVisible
+	}
+	t.Fatal("composer metadata row not found after the bottom rule")
+	return 0, 0, 0, 0
+}
+
+func TestM33StartupComposerStableGeometry(t *testing.T) {
+	longInput := strings.Repeat("wrap this long sentence ", 12)
+	tabTimes := func(count int) func(model) model {
+		return func(m model) model {
+			for i := 0; i < count; i++ {
+				next, _ := m.Update(testKey(tea.KeyTab))
+				m = next.(model)
+			}
+			return m
+		}
+	}
+	scenarios := []struct {
+		name   string
+		mutate func(model) model
+	}{
+		{"empty", func(m model) model { return m }},
+		{"one-char", func(m model) model { return typeRunes(t, m, "h") }},
+		{"sentence", func(m model) model { return typeRunes(t, m, "fix the failing test in ./pkg") }},
+		{"long-wrapped", func(m model) model { return typeRunes(t, m, longInput) }},
+		{"multiline", func(m model) model {
+			text := "one\ntwo\nthree\nfour"
+			next := m
+			next.setComposerState(composerState{text: text, cursor: len([]rune(text))})
+			return next
+		}},
+		{"tab-plan", tabTimes(1)},
+		{"tab-auto", tabTimes(2)},
+		{"tab-back-ask", tabTimes(3)},
+		{"copy-status", func(m model) model { next := m; next.copyStatus = "Copied transcript"; return next }},
+		{"attachment", func(m model) model { next := m; next.pendingImageLabels = []string{"shot.png"}; return next }},
+	}
+	for _, tc := range []struct {
+		name   string
+		width  int
+		height int
+	}{{"60x20", 60, 20}, {"80x24", 80, 24}, {"120x40", 120, 40}, {"160x50", 160, 50}} {
+		t.Run(tc.name, func(t *testing.T) {
+			base := newModel(context.Background(), Options{})
+			base.width, base.height = tc.width, tc.height
+			base.altScreen = true
+			wantBox, wantLeft, _, _ := m33ComposerGeometry(t, plainRender(t, base.View()))
+			wantBoxExpected := minInt(clampInt(tc.width*45/100, 44, 72), tc.width)
+			if wantBox != wantBoxExpected {
+				t.Fatalf("startup box width = %d, want %d", wantBox, wantBoxExpected)
+			}
+			for _, sc := range scenarios {
+				m := sc.mutate(base)
+				gotBox, gotLeft, metaLead, metaVisible := m33ComposerGeometry(t, plainRender(t, m.View()))
+				if gotBox != wantBox || gotLeft != wantLeft {
+					t.Fatalf("%s: box geometry changed to (%d,+%d), want (%d,+%d)", sc.name, gotBox, gotLeft, wantBox, wantLeft)
+				}
+				// composerMetadataLine carries a fixed two-column inset.
+				if metaLead != wantLeft+2 {
+					t.Fatalf("%s: metadata starts at column %d, want %d (box-aligned)", sc.name, metaLead, wantLeft+2)
+				}
+				if metaVisible <= 0 || metaVisible > wantBox-2 {
+					t.Fatalf("%s: metadata width %d outside composer inner width", sc.name, metaVisible)
+				}
+				m33AssertFits(t, tc.name+"/"+sc.name, plainRender(t, m.View()), tc.width, tc.height)
+			}
+		})
+	}
+}
+
+func TestM33StartupComposerResizeRecalc(t *testing.T) {
+	m := newModel(context.Background(), Options{})
+	m.width, m.height = 120, 40
+	m.altScreen = true
+
+	boxAt := func(width, height int) int {
+		next, _ := m.Update(tea.WindowSizeMsg{Width: width, Height: height})
+		m = next.(model)
+		box, _, _, _ := m33ComposerGeometry(t, plainRender(t, m.View()))
+		return box
+	}
+	if got := boxAt(120, 40); got != 54 {
+		t.Fatalf("box at 120 cols = %d, want 54", got)
+	}
+	if got := boxAt(160, 50); got != 72 {
+		t.Fatalf("box at 160 cols = %d, want 72", got)
+	}
+	if got := boxAt(80, 24); got != 44 {
+		t.Fatalf("box at 80 cols = %d, want min 44", got)
+	}
+}
+
+func TestM33FirstSubmitMovesToActiveLayout(t *testing.T) {
+	m := newModel(context.Background(), Options{})
+	m.width, m.height = 120, 40
+	m.altScreen = true
+
+	box, leftPad, _, _ := m33ComposerGeometry(t, plainRender(t, m.View()))
+	if box != 54 || leftPad == 0 {
+		t.Fatalf("pre-submit startup geometry: box=%d left=%d, want compact centered", box, leftPad)
+	}
+
+	// First turn starts: the user prompt lands and the layout flips to the
+	// full-main active composer. No intermediate wide frame may exist.
+	m.transcript = appendRow(m.transcript, rowUser, "fix it")
+
+	box, leftPad, _, _ = m33ComposerGeometry(t, plainRender(t, m.View()))
+	if box <= 54 || leftPad != 0 {
+		t.Fatalf("post-submit geometry: box=%d left=%d, want full-width docked", box, leftPad)
+	}
+	if m.transcriptEmpty() {
+		t.Fatal("conversation with a user row must not count as empty")
+	}
+	view := plainRender(t, m.View())
+	if strings.Contains(view, emptyStateTagline) {
+		t.Fatal("startup cluster must disappear once the conversation starts")
+	}
+}

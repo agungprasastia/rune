@@ -115,14 +115,15 @@ func (m model) composerDividerLine(width int) string {
 // the mode/model/provider readout lives in composerMetadataLine below it so
 // the rule itself stays quiet.
 func (m model) composerDividerLineFor(boxWidth int, leftPad int, reserved int) string {
+	surface := lipgloss.NewStyle().Background(runeTheme.bgPrompt)
 	prefix := strings.Repeat(" ", leftPad)
 	suffix := strings.Repeat(" ", leftPad+reserved)
 	if boxWidth < 3 {
 		middle := runeTheme.lineStrong.Render(strings.Repeat("─", maxInt(1, boxWidth)))
-		return prefix + withSurfaceBackground(middle, runeTheme.panel) + suffix
+		return prefix + withSurfaceBackground(middle, surface) + suffix
 	}
 	middle := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", boxWidth-2) + "╯")
-	return prefix + withSurfaceBackground(middle, runeTheme.panel) + suffix
+	return prefix + withSurfaceBackground(middle, surface) + suffix
 }
 
 // composerMetadataLine renders the subtle "Mode · Model · Provider" readout
