@@ -1467,8 +1467,19 @@ func (m model) handleTranscriptSelectionMouse(msg tea.MouseMsg) (model, tea.Cmd,
 }
 
 // toggleTranscriptRow flips the collapse state of a collapsible row (a provider
-// thought or a tool result card).
+// thought or a tool result card). Subchat-aware: while the drill-in is active,
+// rowIndex indexes m.subchat.childRows — the rows actually on screen.
 func (m model) toggleTranscriptRow(rowIndex int) model {
+	if m.subchat.active {
+		if rowIndex < 0 || rowIndex >= len(m.subchat.childRows) {
+			return m
+		}
+		switch m.subchat.childRows[rowIndex].kind {
+		case rowReasoning, rowToolResult:
+			m.subchat.childRows[rowIndex].expanded = !m.subchat.childRows[rowIndex].expanded
+		}
+		return m
+	}
 	if rowIndex < 0 || rowIndex >= len(m.transcript) {
 		return m
 	}

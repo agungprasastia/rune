@@ -37,13 +37,14 @@ var lightSystemSurfaces = systemSurfacePalette{
 	delWord:   "#ffcecb",
 }
 
-// darkPalette is the original Lime palette: a near-black chat surface with one
-// lime accent. bg (#070708) is the terminal's own canvas — deliberately never
-// painted — so no token references it.
+// darkPalette is the original Lime palette: a near-black layered surface stack
+// with one lime accent. The layers step subtly from the #070708 canvas through
+// the #111214 surface (tool cards, sidebar) to the #1c1d22 raised composer so
+// depth comes from tone differences rather than heavy borders.
 var darkPalette = palette{
 	canvas:    "#070708",
-	panel:     "#202126",
-	promptBg:  "#292a31",
+	panel:     "#111214",
+	promptBg:  "#1c1d22",
 	line:      "#30323b",
 	line2:     "#4a4d58",
 	ink:       "#ececee",

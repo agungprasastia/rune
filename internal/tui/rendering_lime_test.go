@@ -1417,20 +1417,17 @@ func TestComposerLineShowsRequiredCommandArgumentHint(t *testing.T) {
 	}
 }
 
-func TestComposerBoxFramesInputAndBottomModelLabel(t *testing.T) {
+func TestComposerBoxFramesInputAndBottomMetadata(t *testing.T) {
 	m := limeTestModel()
 	m.input.SetValue("add a flag")
 
 	got := plainRender(t, m.composerBox(96))
-	// The box bottom rule shows the model only; the permission mode moved to the
-	// status line below the box.
+	// The box bottom rule is plain; the mode/model/provider readout moved to the
+	// metadata line under the box.
 	for _, want := range []string{"╭", "│", "❯ add a flag", "╰", "test-model"} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("composer box = %q, missing %q", got, want)
 		}
-	}
-	if strings.Contains(got, "auto-approve") {
-		t.Fatalf("composer box = %q, should not show the mode (moved to status line)", got)
 	}
 	if strings.Contains(got, "run ↵") {
 		t.Fatalf("composer box = %q, should not show run hint", got)
@@ -1459,7 +1456,7 @@ func TestComposerBoxCapsLongPromptHeightAroundCursor(t *testing.T) {
 	m.input.CursorEnd()
 
 	got := plainRender(t, m.composerBox(44))
-	if lineCount := len(strings.Split(got, "\n")); lineCount != composerMaxVisibleLines+2 {
+	if lineCount := len(strings.Split(got, "\n")); lineCount != composerMaxVisibleLines+3 {
 		t.Fatalf("composer box line count = %d, want %d:\n%s", lineCount, composerMaxVisibleLines+2, got)
 	}
 	if !strings.Contains(got, "final words") {
@@ -1504,20 +1501,19 @@ func TestMalformedToolArgumentResultIsHiddenFromChatSurface(t *testing.T) {
 func TestStatusLineGroups(t *testing.T) {
 	m := limeTestModel()
 	got := plainRender(t, m.statusLine(110))
-	// Status line shows the run-state chip (permission mode), NOT the provider,
-	// surface, or model — those live in the title bar / composer rule.
-	if !strings.Contains(got, "● auto-approve") {
-		t.Fatalf("status line = %q, missing the permission-mode chip", got)
+	// M3.3: the permission mode lives in the composer metadata; the steady
+	// status line carries run annotations left and gauge + hint right.
+	if !strings.Contains(got, "/ commands") {
+		t.Fatalf("status line = %q, missing the / commands hint", got)
 	}
-	if strings.Contains(got, "interactive") || strings.Contains(got, "test-model") || strings.Contains(got, "test-provider") {
-		t.Fatalf("status line = %q, should not include surface, model, or provider", got)
+	if strings.Contains(got, "auto-approve") || strings.Contains(got, "test-model") || strings.Contains(got, "test-provider") {
+		t.Fatalf("status line = %q, should not include mode chip, model, or provider", got)
 	}
-	divider := plainRender(t, m.composerDividerLine(110))
-	if !strings.Contains(divider, "test-model") {
-		t.Fatalf("composer divider = %q, missing the model label", divider)
-	}
-	if strings.Contains(divider, "auto-approve") {
-		t.Fatalf("composer divider = %q, should not show the mode (moved to status line)", divider)
+	metadata := plainRender(t, m.composerMetadataLine(110))
+	for _, want := range []string{"Auto", "test-model"} {
+		if !strings.Contains(metadata, want) {
+			t.Fatalf("composer metadata = %q, missing %q", metadata, want)
+		}
 	}
 }
 
@@ -1541,24 +1537,21 @@ func TestStatusLineOmitsEffortWhenAuto(t *testing.T) {
 	}
 }
 
-func TestTitleBarShowsWorkspaceAndModel(t *testing.T) {
+func TestTitleBarShowsWorkspaceOnly(t *testing.T) {
 	m := limeTestModel()
 	m.width = 120
 	m.cwd = "/workspace/rune"
 	m.gitBranch = "main"
 	got := plainRender(t, m.titleBar(120))
-	for _, want := range []string{" main", "/workspace/rune", "test-provider/test-model"} {
+	for _, want := range []string{" main", "/workspace/rune"} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("title bar = %q, missing %q", got, want)
 		}
 	}
-	for _, notWant := range []string{" 0 ", "rune /"} {
-		if strings.Contains(got, notWant) {
-			t.Fatalf("title bar = %q, should not include old brand cluster %q", got, notWant)
-		}
+	if strings.Contains(got, "test-provider/test-model") {
+		t.Fatalf("title bar = %q, should not show model (moved to composer metadata)", got)
 	}
 }
-
 func TestTitleBarHighlightsBranchOverWorkspace(t *testing.T) {
 	oldProfile := lipgloss.Writer.Profile
 	lipgloss.Writer.Profile = colorprofile.TrueColor
@@ -1595,14 +1588,13 @@ func TestGenericCustomProviderDisplayUsesEndpointName(t *testing.T) {
 		},
 	})
 
-	// The derived provider label lives in the title bar (no longer duplicated in
-	// the status line, which now shows the run-state chip instead).
-	title := plainRender(t, m.titleBar(120))
-	if !strings.Contains(title, "minimax/MiniMax-M3") {
-		t.Fatalf("title bar = %q, want derived custom provider label", title)
+	// M3.3: the derived provider label lives in the composer metadata.
+	metadata := plainRender(t, m.composerMetadataLine(120))
+	if !strings.Contains(metadata, "minimax") || !strings.Contains(metadata, "MiniMax-M3") {
+		t.Fatalf("composer metadata = %q, want derived custom provider label", metadata)
 	}
-	if strings.Contains(title, "custom-openai-compatible/MiniMax-M3") {
-		t.Fatalf("title bar = %q, should not show generic custom catalog id", title)
+	if strings.Contains(metadata, "custom-openai-compatible") {
+		t.Fatalf("composer metadata = %q, should not show generic custom catalog id", metadata)
 	}
 }
 

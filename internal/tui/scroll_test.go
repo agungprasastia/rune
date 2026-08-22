@@ -74,6 +74,7 @@ func TestMouseWheelOverWrappedComposerMovesComposerCursor(t *testing.T) {
 	m.width = 44
 	m.height = 20
 	m.mouseCapture = true
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.input.SetValue(text)
 	m.input.CursorEnd()
 	startCursor := len([]rune(text))
@@ -97,6 +98,7 @@ func TestMouseWheelOnClippedFooterStatusDoesNotMoveComposerCursor(t *testing.T) 
 	m.width = 44
 	m.height = 3
 	m.mouseCapture = true
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.input.SetValue(text)
 	m.input.CursorEnd()
 	startCursor := len([]rune(text))

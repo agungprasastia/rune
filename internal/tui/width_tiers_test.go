@@ -24,17 +24,16 @@ func TestWidthTierSegments(t *testing.T) {
 	}, "\n")
 
 	cases := []struct {
-		width      int
-		wantCtx    bool // header context window ("200K")
-		wantCwd    bool // header cwd segment
+		width int
+
 		wantArg    bool // tool-card arg column
 		wantGutter bool // diff line-number gutter
 	}{
-		{width: 58, wantCtx: false, wantCwd: false, wantArg: false, wantGutter: false},
-		{width: 70, wantCtx: false, wantCwd: false, wantArg: false, wantGutter: false},
-		{width: 80, wantCtx: false, wantCwd: true, wantArg: false, wantGutter: true},
-		{width: 100, wantCtx: true, wantCwd: true, wantArg: true, wantGutter: true},
-		{width: 120, wantCtx: true, wantCwd: true, wantArg: true, wantGutter: true},
+		{width: 58, wantArg: false, wantGutter: false},
+		{width: 70, wantArg: false, wantGutter: false},
+		{width: 80, wantArg: false, wantGutter: true},
+		{width: 100, wantArg: true, wantGutter: true},
+		{width: 120, wantArg: true, wantGutter: true},
 	}
 
 	for _, tc := range cases {
@@ -46,11 +45,8 @@ func TestWidthTierSegments(t *testing.T) {
 		m.width, m.height = tc.width, 30
 
 		title := plainRender(t, m.titleBar(tc.width))
-		if got := strings.Contains(title, "200K"); got != tc.wantCtx {
-			t.Errorf("width %d: title ctx = %v, want %v (%q)", tc.width, got, tc.wantCtx, title)
-		}
-		if got := strings.Contains(title, "rune-project-workspace"); got != tc.wantCwd {
-			t.Errorf("width %d: title cwd = %v, want %v (%q)", tc.width, got, tc.wantCwd, title)
+		if strings.Contains(title, "200K") || strings.Contains(title, "claude-sonnet-4.5") {
+			t.Errorf("width %d: title must stay minimal (%q)", tc.width, title)
 		}
 
 		rows := []transcriptRow{
@@ -70,21 +66,14 @@ func TestWidthTierSegments(t *testing.T) {
 		}
 
 		status := plainRender(t, m.statusLine(tc.width))
-		// Status line now carries the run-state chip (permission mode), NOT the
-		// surface or model (those live in the title bar / composer rule).
-		if strings.Contains(status, "interactive") || strings.Contains(status, "claude-sonnet-4.5") {
-			t.Errorf("width %d: status should not include surface or model (%q)", tc.width, status)
+		// M3.3: mode lives in the composer metadata; the steady status line stays
+		// free of model/provider.
+		if strings.Contains(status, "interactive") || strings.Contains(status, "claude-sonnet-4.5") || strings.Contains(status, "anthropic") {
+			t.Errorf("width %d: status should not include surface, model, or provider (%q)", tc.width, status)
 		}
-		if !strings.Contains(status, "auto-approve") {
-			t.Errorf("width %d: status should show the permission mode (%q)", tc.width, status)
-		}
-		divider := plainRender(t, m.composerDividerLine(tc.width))
-		// The composer rule is model-only now; mode/effort moved to the status line.
-		if !strings.Contains(divider, "claude-sonnet-4.5") {
-			t.Errorf("width %d: composer divider must keep the model label (%q)", tc.width, divider)
-		}
-		if strings.Contains(divider, "auto-approve") {
-			t.Errorf("width %d: composer divider should no longer show the mode (%q)", tc.width, divider)
+		metadata := plainRender(t, m.composerMetadataLine(tc.width))
+		if !strings.Contains(metadata, "Auto") || !strings.Contains(metadata, "claude-sonnet-4.5") {
+			t.Errorf("width %d: composer metadata = %q, want mode and model", tc.width, metadata)
 		}
 	}
 }
@@ -94,20 +83,13 @@ func TestTinyTierSingleSegmentAndRailLessCards(t *testing.T) {
 	m.width, m.height = 40, 20
 
 	status := plainRender(t, m.statusLine(40))
-	// Tiny status shows the permission-mode chip (the safety-relevant run-state),
-	// not the provider or model.
-	if !strings.Contains(status, "auto-approve") {
-		t.Fatalf("tiny status = %q, want the permission-mode chip", status)
+	// M3.3 tiny tier: no mode chip (composer metadata owns it), no model text.
+	if strings.Contains(status, "anthropic") || strings.Contains(status, "claude-sonnet-4.5") || strings.Contains(status, "Auto") {
+		t.Fatalf("tiny status = %q, want it quiet (no mode/model/provider)", status)
 	}
-	if strings.Contains(status, "anthropic") || strings.Contains(status, "claude-sonnet-4.5") {
-		t.Fatalf("tiny status = %q, want mode only (no provider/model)", status)
-	}
-	divider := plainRender(t, m.composerDividerLine(40))
-	if !strings.Contains(divider, "claude-sonnet-4.5") {
-		t.Fatalf("tiny composer divider = %q, want the model label", divider)
-	}
-	if strings.Contains(divider, "auto-approve") {
-		t.Fatalf("tiny composer divider = %q, mode should have moved to the status line", divider)
+	metadata := plainRender(t, m.composerMetadataLine(40))
+	if !strings.Contains(metadata, "Auto") || !strings.Contains(metadata, "claude-sonnet-4.5") {
+		t.Fatalf("tiny composer metadata = %q, want mode and model", metadata)
 	}
 
 	row := transcriptRow{kind: rowToolResult, id: "c", tool: "grep", status: tools.StatusOK, detail: "a.go:1: x"}
@@ -119,7 +101,7 @@ func TestTinyTierSingleSegmentAndRailLessCards(t *testing.T) {
 	}
 }
 
-func TestTitleBarKeepsWorkspaceWithLongBranchAndModel(t *testing.T) {
+func TestTitleBarKeepsWorkspaceWithLongBranch(t *testing.T) {
 	m := newModel(context.Background(), Options{
 		Cwd:          "/workspace/rune",
 		ProviderName: "ollama-cloud",
@@ -128,33 +110,18 @@ func TestTitleBarKeepsWorkspaceWithLongBranchAndModel(t *testing.T) {
 	m.gitBranch = "feat/tui-assistant-response-cleanup"
 
 	got := plainRender(t, m.titleBar(108))
-	for _, want := range []string{"", "/workspace/rune", "feat/tui-assistant-response-cleanup", "ollama-cloud/cogito-2.1:671b-extra-long-model-name"} {
+	for _, want := range []string{"/workspace/rune", "feat/tui-assistant-response-cleanup"} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("title bar = %q, missing %q", got, want)
 		}
 	}
-	if strings.Contains(got, " 0 ") {
-		t.Fatalf("title bar = %q, should not include old badge", got)
+	if strings.Contains(got, "cogito-2.1") {
+		t.Fatalf("title bar = %q, should not show model (moved to composer metadata)", got)
 	}
 	for index, line := range strings.Split(got, "\n") {
 		if width := lipgloss.Width(line); width > 108 {
 			t.Fatalf("title line %d width = %d, want <= 108: %q", index, width, line)
 		}
-	}
-}
-
-func TestComposerDividerRendersMetaAtExactFit(t *testing.T) {
-	m := newModel(context.Background(), Options{
-		ModelName:      "gpt-4o",
-		PermissionMode: agent.PermissionModeAsk,
-	})
-	// The divider meta is model-only now (mode/effort moved to the status line).
-	meta := runeTheme.muted.Render("gpt-4o")
-	width := lipgloss.Width(meta) + 4
-
-	got := plainRender(t, m.composerDividerLine(width))
-	if !strings.Contains(got, "gpt-4o") {
-		t.Fatalf("exact-fit composer divider = %q, want the model label", got)
 	}
 }
 

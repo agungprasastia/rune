@@ -339,9 +339,9 @@ var reservedBindings = []struct {
 }{
 	{parseBinding("ctrl+c"), "cancel / exit"},
 	{parseBinding("esc"), "cancel / close"},
-	{parseBinding("enter"), "submit"},
-	{parseBinding("shift+tab"), "cycle permission mode"},
-	{parseBinding("tab"), "navigation / completion"},
+	{parseBinding("enter"), "submit / expand tool card"},
+	{parseBinding("shift+tab"), "cycle mode (Ask → Plan → Auto) backward"},
+	{parseBinding("tab"), "mode cycle / navigation / completion"},
 	{parseBinding("backspace"), "composer edit / attachment removal"},
 	{parseBinding("up"), "history/navigation"},
 	{parseBinding("down"), "history/navigation"},

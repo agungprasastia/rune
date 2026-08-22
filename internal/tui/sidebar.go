@@ -15,13 +15,13 @@ import (
 	"rune/internal/tools"
 )
 
-// sidebar geometry. The sidebar takes ~30% of the width, clamped so it never
+// sidebar geometry. The sidebar takes ~25% of the width, clamped so it never
 // crowds the chat on a narrow terminal nor sprawls on a wide one. A 1-cell
 // divider sits between the two columns.
 const (
 	sidebarMinWidth     = 28
 	sidebarMaxWidth     = 38
-	sidebarMinMainWidth = 90
+	sidebarMinMainWidth = 72
 )
 
 // sidebarWidth returns the sidebar column width for a given total width, or 0
@@ -158,9 +158,9 @@ func (m model) sidebarHasAgents() bool {
 func (m model) sidebarAgentHeader(width int) string {
 	n := len(m.sidebarSpecialists()) + len(m.swarmSpawnedAgents())
 	if n == 0 {
-		return sidebarHeader("AGENTS", width)
+		return sidebarHeader("Agents", width)
 	}
-	return sidebarHeaderWithCount("AGENTS", fmt.Sprintf("%d", n), runeTheme.muted, width)
+	return sidebarHeaderWithCount("Agents", fmt.Sprintf("%d", n), runeTheme.muted, width)
 }
 
 // swarmSpawnRe extracts a member id from a swarm_spawn tool result, whose text
@@ -549,13 +549,12 @@ func (m model) renderContextSidebar(width, height int) []string {
 	// Keep the default rail quiet and useful. Empty optional sections disappear;
 	// the column itself remains stable so transcript wrapping does not jump.
 	if title := strings.TrimSpace(m.activeSession.Title); title != "" {
-		add(sidebarHeader("SESSION", width))
+		add(sidebarHeader("Session", width))
 		add(" " + runeTheme.ink.Render(truncateStep(title, maxInt(4, width-2))))
 	}
-	if pct, _, _, style, ok := m.contextFillPercent(); ok {
+	if contextLines := m.sidebarContextLines(width); len(contextLines) > 0 {
 		add("")
-		add(sidebarHeader("CONTEXT", width))
-		add(" " + style.Render(fmt.Sprintf("%d%% used", pct)))
+		lines = append(lines, contextLines...)
 	}
 	if len(m.mcpConfig.Servers) > 0 {
 		add("")
@@ -586,20 +585,21 @@ func (m model) renderContextSidebar(width, height int) []string {
 	// rather than letting the end-truncation eat into the plan. Absent when empty.
 	if activityLines := m.sidebarActivityLines(width, maxInt(0, height-1-len(lines))); len(activityLines) > 0 {
 		add("")
-		add(sidebarHeader("ACTIVITY", width))
+		add(sidebarHeader("Activity", width))
 		lines = append(lines, activityLines...)
 	}
 
-	// Token readout pinned to the bottom.
-	tokenLine := m.sidebarTokenLine(width)
-	// Reserve the bottom row for tokens; pad the gap so it sits at the floor.
-	for len(lines) < height-1 {
-		add("")
+	// Token/context readout pinned to the bottom when it has something to say;
+	// blank floor otherwise (never a bare "0 tokens").
+	if tokenLine := m.sidebarTokenLine(width); tokenLine != "" {
+		for len(lines) < height-1 {
+			add("")
+		}
+		if len(lines) > height-1 {
+			lines = lines[:height-1]
+		}
+		add(tokenLine)
 	}
-	if len(lines) > height-1 {
-		lines = lines[:height-1]
-	}
-	add(tokenLine)
 
 	// Hover highlight: resolved by STABLE IDENTITY (sessionID / stepIndex), not a
 	// cached line offset — see hoveredSidebarLineOffset. A row whose identity no
@@ -623,6 +623,27 @@ func (m model) renderContextSidebar(width, height int) []string {
 	return lines
 }
 
+// sidebarContextLines builds the Context section: used/window plus the graded
+// fill percentage. It renders whenever the model's window is known (0 usage
+// still shows "0 / 128K · 0% used" — a labeled readout, never bare "0 tokens"),
+// and disappears only when nothing at all is known.
+func (m model) sidebarContextLines(width int) []string {
+	window := m.modelContextWindow(m.modelName)
+	pct, used, _, style, ok := m.contextFillPercent()
+	if !ok && window <= 0 {
+		return nil
+	}
+	if !ok {
+		used, pct = 0, 0
+		style = runeTheme.faint
+	}
+	return []string{
+		sidebarHeader("Context", width),
+		" " + runeTheme.muted.Render(fmt.Sprintf("%s / %s", humanCount(used), humanCount(window))),
+		" " + style.Render(fmt.Sprintf("%d%% used", pct)),
+	}
+}
+
 // sidebarSectionOffsets mirrors the optional sections in renderContextSidebar.
 // Hit-testing uses these offsets instead of assumptions about empty placeholders.
 func (m model) sidebarSectionOffsets(width int) (agents, plan, files int) {
@@ -630,8 +651,8 @@ func (m model) sidebarSectionOffsets(width int) (agents, plan, files int) {
 	if strings.TrimSpace(m.activeSession.Title) != "" {
 		line += 2
 	}
-	if _, _, _, _, ok := m.contextFillPercent(); ok {
-		line += 3
+	if contextLines := m.sidebarContextLines(width); len(contextLines) > 0 {
+		line += 1 + len(contextLines)
 	}
 	if len(m.mcpConfig.Servers) > 0 {
 		line += 2 + len(m.mcpConfig.Servers)
@@ -684,19 +705,18 @@ func (m model) hoveredSidebarLineOffset(width int) (int, bool) {
 	return 0, false
 }
 
-// sidebarHeader renders a bold-muted uppercase section label. Bold muted (vs the
-// faint body items and placeholders) gives the header enough weight to read as a
-// section heading rather than more filler. The width arg is unused — kept so it
-// shares a signature with sidebarHeaderWithCount.
+// sidebarHeader renders a bold-muted section label in natural case ("Context",
+// "Agents") — quiet hierarchy instead of shouting caps. The width arg is unused
+// — kept so it shares a signature with sidebarHeaderWithCount.
 func sidebarHeader(label string, _ int) string {
-	return runeTheme.muted.Bold(true).Render(strings.ToUpper(label))
+	return runeTheme.muted.Bold(true).Render(label)
 }
 
 // sidebarHeaderWithCount renders a bold-muted section label with a right-aligned
-// count (e.g. "PLAN   2/5") rendered in countStyle, so a section can colour its
+// count (e.g. "Plan   2/5") rendered in countStyle, so a section can colour its
 // count by state — accent while in-flight, green when complete.
 func sidebarHeaderWithCount(label, count string, countStyle lipgloss.Style, width int) string {
-	left := runeTheme.muted.Bold(true).Render(strings.ToUpper(label))
+	left := runeTheme.muted.Bold(true).Render(label)
 	right := countStyle.Render(count)
 	gap := width - lipgloss.Width(left) - lipgloss.Width(right)
 	if gap < 1 {
@@ -714,7 +734,7 @@ func sidebarPlaceholder(text string, width int) string {
 func (m model) sidebarPlanHeader(width int) string {
 	state := m.plan
 	if state.isEmpty() {
-		return sidebarHeader("PLAN", width)
+		return sidebarHeader("Plan", width)
 	}
 	total := len(state.steps)
 	done := 0
@@ -728,7 +748,7 @@ func (m model) sidebarPlanHeader(width int) string {
 	if done == total {
 		countStyle = runeTheme.green
 	}
-	return sidebarHeaderWithCount("PLAN", fmt.Sprintf("%d/%d", done, total), countStyle, width)
+	return sidebarHeaderWithCount("Plan", fmt.Sprintf("%d/%d", done, total), countStyle, width)
 }
 
 // sidebarPlanLines renders the plan step list for the sidebar using the same
@@ -860,11 +880,12 @@ func (m model) activityCommandForRow(id string, runID int) string {
 
 // sidebarTokenLine renders the bottom token/context readout. It prefers the
 // live context-fill figure (last request's input tokens) and falls back to the
-// session's cumulative token count.
+// session's cumulative token count. Empty when nothing is known — the Context
+// section above owns the labeled zero state.
 func (m model) sidebarTokenLine(width int) string {
 	label := m.sidebarTokenText()
 	if label == "" {
-		label = "0 tokens"
+		return ""
 	}
 	// Append the graded context-fill % — the at-a-glance "how full is the window"
 	// the compaction trigger reasons about. Reserve its width so the token label

@@ -24,16 +24,22 @@ var runeWordmarkLines = []string{
 
 const emptyStateTagline = "Any model. Every tool. One terminal."
 
-// emptyState renders the centered stream-area block shown while the
-// transcript has no real content: the brand glyph and tagline.
+// emptyState renders the startup home screen as ONE centered cluster:
+// wordmark, tagline, composer, shortcuts, and tip share a single vertical
+// block so the composer sits with the brand instead of pinned to the footer.
 func (m model) emptyState(width int) string {
-	lines := m.emptyStateLines(width)
-
-	// Vertically center within the stream area: the frame around it (title bar,
-	// rules, composer, status line) occupies ~6 terminal rows.
-	height := normalizedStartupHeight(m.height)
-	gap := clamp((height-6-len(lines))/2, 0, 12)
-	return strings.Repeat("\n", gap) + strings.Join(lines, "\n") + strings.Repeat("\n", gap)
+	cluster := m.emptyStateClusterLines(width)
+	body := m.emptyStateBodyHeight(width)
+	gap := clamp((body-len(cluster))/2, 0, 12)
+	out := make([]string, 0, body)
+	for i := 0; i < gap; i++ {
+		out = append(out, "")
+	}
+	out = append(out, cluster...)
+	for len(out) < body {
+		out = append(out, "")
+	}
+	return strings.Join(out[:body], "\n")
 }
 
 func (m model) emptyStateWithOverlay(width int, overlay string) string {
@@ -42,35 +48,36 @@ func (m model) emptyStateWithOverlay(width int, overlay string) string {
 		lines[index] = fitStyledLine(lines[index], width)
 	}
 
-	// Center the palette in the visible chat area. While the command palette is
-	// open it replaces the empty-state wordmark instead of sitting below it.
-	available := normalizedStartupHeight(m.height) - 5
-	if m.titleBarInTranscriptBody() {
-		available -= 2
-	}
+	// Center the palette in the visible chat area. While a picker is open it
+	// replaces the empty-state cluster instead of sitting below it.
+	available := maxInt(1, m.emptyStateBodyHeight(width)-2)
 	gap := maxInt(0, (available-len(lines))/2)
 	return strings.Repeat("\n", gap) + strings.Join(lines, "\n") + strings.Repeat("\n", gap)
 }
 
-func (m model) emptyStateLines(width int) []string {
+// emptyStateBodyHeight mirrors scrollableTranscriptFrame's arithmetic using the
+// SAME header/footer render functions, so the centered cluster fills the real
+// viewport without geometry drift.
+func (m model) emptyStateBodyHeight(width int) int {
+	height := m.height - len(viewLines(m.pinnedTitleBar(width))) - len(viewLines(m.footerView(width)))
+	if m.titleBarInTranscriptBody() {
+		height -= len(viewLines(m.titleBar(width)))
+	}
+	return maxInt(1, height)
+}
+
+func (m model) emptyStateClusterLines(width int) []string {
 	lines := []string{}
-	for _, glyph := range styledRuneWordmarkLines() {
+	for _, glyph := range styledRuneWordmarkLines(width) {
 		lines = append(lines, centerLine(glyph, width))
 	}
 	lines = append(lines, "")
 	lines = append(lines, centerLine(runeTheme.muted.Render(emptyStateTagline), width))
-	// Orientation: where RUNE is pointed (cwd · branch · model) so a returning user
-	// sees the context before typing instead of a blank brand screen.
-	if orient := m.emptyStateOrientation(); orient != "" {
-		lines = append(lines, "")
-		lines = append(lines, centerLine(orient, width))
-	}
-	// Keep empty-state guidance compact: orientation belongs below the wordmark,
-	// while interaction hints stay close to the composer.
 	lines = append(lines, "")
-	lines = append(lines, centerLine(runeTheme.faint.Render("Tab agents   Ctrl+P commands"), width))
+	lines = append(lines, viewLines(m.composerBox(width))...)
 	lines = append(lines, "")
-	lines = append(lines, centerLine(runeTheme.faint.Render("● Tip  Use / for commands"), width))
+	lines = append(lines, centerLine(runeTheme.faint.Render("Tab mode   / commands"), width))
+	lines = append(lines, centerLine(runeTheme.faint.Render("Tip: use / for commands"), width))
 	// centerLine pads but never truncates; below ~62 cols the lines would exceed
 	// the frame without this fit.
 	for index := range lines {
@@ -82,27 +89,15 @@ func (m model) emptyStateLines(width int) []string {
 // emptyStateExamples seeds the first prompt with a few representative asks.
 const emptyStateExamples = `Try  "explain this codebase"  ·  "fix the failing test"  ·  "add a --json flag"`
 
-// emptyStateOrientation renders a faint "version · cwd · branch · model" line
-// for the home screen, omitting any piece that's unknown. Empty when nothing
-// is known.
-func (m model) emptyStateOrientation() string {
-	parts := make([]string, 0, 4)
-	if version := displayVersion(m.appVersion); version != "" {
-		parts = append(parts, version)
+func styledRuneWordmarkLines(width int) []string {
+	if width < 80 {
+		return []string{runeTheme.accent.Render("R U N E")}
 	}
-	if cwd := strings.TrimSpace(m.cwd); cwd != "" {
-		parts = append(parts, shortenPath(cwd))
+	lines := make([]string, 0, len(runeWordmarkLines))
+	for _, line := range runeWordmarkLines {
+		lines = append(lines, runeTheme.muted.Render(line))
 	}
-	if branch := strings.TrimSpace(m.gitBranch); branch != "" {
-		parts = append(parts, branch)
-	}
-	if model := strings.TrimSpace(m.modelName); model != "" {
-		parts = append(parts, model)
-	}
-	if len(parts) == 0 {
-		return ""
-	}
-	return runeTheme.faint.Render(strings.Join(parts, "  ·  "))
+	return lines
 }
 
 // displayVersion formats the CLI build version for display: numeric releases
@@ -117,14 +112,6 @@ func displayVersion(version string) string {
 		return "v" + version
 	}
 	return version
-}
-
-func styledRuneWordmarkLines() []string {
-	lines := make([]string, 0, len(runeWordmarkLines))
-	for _, line := range runeWordmarkLines {
-		lines = append(lines, runeTheme.ink.Render(line))
-	}
-	return lines
 }
 
 // Wordmark renders the brand ASCII art shown on the TUI's empty state, for

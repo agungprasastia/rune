@@ -347,13 +347,16 @@ func TestSuggestionOverlayStaysVisibleWhenTranscriptScrolled(t *testing.T) {
 	paletteLine := -1
 	composerLine := -1
 	for index, line := range lines {
-		switch {
-		case strings.Contains(line, "Commands"):
+		if strings.Contains(line, "Commands") {
 			paletteLine = index
-		case strings.Contains(line, "no model"):
-			// The composer rule shows the model; the mode ("auto-approve") is now on
-			// the status line below it, so locate the composer by its model label.
+		}
+	}
+	// M3.3: the divider rule is plain; locate the composer by its bottom rule,
+	// which is the LAST rounded corner row in the frame.
+	for index := len(lines) - 1; index >= 0; index-- {
+		if strings.Contains(lines[index], "╰") {
 			composerLine = index
+			break
 		}
 	}
 	if paletteLine < 0 || composerLine < 0 {

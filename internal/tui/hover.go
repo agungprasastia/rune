@@ -38,6 +38,11 @@ type hoverTarget struct {
 	sessionID string // hoverSidebarAgent
 	stepIndex int    // hoverPlanStep
 	filePath  string // hoverFileRow
+
+	// Collapsible-row identity captured while its toggle header is hovered, so
+	// Enter can expand/collapse without re-walking the whole body layout.
+	toggleRow  int  // hoverTranscript: transcript index (or subchat childRows index)
+	toggleLive bool // hoverTranscript: the live streaming reasoning block
 }
 
 // mouseHover reports whether msg is a plain cursor-movement event with NO button
@@ -66,7 +71,12 @@ func (m model) updateHoverTarget(msg tea.MouseMsg) model {
 		// selectable text (e.g. a user/assistant message) isn't, so hovering over
 		// it must not light up as if it were.
 		if line.specialistCard || line.toggle {
-			return m.withHover(hoverTarget{kind: hoverTranscript, bodyY: line.bodyY})
+			target := hoverTarget{kind: hoverTranscript, bodyY: line.bodyY, toggleRow: -1}
+			if line.toggle {
+				target.toggleRow = line.rowIndex
+				target.toggleLive = line.live
+			}
+			return m.withHover(target)
 		}
 	}
 	return m.withHover(hoverTarget{})

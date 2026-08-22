@@ -40,12 +40,18 @@ func TestWordmarkIsPlain(t *testing.T) {
 	}
 }
 
-func TestEmptyStateShowsVersion(t *testing.T) {
+func TestEmptyStateShowsCluster(t *testing.T) {
+	// M3.3: the home screen is ONE centered cluster — brand, tagline, composer,
+	// and hints together; version/cwd context moved to the footer and composer
+	// metadata instead of an orientation row inside the cluster.
 	m := newModel(context.Background(), Options{Version: "0.2.0"})
 	m.width, m.height = 100, 30
 
 	view := plainRender(t, m.View())
-	assertContains(t, view, "v0.2.0")
+	assertContains(t, view, emptyStateTagline)
+	assertContains(t, view, composerPlaceholder)
+	assertContains(t, view, "Tab mode")
+	assertContains(t, view, "Tip: use / for commands")
 }
 
 func TestDisplayVersion(t *testing.T) {

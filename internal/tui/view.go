@@ -51,60 +51,16 @@ func widthTier(width int) layoutTier {
 	}
 }
 
-// titleBar renders the top zone of the chat surface: git branch and cwd on the
-// left, provider/model and context window on the right, then a rule. Segments
-// drop with the width tier (full → no ctx → no cwd → branch/path only), reusing
-// the startupHeaderLine candidate fallback.
+// titleBar renders the MINIMAL top line for the chat surface: the workspace
+// identity (cwd · branch · PR) alone. Model/provider moved to the composer
+// metadata, context fill to the sidebar, so the transcript leads the screen.
 func (m model) titleBar(width int) string {
-	tier := widthTier(width)
-
-	workspace := m.titleWorkspaceSegment()
-	workspaceShort := m.titleWorkspaceSegmentShort()
-	branchOnly := m.titleBranchSegment()
-	cwdOnly := runeTheme.faint.Render(shortenPath(m.cwd))
-	compactLeft := cwdOnly
-	if branchOnly != "" {
-		compactLeft = branchOnly
-	}
-	model := m.titleModelSegment()
-	ctx := ""
-	if window := m.modelContextWindow(m.modelName); window > 0 {
-		ctx = runeTheme.faint.Render(" · " + formatContextWindow(window))
-	}
-
-	var candidates []headerCandidate
-	switch tier {
-	case tierFull:
-		candidates = []headerCandidate{
-			{left: workspace, right: model + ctx},
-			{left: workspace, right: model},
-			{left: workspaceShort, right: model},
-			{left: cwdOnly, right: model},
-			{left: compactLeft, right: model},
-		}
-	case tierMedium:
-		candidates = []headerCandidate{
-			{left: workspace, right: model},
-			{left: workspaceShort, right: model},
-			{left: cwdOnly, right: model},
-			{left: compactLeft, right: model},
-		}
-	case tierNarrow:
-		candidates = []headerCandidate{
-			{left: branchOnly, right: model},
-			{left: "", right: model},
-		}
-	default:
-		// Tiny: one segment, no right column.
-		candidates = []headerCandidate{
-			{left: compactLeft, right: ""},
-			{left: cwdOnly, right: ""},
-		}
-	}
-
-	line := startupHeaderLine(width, candidates)
-	rule := runeTheme.line.Render(strings.Repeat("─", width))
-	return line + "\n" + rule
+	line := startupHeaderLine(width, []headerCandidate{
+		{left: m.titleWorkspaceSegment(), right: ""},
+		{left: m.titleWorkspaceSegmentShort(), right: ""},
+		{left: runeTheme.faint.Render(shortenPath(m.cwd)), right: ""},
+	})
+	return fitStyledLine(line, width)
 }
 
 func (m model) titleWorkspaceSegment() string {
@@ -151,62 +107,63 @@ func (m model) titlePRSegment() string {
 	return renderPRSegments(BuildPRSegments(m.prState, false))
 }
 
-func (m model) titleModelSegment() string {
-	provider := strings.TrimSpace(m.providerDisplayName())
-	model := strings.TrimSpace(m.modelName)
-	switch {
-	case provider == "" && model == "":
-		return runeTheme.muted.Render("no provider")
-	case model == "":
-		return runeTheme.ink.Render(provider)
-	case provider == "":
-		return runeTheme.ink.Render(model)
-	default:
-		return runeTheme.ink.Render(provider + "/" + model)
-	}
-}
-
 func (m model) composerDividerLine(width int) string {
-	return m.composerDividerLineFor(width, width-m.petComposerReservedColumns(width), 0, m.petComposerReservedColumns(width))
+	return m.composerDividerLineFor(width-m.petComposerReservedColumns(width), 0, m.petComposerReservedColumns(width))
 }
 
-func (m model) composerDividerLineFor(width int, boxWidth int, leftPad int, reserved int) string {
-	model := displayValue(strings.TrimSpace(m.modelName), "no model")
-	meta := runeTheme.muted.Render(model)
-	metaWidth := lipgloss.Width(meta)
+// composerDividerLineFor closes the composer box with a plain hairline rule;
+// the mode/model/provider readout lives in composerMetadataLine below it so
+// the rule itself stays quiet.
+func (m model) composerDividerLineFor(boxWidth int, leftPad int, reserved int) string {
 	prefix := strings.Repeat(" ", leftPad)
 	suffix := strings.Repeat(" ", leftPad+reserved)
-	if boxWidth < 8 {
+	if boxWidth < 3 {
 		middle := runeTheme.lineStrong.Render(strings.Repeat("─", maxInt(1, boxWidth)))
 		return prefix + withSurfaceBackground(middle, runeTheme.panel) + suffix
 	}
-	if boxWidth < metaWidth+4 {
-		middle := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", maxInt(0, boxWidth-2)) + "╯")
-		return prefix + withSurfaceBackground(middle, runeTheme.panel) + suffix
+	middle := runeTheme.lineStrong.Render("╰" + strings.Repeat("─", boxWidth-2) + "╯")
+	return prefix + withSurfaceBackground(middle, runeTheme.panel) + suffix
+}
+
+// composerMetadataLine renders the subtle "Mode · Model · Provider" readout
+// under the composer. Priority Mode > Model > Provider: fitStyledLine drops
+// the trailing provider text first when space runs out.
+func (m model) composerMetadataLine(width int) string {
+	modeText, _ := m.modeLabel()
+	model := strings.TrimSpace(m.modelName)
+	provider := strings.TrimSpace(m.providerDisplayName())
+	parts := []string{modeText}
+	if model != "" {
+		parts = append(parts, model)
 	}
-	rule := strings.Repeat("─", boxWidth-metaWidth-4)
-	rawMiddle := runeTheme.lineStrong.Render("╰"+rule+" ") + meta + runeTheme.lineStrong.Render(" ╯")
-	return prefix + withSurfaceBackground(rawMiddle, runeTheme.panel) + suffix
+	if provider != "" && !strings.EqualFold(provider, model) {
+		parts = append(parts, provider)
+	}
+	line := "  " + runeTheme.faint.Render(strings.Join(parts, " · "))
+	if pad := width - lipgloss.Width(line); pad > 0 {
+		line += strings.Repeat(" ", pad)
+	}
+	return fitStyledLine(line, width)
 }
 
 // statusLine renders the bottom readout as ` │ `-separated groups: the run-state
 // chip (permission mode + effort/fast tier) on the left, a flexible gap, then the
 // context-fill gauge and token/cost usage on the right. The provider lives in the
 // title bar and is NOT duplicated here. Groups drop with the width tier.
+// statusLine renders the bottom readout. Transient, safety-relevant states
+// (exit/cancel confirms, dictation, downloads) take over the left chip; the
+// steady state carries run annotations on the left and the context gauge plus
+// the "/ commands" hint on the right. Mode/model/provider live in the composer
+// metadata; path/branch in the title bar — none are duplicated here.
 func (m model) statusLine(width int) string {
 	tier := widthTier(width)
 	separator := runeTheme.line.Render(" │ ")
 	prefix := "  "
 
-	// Left chip: the safety-relevant run-state — permission mode (auto/ask/unsafe)
-	// in its mode colour. This was previously only on the easy-to-miss composer
-	// rule; the persistent footer is where users look for "will it run commands?".
-	modeText, modeStyle := m.modeLabel()
 	btwChip := ""
 	if m.btw.active {
 		btwChip = runeTheme.amber.Render("BTW") + runeTheme.muted.Render(" · ")
 	}
-	left := prefix + btwChip + runeTheme.accent.Render("●") + " " + modeStyle.Render(modeText)
 
 	if tier == tierTiny {
 		if m.exitConfirmActive {
@@ -218,47 +175,49 @@ func (m model) statusLine(width int) string {
 		if dictation := m.dictationStatusChip(); dictation != "" {
 			return fitStyledLine(prefix+btwChip+dictation, width)
 		}
+		left := prefix + btwChip
 		if goalSummary := m.goalFooterSummary(); goalSummary != "" {
 			left += runeTheme.muted.Render(" · ") + runeTheme.accent.Render("◎ ") + runeTheme.muted.Render(goalSummary)
 		}
 		return fitStyledLine(left, width)
 	}
 
-	// Non-tiny: append the active reasoning effort (brand lime, omitted on auto).
-	if m.reasoningEffort != "" {
-		left += runeTheme.muted.Render(" · ") + runeTheme.accent.Render(string(m.reasoningEffort))
-	}
-	if m.activeServiceTier() == "priority" {
-		left += runeTheme.muted.Render(" · ") + runeTheme.accent.Render("fast")
-	}
-	if m.exitConfirmActive {
+	// Safety-relevant transient states own the left chip entirely.
+	dictationChip := m.dictationStatusChip()
+	var left string
+	switch {
+	case m.exitConfirmActive:
 		left = prefix + btwChip + runeTheme.amber.Render("●") + " " + runeTheme.amber.Render(ctrlCExitConfirmText)
-	} else if m.cancelConfirmActive {
+	case m.cancelConfirmActive:
 		left = prefix + btwChip + runeTheme.amber.Render("●") + " " + runeTheme.amber.Render(escCancelConfirmText)
-	} else if m.dictation.downloading && m.dictation.downloadStatus != "" {
+	case m.dictation.downloading && m.dictation.downloadStatus != "":
 		// A model download in progress takes over the left chip with a live percentage.
 		left = prefix + btwChip + runeTheme.accent.Render("⬇ ") + runeTheme.muted.Render(m.dictation.downloadStatus)
-	} else if dictation := m.dictationStatusChip(); dictation != "" && m.dictation.active() {
+	case dictationChip != "" && m.dictation.active():
 		// An active recording/transcription takes over the left chip — it is the
 		// most time-sensitive thing on screen (the mic is live).
-		left = prefix + btwChip + dictation
-	} else {
+		left = prefix + btwChip + dictationChip
+	default:
+		segments := []string{prefix + btwChip}
+		if m.reasoningEffort != "" {
+			segments = append(segments, runeTheme.accent.Render(string(m.reasoningEffort)))
+		}
+		if m.activeServiceTier() == "priority" {
+			segments = append(segments, runeTheme.accent.Render("fast"))
+		}
 		if voice := m.voiceModeIndicator(); voice != "" {
-			left += runeTheme.muted.Render(" · ") + voice
+			segments = append(segments, voice)
 		}
 		if summary := m.backgroundTerminalSummary(); summary != "" {
-			left += separator + runeTheme.muted.Render(summary)
+			segments = append(segments, runeTheme.muted.Render(summary))
 		}
-	}
-	// Active loops surface a persistent "↻ N loops · next 3:05pm" segment so a
-	// running loop is always visible (hidden during an exit/cancel confirm above).
-	if !m.exitConfirmActive && !m.cancelConfirmActive {
 		if goalSummary := m.goalFooterSummary(); goalSummary != "" {
-			left += separator + runeTheme.accent.Render("◎ ") + runeTheme.muted.Render(goalSummary)
+			segments = append(segments, runeTheme.accent.Render("◎ ")+" "+runeTheme.muted.Render(goalSummary))
 		}
 		if loopSummary := m.loopFooterSummary(); loopSummary != "" {
-			left += separator + runeTheme.accent.Render("↻ ") + runeTheme.muted.Render(loopSummary)
+			segments = append(segments, runeTheme.accent.Render("↻ ")+" "+runeTheme.muted.Render(loopSummary))
 		}
+		left = strings.Join(segments, separator)
 	}
 
 	rightGroups := []string{}
@@ -280,9 +239,9 @@ func (m model) statusLine(width int) string {
 	if usage != "" {
 		rightGroups = append(rightGroups, runeTheme.muted.Render(usage))
 	}
-	right := strings.Join(rightGroups, separator)
+	rightGroups = append(rightGroups, runeTheme.faint.Render("/ commands"))
 
-	return fitStyledLine(joinHeaderLine(left, right, width), width)
+	return fitStyledLine(joinHeaderLine(left, strings.Join(rightGroups, separator), width), width)
 }
 
 func (m model) providerDisplayName() string {
@@ -313,45 +272,49 @@ func providerDisplayNameIsGenericCustom(name string) bool {
 	}
 }
 
-// nextPermissionMode toggles between the two prompt-respecting modes:
-// Auto ⇄ Ask. Unsafe (which disables permission prompts entirely) is
-// deliberately NOT reachable by a casual keypress — a single shift+tab landing
-// on it would let prompt-required tools run with no decision. Unsafe stays an
-// explicit opt-in (the launch/--skip-permissions-unsafe path), not a UI toggle.
-// Unsafe is folded back to Ask so the toggle always lands somewhere safe.
-// Plan is left untouched: folding it to Ask would be a LESS strict landing
-// (Ask allows write/shell tools with a prompt; Plan hides them entirely), so
-// the read-only guarantee must only be given up through the explicit /plan
-// off exit, never a stray shift+tab.
-func nextPermissionMode(mode agent.PermissionMode) agent.PermissionMode {
-	switch mode {
-	case agent.PermissionModeAuto:
-		return agent.PermissionModeAsk
-	case agent.PermissionModeAsk:
-		return agent.PermissionModeAuto
-	case agent.PermissionModePlan:
-		return agent.PermissionModePlan
-	default:
-		// Anything else (incl. an externally-set Unsafe) folds to Ask — the stricter
-		// landing, so toggling never makes an Unsafe session less strict.
-		return agent.PermissionModeAsk
+// permissionModeCycle is the primary Rune UI mode ring: Ask → Plan → Auto →
+// Ask. Unsafe stays OUTSIDE the ring — a casual keypress must never reach a
+// mode that disables permission prompts, so an externally-set Unsafe folds to
+// Ask (the stricter landing) rather than joining the cycle. Runtime modes like
+// unsafe/spec-draft remain available through their own commands/config.
+var permissionModeCycle = []agent.PermissionMode{
+	agent.PermissionModeAsk,
+	agent.PermissionModePlan,
+	agent.PermissionModeAuto,
+}
+
+// cyclePermissionMode steps mode one position around permissionModeCycle:
+// dir=+1 follows Tab (Ask → Plan → Auto), dir=-1 reverses (Shift+Tab).
+func cyclePermissionMode(mode agent.PermissionMode, dir int) agent.PermissionMode {
+	for index, candidate := range permissionModeCycle {
+		if candidate == mode {
+			next := (index + dir + len(permissionModeCycle)) % len(permissionModeCycle)
+			return permissionModeCycle[next]
+		}
 	}
+	// Not in the ring (e.g. Unsafe): any step lands somewhere safe.
+	return agent.PermissionModeAsk
+}
+
+// nextPermissionMode is the forward Tab step of the mode ring.
+func nextPermissionMode(mode agent.PermissionMode) agent.PermissionMode {
+	return cyclePermissionMode(mode, 1)
 }
 
 func (m model) modeLabel() (string, lipgloss.Style) {
 	switch m.permissionMode {
 	case agent.PermissionModeAuto:
-		return "auto-approve", runeTheme.modeAuto
+		return "Auto", runeTheme.modeAuto
 	case agent.PermissionModeAsk:
-		return "ask", runeTheme.modeAsk
+		return "Ask", runeTheme.modeAsk
 	case agent.PermissionModeUnsafe:
 		return "unsafe", runeTheme.modeUnsafe
 	case agent.PermissionModePlan:
-		return "plan", runeTheme.modePlan
+		return "Plan", runeTheme.modePlan
 	default:
 		mode := strings.TrimSpace(string(m.permissionMode))
 		if mode == "" {
-			return "auto-approve", runeTheme.modeAuto
+			return "Auto", runeTheme.modeAuto
 		}
 		return mode, runeTheme.muted
 	}

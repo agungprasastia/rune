@@ -36,6 +36,7 @@ func TestAttachmentThumbnailRendersInsideComposerWhenSupported(t *testing.T) {
 	m.altScreen = true
 	m.headerPrinted = true
 	m.attachmentRenderers = []*terminalpet.ImageRenderer{terminalpet.NewImageRenderer(terminalpet.ImageSupport{Protocol: terminalpet.ImageProtocolKitty})}
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.pendingImages = []runeruntime.ImageBlock{previewImageBlock(t)}
 	m.pendingImageLabels = []string{"diagram.png"}
 	m.refreshPendingImageThumbnail()
@@ -65,6 +66,7 @@ func TestAttachmentThumbnailKeepsAdditionalImagesVisibleWhenSupported(t *testing
 	m := newModel(context.Background(), Options{})
 	m.width, m.height = 100, 30
 	m.altScreen = true
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.attachmentRenderers = []*terminalpet.ImageRenderer{
 		terminalpet.NewImageRenderer(terminalpet.ImageSupport{Protocol: terminalpet.ImageProtocolKitty}),
 		terminalpet.NewImageRenderer(terminalpet.ImageSupport{Protocol: terminalpet.ImageProtocolKitty}),
@@ -94,6 +96,7 @@ func TestAttachmentThumbnailFallsBackToChipsWithoutTerminalGraphics(t *testing.T
 	m := newModel(context.Background(), Options{})
 	m.width, m.height = 100, 30
 	m.altScreen = true
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.pendingImages = []runeruntime.ImageBlock{previewImageBlock(t)}
 	m.pendingImageLabels = []string{"diagram.png"}
 	m.refreshPendingImageThumbnail()
@@ -113,6 +116,7 @@ func TestAttachmentThumbnailClearsWithPendingImage(t *testing.T) {
 	m.altScreen = true
 	m.headerPrinted = true
 	m.attachmentRenderers = []*terminalpet.ImageRenderer{terminalpet.NewImageRenderer(terminalpet.ImageSupport{Protocol: terminalpet.ImageProtocolKitty})}
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.pendingImages = []runeruntime.ImageBlock{previewImageBlock(t)}
 	m.pendingImageLabels = []string{"diagram.png"}
 	m.refreshPendingImageThumbnail()

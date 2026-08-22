@@ -14,7 +14,7 @@ func TestAssistantMeasureCap(t *testing.T) {
 	if got := assistantMeasure(5); got != 16 {
 		t.Errorf("floor: assistantMeasure(5) = %d, want 16", got)
 	}
-	if assistantMeasureCap < 110 || assistantMeasureCap > 120 {
-		t.Errorf("cap %d outside the 110-120 readability range", assistantMeasureCap)
+	if assistantMeasureCap < 100 || assistantMeasureCap > 110 {
+		t.Errorf("cap %d outside the 100-110 readability range", assistantMeasureCap)
 	}
 }

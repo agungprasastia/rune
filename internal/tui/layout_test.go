@@ -13,6 +13,9 @@ func TestTranscriptFrameLayoutPinsMainRegions(t *testing.T) {
 	m.height = 24
 	m.providerName = "openai"
 	m.modelName = "gpt-4.1"
+	// A real conversation keeps the composer docked in the footer; the empty
+	// home screen renders it inside the centered cluster instead.
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 
 	width := m.chatColumnWidth()
 	frame := m.scrollableTranscriptFrame(m.pinnedTitleBar(width), m.footerView(width))
@@ -44,6 +47,7 @@ func TestTranscriptFrameLayoutClipsFooterInTinyTerminal(t *testing.T) {
 	m.width = 44
 	m.height = 3
 	m.copyStatus = "Copied!"
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.input.SetValue("Create a book library dashboard page with cards, filters, charts, and responsive behavior.")
 
 	width := m.chatColumnWidth()
@@ -100,6 +104,7 @@ func TestFrameComposerRegionDrivesMouseHit(t *testing.T) {
 	m.width = 44
 	m.height = 20
 	m.input.SetValue("Create a book library dashboard page with cards, filters, charts, and responsive behavior.")
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 
 	width := m.chatColumnWidth()
 	frame := m.scrollableTranscriptFrame(m.pinnedTitleBar(width), m.footerView(width))

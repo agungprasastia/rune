@@ -277,7 +277,7 @@ func (m model) composerPositionAtMouse(msg tea.MouseMsg) (int, bool) {
 }
 
 func (m model) composerMouseSelectionBlocked() bool {
-	return m.subchat.active || m.transcriptDetailed || m.setup.visible || m.providerWizard != nil || m.mcpAddWizard != nil ||
+	return m.subchat.active || m.transcriptEmpty() || m.transcriptDetailed || m.setup.visible || m.providerWizard != nil || m.mcpAddWizard != nil ||
 		m.mcpManager != nil || m.picker != nil || m.renamePrompt != nil || m.suggestionsActive()
 }
 
@@ -290,7 +290,12 @@ func (m model) composerPositionAtVisualCell(x int, y int, width int) (int, bool)
 	if len(segments) == 0 {
 		return 0, y == 0
 	}
-	if y < 0 || y >= len(segments) {
+	// Rows below the last real segment are the composer's padded breathing
+	// room; treat them as line-end on that row instead of a miss.
+	if y >= len(segments) {
+		y = len(segments) - 1
+	}
+	if y < 0 {
 		return 0, false
 	}
 	segment := segments[y]

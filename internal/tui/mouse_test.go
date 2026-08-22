@@ -236,6 +236,7 @@ func TestMouseCaptureOnEmptyChatSplash(t *testing.T) {
 
 func TestComposerMouseClickMovesCursor(t *testing.T) {
 	m := mouseTestModel()
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.input.SetValue("hello world")
 	m.input.CursorEnd()
 	x, y := composerMousePoint(t, m, 5)
@@ -255,6 +256,7 @@ func TestComposerMouseClickMovesCursor(t *testing.T) {
 
 func TestComposerMouseClickMovesCursorBelowImageThumbnail(t *testing.T) {
 	m := mouseTestModel()
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.attachmentRenderers = []*terminalpet.ImageRenderer{terminalpet.NewImageRenderer(terminalpet.ImageSupport{Protocol: terminalpet.ImageProtocolKitty})}
 	m.pendingImages = []runeruntime.ImageBlock{previewImageBlock(t)}
 	m.refreshPendingImageThumbnail()
@@ -276,6 +278,7 @@ func TestComposerMouseClickMovesCursorBelowImageThumbnail(t *testing.T) {
 
 func TestComposerMouseDragSelectsCopiesAndClears(t *testing.T) {
 	m := mouseTestModel()
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m.input.SetValue("hello world")
 	startX, y := composerMousePoint(t, m, 0)
 	endX, _ := composerMousePoint(t, m, 5)
@@ -303,6 +306,7 @@ func TestComposerMouseDragSelectsCopiesAndClears(t *testing.T) {
 
 func TestComposerMouseSelectionBlockedWhileSuggestionsOpen(t *testing.T) {
 	m := mouseTestModel()
+	m.transcript = appendRow(m.transcript, rowUser, "hello")
 	m = typeRunes(t, m, "/sp")
 	if !m.suggestionsActive() {
 		t.Fatalf("expected suggestions to be open, got %#v", m.suggestions)
@@ -913,9 +917,10 @@ func TestTranscriptCopyStatusUsesComposerSpacerWithoutFooterGrowth(t *testing.T)
 	if !strings.Contains(view, "Copied!") {
 		t.Fatalf("view should show copy status, got:\n%s", view)
 	}
+	// M3.3 home screen: transient feedback REPLACES the one-line footer.
 	footerLines := viewLines(footer)
-	if len(footerLines) < 2 || !strings.Contains(footerLines[0], "Copied!") || !strings.HasPrefix(footerLines[1], "╭") {
-		t.Fatalf("copy status should replace the spacer directly above composer, got:\n%s", footer)
+	if len(footerLines) != 1 || !strings.Contains(footerLines[0], "Copied!") {
+		t.Fatalf("copy status should replace the footer line, got:\n%s", footer)
 	}
 	if strings.Contains(plainRender(t, m.statusLine(80)), "Copied!") {
 		t.Fatalf("status line should not contain copy feedback: %q", plainRender(t, m.statusLine(80)))

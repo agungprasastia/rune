@@ -39,13 +39,14 @@ func (s *subchatState) enter(store *sessions.Store, childSessionID, title string
 	s.childSessionID = childSessionID
 	s.childSessionTitle = title
 	s.parentScrollOffset = parentScrollOffset
-	s.childRows = transcriptRowsFromSessionEvents(events)
+	s.childRows = collapseSpecialistEnvelope(transcriptRowsFromSessionEvents(events))
 	return ""
 }
 
 // exit deactivates the subchat view and returns the saved parent scroll offset.
 func (s *subchatState) exit() int {
 	offset := s.parentScrollOffset
+	println("DEBUG exit() returning", offset)
 	s.active = false
 	s.childSessionID = ""
 	s.childSessionTitle = ""
@@ -101,5 +102,27 @@ func (m model) subchatHeader(width int) string {
 }
 
 func (m model) subchatFooter(width int) string {
-	return fitStyledLine(runeTheme.faint.Render("Esc back   ↑ back   Ctrl+P commands"), width)
+	return fitStyledLine(runeTheme.faint.Render("Esc Back · ↑↓ Scroll · Enter Expand"), width)
+}
+
+// collapseSpecialistEnvelope hides the raw invocation boilerplate ("# Specialist
+// Invocation …", "# Follow-up Instructions …") behind one quiet row, so the
+// inspector surfaces name/task/status/tool activity/result — the full text
+// stays in the session log.
+func collapseSpecialistEnvelope(rows []transcriptRow) []transcriptRow {
+	out := make([]transcriptRow, 0, len(rows))
+	collapsed := false
+	for _, row := range rows {
+		if row.kind == rowSystem &&
+			(strings.HasPrefix(row.text, "# Specialist Invocation") ||
+				strings.HasPrefix(row.text, "# Follow-up Instructions")) {
+			if !collapsed {
+				out = append(out, transcriptRow{kind: rowSystem, text: "Specialist instruction envelope hidden (full text in session log)."})
+				collapsed = true
+			}
+			continue
+		}
+		out = append(out, row)
+	}
+	return out
 }

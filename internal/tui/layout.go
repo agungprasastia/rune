@@ -88,27 +88,27 @@ func (l ShellLayout) MainWidth() int {
 	return maxInt(l.Main.width, 1)
 }
 
-func (m model) composeLayout(main string) string {
-	layout := m.layout()
-	if !layout.SidebarVisible() {
-		return main
+// composeShellColumns joins the rendered main column with the sidebar column
+// using the SAME ShellLayout the main column was measured and windowed with,
+// so render geometry and input hit-testing cannot drift apart.
+func composeShellColumns(main []string, shell ShellLayout, sidebarLines []string) string {
+	if !shell.SidebarVisible() {
+		return strings.Join(main, "\n")
 	}
-	mainLines := viewLines(main)
-	sidebarLines := m.renderContextSidebar(layout.Sidebar.width, layout.Height)
-	for len(mainLines) < layout.Height {
-		mainLines = append(mainLines, "")
+	for len(main) < shell.Height {
+		main = append(main, "")
 	}
-	if len(mainLines) > layout.Height {
-		mainLines = mainLines[:layout.Height]
+	if len(main) > shell.Height {
+		main = main[:shell.Height]
 	}
-	lines := make([]string, layout.Height)
+	lines := make([]string, shell.Height)
 	for i := range lines {
-		left := padStyledLine(mainLines[i], layout.MainWidth())
+		left := padStyledLine(main[i], shell.MainWidth())
 		right := ""
 		if i < len(sidebarLines) {
 			right = sidebarLines[i]
 		}
-		lines[i] = left + runeTheme.line.Render("│") + padStyledLine(right, layout.Sidebar.width)
+		lines[i] = left + runeTheme.line.Render("│") + padStyledLine(right, shell.Sidebar.width)
 	}
 	return strings.Join(lines, "\n")
 }

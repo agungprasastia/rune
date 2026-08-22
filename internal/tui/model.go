@@ -1367,10 +1367,16 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, composerBlinkCmd()
 	case tea.BackgroundColorMsg:
-		// Keep M3.3 canvas stable across terminal focus/tab repaints. The terminal
-		// probe is informational only; it must not switch Rune back to a light
-		// transparent surface after startup.
-		m.hasDarkBg = true
+		// Honest terminal-background detection: record what the terminal actually
+		// reports and re-resolve the active palette for that contrast direction.
+		// Rune's near-black canvas comes from the active dark palette (see
+		// paintsDarkCanvas), never from forcing this flag.
+		isDark := msg.IsDark()
+		if isDark != m.hasDarkBg {
+			m.hasDarkBg = isDark
+			applyTheme(m.themeMode, m.hasDarkBg)
+			bumpCanvasGeneration()
+		}
 		return m, nil
 	case tea.MouseMsg:
 		if m.setup.visible {
@@ -1558,10 +1564,11 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.burstCount = 0
 			return m, nil
 		}
-		// Specialist drill-in is read-only. Prevent hidden composer routing.
-		if m.subchat.active && !keyIs(msg, tea.KeyEsc) && !keyIs(msg, tea.KeyUp) && !keyCtrl(msg, 'c') {
-			return m, nil
-		}
+		// Specialist drill-in is a read-only inspector: composer input, submission,
+		// and mode cycling are disabled below via targeted checks — navigation,
+		// scrolling (↑/↓/PgUp/PgDn/Ctrl+U/Ctrl+D), Enter-expand, and mouse paths
+		// keep working through their shared handlers.
+		inSubchat := m.subchat.active
 		// Ctrl+X ? leader-chord map: same dismiss keys as the general help overlay.
 		if m.leaderHelpOverlay {
 			if keyText(msg) == "?" || keyText(msg) == "q" || keyIs(msg, tea.KeyEsc) || keyIs(msg, tea.KeyEnter) || keyCtrl(msg, 'c') {
@@ -1656,6 +1663,10 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Subchat view exits on Esc (returns to main chat).
 			if m.subchat.active {
 				m.chatScrollOffset = m.subchat.exit()
+				// The scroll-pin baseline was tracked against the CHILD body;
+				// dropping it makes the next parent sync re-baseline instead of
+				// shifting the restored offset by a cross-domain delta.
+				m.chatBodyLines = 0
 				m = m.clearHover() // bodyY numbering differs between subchat and the parent transcript
 				return m, nil
 			}
@@ -1795,9 +1806,32 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.burstCount = 0
 				return m.handleMCPManagerKey(msg)
 			}
+			// Inspector: Enter only toggles a hovered collapsible row; it never
+			// submits or inserts newlines into the hidden composer.
+			if m.subchat.active {
+				if m.hover.kind == hoverTranscript && (m.hover.toggleLive || m.hover.toggleRow >= 0) {
+					if m.hover.toggleLive {
+						m.streamingReasoningExpanded = !m.streamingReasoningExpanded
+					} else {
+						m = m.toggleTranscriptRow(m.hover.toggleRow)
+					}
+				}
+				return m, nil
+			}
 			if m.picker != nil {
 				m.burstCount = 0
 				return m.choosePicker()
+			}
+			// A hovered collapse/expand header takes Enter as its keyboard toggle —
+			// only when nothing is about to be submitted.
+			if m.hover.kind == hoverTranscript && (m.hover.toggleLive || m.hover.toggleRow >= 0) &&
+				m.composerValue() == "" {
+				if m.hover.toggleLive {
+					m.streamingReasoningExpanded = !m.streamingReasoningExpanded
+				} else {
+					m = m.toggleTranscriptRow(m.hover.toggleRow)
+				}
+				return m, nil
 			}
 			if keyAlt(msg) || keyShift(msg) {
 				if next, ok := m.applyComposerKey(msg); ok {
@@ -1839,7 +1873,7 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.burstCount = 0
 			return m.handleSubmit()
 		case keyIs(msg, tea.KeyTab) && keyShift(msg):
-			if m.transcriptDetailed {
+			if m.transcriptDetailed || m.subchat.active {
 				return m, nil
 			}
 			if m.pendingPermission != nil {
@@ -1848,13 +1882,12 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.pendingAskUser != nil {
 				return m.moveAskUserTab(-1), nil
 			}
-			// shift+tab toggles the permission mode between Auto and Ask (Unsafe
-			// is intentionally not reachable by a casual keypress — see
-			// nextPermissionMode), but only when nothing modal is up: a permission
-			// prompt, ask_user questionnaire, or open picker all take precedence
-			// and let the key fall through to their own handlers below.
+			// Shift+Tab steps the mode ring BACKWARD (Ask ← Plan ← Auto), but only
+			// when nothing modal is up: a permission prompt, ask_user questionnaire,
+			// or open picker all take precedence and let the key fall through to
+			// their own handlers below.
 			if m.noBlockingModal() {
-				m.permissionMode = nextPermissionMode(m.permissionMode)
+				m.permissionMode = cyclePermissionMode(m.permissionMode, -1)
 				m = m.syncPeerIdentity()
 				return m, nil
 			}
@@ -1917,6 +1950,9 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 		case keyBackspace(msg):
+			if inSubchat {
+				return m, nil
+			}
 			// In permission feedback mode Backspace is a plain edit of the feedback
 			// text. This case runs before the typing branch below and, on an empty
 			// field (feedback mode clears the composer), would otherwise fall to the
@@ -1946,7 +1982,7 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case keyIs(msg, tea.KeyTab):
-			if m.transcriptDetailed {
+			if m.transcriptDetailed || m.subchat.active {
 				return m, nil
 			}
 			if m.pendingPermission != nil {
@@ -1967,8 +2003,18 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.burstCount = 0
 				return m.handleMCPManagerKey(msg)
 			}
+			// Autocomplete keeps Tab first: an active suggestion list consumes it
+			// before mode cycling can.
 			if m.picker == nil && m.suggestionsActive() {
 				m.moveSuggestion(1)
+				return m, nil
+			}
+			// Main conversation composer context only: Tab cycles Ask → Plan →
+			// Auto → Ask. Every modal path above already returned, so this never
+			// steals Tab from pickers/wizards/autocomplete.
+			if m.noBlockingModal() {
+				m.permissionMode = nextPermissionMode(m.permissionMode)
+				m = m.syncPeerIdentity()
 				return m, nil
 			}
 		case keyIs(msg, tea.KeyPgUp):
@@ -2014,6 +2060,9 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m = m.clearHover()
 			return m.scrollChat(-1), nil
 		case keyIs(msg, tea.KeyDown):
+			if inSubchat {
+				return m.scrollChat(-1), nil
+			}
 			if m.transcriptDetailed {
 				m = m.clearHover()
 				return m.scrollChat(-1), nil
@@ -2028,11 +2077,9 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m.recallHistory(1), nil
 			}
 		case keyIs(msg, tea.KeyUp):
-			// ArrowUp exits subchat view (returns to main chat).
-			if m.subchat.active {
-				m.chatScrollOffset = m.subchat.exit()
-				m = m.clearHover() // bodyY numbering differs between subchat and the parent transcript
-				return m, nil
+			// Inspector: ArrowUp scrolls — Esc is the only way back.
+			if inSubchat {
+				return m.scrollChat(1), nil
 			}
 			if m.transcriptDetailed {
 				m = m.clearHover()
@@ -2160,6 +2207,9 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
+		if m.subchat.active {
+			return m, nil // inspector: no hidden prompt input
+		}
 		if next, ok := m.applyComposerKey(msg); ok {
 			return next, nil
 		}
@@ -2183,6 +2233,9 @@ func (m model) updateModel(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.notifier != nil {
 			m.notifier.SetFocused(true)
 		}
+		// A terminal resume may have repainted over our canvas color; re-emit it
+		// once by giving the background identity a fresh generation.
+		bumpCanvasGeneration()
 		return m, nil
 	case tea.BlurMsg:
 		var petMouseCmd tea.Cmd
@@ -3055,10 +3108,10 @@ func (m model) View() tea.View {
 
 	view := tea.NewView(content)
 	view.AltScreen = m.altScreen
-	if m.themeMode == themeSystem || m.hasDarkBg {
+	if m.paintsDarkCanvas() {
 		r, g, b, a := runeTheme.bgCanvas.RGBA()
 		view.BackgroundColor = repaintCanvasColor{
-			generation: atomic.AddUint64(&canvasGeneration, 1),
+			generation: atomic.LoadUint64(&canvasGeneration),
 			r:          r,
 			g:          g,
 			b:          b,
@@ -3089,12 +3142,27 @@ func (m model) View() tea.View {
 	return view
 }
 
-var canvasGeneration uint64
+var canvasGeneration uint64 = 1
 
-// repaintCanvasColor keeps RGB fixed while changing identity each frame. Bubble
-// Tea compares View colors before emitting terminal background escape sequences;
-// external tab/focus repaints can reset that background without changing its
-// cached View, so a fresh comparable value is required to restore it.
+// bumpCanvasGeneration gives the terminal background a fresh comparable identity
+// so Bubble Tea re-emits it after events that can clobber the canvas (startup,
+// theme switch, terminal resume). Steady-state frames reuse the same identity,
+// so no background escape sequences are written per render.
+func bumpCanvasGeneration() {
+	atomic.AddUint64(&canvasGeneration, 1)
+}
+
+// paintsDarkCanvas reports whether the ACTIVE resolved palette is dark, so
+// Rune's near-black canvas color should be painted. Named palettes decide by
+// their own IsDark flag; the system theme follows the terminal's real probed
+// darkness (hasDarkBg) instead of assuming it.
+func (m model) paintsDarkCanvas() bool {
+	if entry, ok := lookupTheme(string(m.themeMode)); ok {
+		return entry.IsDark
+	}
+	return m.hasDarkBg
+}
+
 type repaintCanvasColor struct {
 	generation uint64
 	r, g, b, a uint32
@@ -3136,7 +3204,7 @@ func (m model) transcriptView() string {
 		childBodyItems := m.transcriptBodyItemsFromRows(m.subchat.childRows, width)
 		footer := m.subchatFooter(width)
 		if m.altScreen && m.height > 0 {
-			return m.composeLayout(m.scrollableTranscriptItemsView(navBar, childBodyItems, footer, width, ""))
+			return m.scrollableTranscriptItemsView(navBar, childBodyItems, footer, width, "")
 		}
 		bodyLayout := layoutTranscriptBodyItems(childBodyItems)
 		body := navBar + "\n\n" + bodyLayout.String()
@@ -3198,7 +3266,7 @@ func (m model) transcriptView() string {
 	// chat message, the way todo/plan updates render inline.
 	if m.altScreen && m.height > 0 {
 		header := m.pinnedTitleBar(width)
-		return m.composeLayout(m.scrollableTranscriptItemsView(header, bodyItems, footer, width, overlayForViewport))
+		return m.scrollableTranscriptItemsView(header, bodyItems, footer, width, overlayForViewport)
 	}
 
 	bodyLayout := layoutTranscriptBodyItems(bodyItems)
@@ -3250,6 +3318,24 @@ func (m model) footerView(width int) string {
 	// input from echoing in two places once "tell Rune what to do differently"
 	// opens the on-card feedback field.
 	if m.pendingPermission != nil {
+		footer.WriteString(m.footerStatusLine(width))
+		return footer.String()
+	}
+	// Startup home screen: wordmark, tagline, composer, shortcuts, and tip are
+	// ONE centered cluster rendered in the transcript body, so the footer keeps
+	// only the status line (plus any transient feedback above it).
+	if m.transcriptEmpty() && !m.pending && m.noBlockingModal() {
+		// Transient feedback REPLACES the status line here rather than stacking
+		// above it, so the one-line footer height never shifts the cluster.
+		if copyStatus := strings.TrimSpace(m.copyStatus); copyStatus != "" {
+			return rightAlignedLine(runeTheme.ink.Render(copyStatus), width)
+		}
+		if notice := m.transientNoticeLine(width); notice != "" {
+			return fitStyledLine(notice, width)
+		}
+		if recap := strings.TrimSpace(m.idleRecap); recap != "" {
+			return fitStyledLine("  "+runeTheme.faint.Render("※ "+recap), width)
+		}
 		footer.WriteString(m.footerStatusLine(width))
 		return footer.String()
 	}
@@ -3384,6 +3470,7 @@ func (m model) scrollableTranscriptFrame(header string, footer string) ShellLayo
 	}
 	width := m.chatColumnWidth()
 	footerTop := len(headerLines) + bodyHeight
+	shell := m.layout()
 	frame := ShellLayout{
 		Width:           width,
 		Height:          m.height,
@@ -3396,11 +3483,10 @@ func (m model) scrollableTranscriptFrame(header string, footer string) ShellLayo
 		fullFooterLines: fullFooterLines,
 		footerClip:      maxInt(0, len(fullFooterLines)-len(footerLines)),
 	}
-	frame.Main = tuiRect{width: width, height: m.height}
 	frame.Footer = tuiRect{y: footerTop, width: width, height: len(footerLines)}
-	frame.Main = m.layout().Main
-	frame.Sidebar = m.layout().Sidebar
-	frame.Mode = m.layout().Mode
+	frame.Main = shell.Main
+	frame.Sidebar = shell.Sidebar
+	frame.Mode = shell.Mode
 	if !m.subchat.active {
 		frame.composerRect = frame.footerSubrect(viewLines(m.composerBox(width)))
 	}
@@ -3446,8 +3532,11 @@ func (m model) scrollableTranscriptItemsView(header string, items []transcriptBo
 	metrics := measureTranscriptBodyItems(items, m.transcriptBodyHeights)
 	window := transcriptViewportForLayout(metrics, frame, m.chatScrollOffset).window()
 	body := layoutVisibleTranscriptBodyItems(items, metrics, window)
-
-	return m.renderScrollableTranscriptWindow(frame, body.lines, window, width, overlay)
+	rendered := m.renderScrollableTranscriptWindow(frame, body.lines, window, width, overlay)
+	if !frame.SidebarVisible() {
+		return rendered
+	}
+	return composeShellColumns(viewLines(rendered), frame, m.renderContextSidebar(frame.Sidebar.width, frame.Height))
 }
 
 func (m model) renderScrollableTranscriptWindow(frame ShellLayout, bodyWindow []string, window transcriptViewportWindow, width int, overlay string) string {
@@ -3684,6 +3773,14 @@ func (m model) chatTranscriptViewport() (transcriptViewport, bool) {
 		return transcriptViewport{}, false
 	}
 	width := m.chatColumnWidth()
+	if m.subchat.active {
+		// The inspector scrolls ITS OWN child rows — the same subchat-aware
+		// source mouse hit-testing uses, so keys and pointer stay in sync.
+		header, items, width := m.transcriptHitTestSource()
+		body := measureTranscriptBodyItems(items, m.transcriptBodyHeights)
+		frame := m.scrollableTranscriptFrame(header, m.subchatFooter(width))
+		return transcriptViewportForLayout(body, frame, m.chatScrollOffset), true
+	}
 	if m.transcriptDetailed {
 		items := m.transcriptBodyItems(width, "", true)
 		body := measureTranscriptBodyItems(items, m.transcriptBodyHeights)
@@ -4090,18 +4187,26 @@ func renderComposerInput(input textinput.Model, state composerState, width int, 
 	if state.text == "" {
 		// Empty box: show a (blinking) cursor before the placeholder so the focused
 		// input always has a visible caret. A plain space when blinked off keeps the
-		// placeholder column stable.
+		// placeholder column stable. The second (blank) row gives the surface its
+		// minimum two-row breathing room.
 		cursor := " "
 		if cursorVisible {
 			cursor = composerCursor(" ")
 		}
-		return fitStyledLine(composerVisualLinePrefix(input, true)+cursor+runeTheme.faint.Render(input.Placeholder), width)
+		first := fitStyledLine(composerVisualLinePrefix(input, true)+cursor+runeTheme.faint.Render(input.Placeholder), width)
+		return first + "\n" + fitStyledLine("", width)
 	}
 
 	segments, cursorLine := composerVisibleVisualLines(input, state, width)
 	lines := make([]string, 0, len(segments))
 	for index, segment := range segments {
 		lines = append(lines, fitStyledLine(renderComposerVisualLine(input, state, segment, index == cursorLine, cursorVisible, selection), width))
+	}
+	// The composer reads as a surface, not a one-line input: keep at least two
+	// visual rows so the box has breathing room before text arrives. Padding
+	// here keeps mouse hit-testing and rendering on the same row map.
+	for len(lines) < 2 {
+		lines = append(lines, "")
 	}
 	return strings.Join(lines, "\n")
 }
@@ -4420,7 +4525,8 @@ func (m model) composerBox(width int) string {
 		rawRow := runeTheme.lineStrong.Render("│ ") + fitted + strings.Repeat(" ", padLen) + runeTheme.lineStrong.Render(" │")
 		rendered = append(rendered, leftPadText+withSurfaceBackground(rawRow, runeTheme.panel)+strings.Repeat(" ", leftPad)+rightPad)
 	}
-	rendered = append(rendered, m.composerDividerLineFor(width, boxWidth, leftPad, reserved))
+	rendered = append(rendered, m.composerDividerLineFor(boxWidth, leftPad, reserved))
+	rendered = append(rendered, leftPadText+m.composerMetadataLine(width-reserved))
 	return strings.Join(rendered, "\n")
 }
 

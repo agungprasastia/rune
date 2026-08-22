@@ -206,19 +206,30 @@ func TestThemePickerSystemCommitPreservesTerminalCanvas(t *testing.T) {
 	}
 }
 
-// Dark themes use a shared near-black canvas; foreground remains terminal-native.
+// Dark themes paint Rune's shared near-black canvas; light themes (and a light
+// probed terminal under system) preserve the terminal's own canvas. Foreground
+// stays terminal-native in every case.
 func TestThemeViewUsesDarkCanvasWithoutOverridingForeground(t *testing.T) {
 	defer applyTheme(themeDark, true)
-	for _, mode := range []themeMode{themeSystem, themeMode("dracula"), themeMode("dune")} {
-		t.Run(string(mode), func(t *testing.T) {
-			m := newModel(context.Background(), Options{SavedTheme: string(mode)})
+	cases := []struct {
+		mode      themeMode
+		wantPaint bool
+	}{
+		{themeSystem, true},
+		{themeMode("dracula"), true},
+		{themeMode("dune"), false}, // light palette: keeps the terminal canvas
+	}
+	for _, tc := range cases {
+		t.Run(string(tc.mode), func(t *testing.T) {
+			m := newModel(context.Background(), Options{SavedTheme: string(tc.mode)})
 			m.altScreen = true
+			m.hasDarkBg = true
 			view := m.View()
-			if view.BackgroundColor == nil {
-				t.Fatalf("%s theme did not set dark canvas", mode)
+			if got := view.BackgroundColor != nil; got != tc.wantPaint {
+				t.Fatalf("%s theme painted canvas = %v, want %v", tc.mode, got, tc.wantPaint)
 			}
 			if view.ForegroundColor != nil {
-				t.Fatalf("%s theme set terminal foreground to %T", mode, view.ForegroundColor)
+				t.Fatalf("%s theme set terminal foreground to %T", tc.mode, view.ForegroundColor)
 			}
 		})
 	}

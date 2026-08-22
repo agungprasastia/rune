@@ -119,13 +119,16 @@ func TestPlanCommandOnTwiceDoesNotClobberSavedMode(t *testing.T) {
 	}
 }
 
-// TestNextPermissionModeLeavesPlanUntouched confirms the shift+tab Auto<->Ask
-// toggle cannot silently exit plan mode: folding Plan to Ask would be a LESS
-// strict landing (Ask still permits write/shell tools with a prompt), so the
-// read-only guarantee must only be given up via the explicit /plan off exit.
-func TestNextPermissionModeLeavesPlanUntouched(t *testing.T) {
-	if got := nextPermissionMode(agent.PermissionModePlan); got != agent.PermissionModePlan {
-		t.Fatalf("nextPermissionMode(Plan) = %s, want Plan unchanged", got)
+// TestTabEntersAndLeavesPlanViaRing confirms Tab deliberately moves Plan in and
+// out of the primary mode ring (M3.3): Ask → Plan gives the read-only planner a
+// first-class keypress, and leaving it lands on Auto — an explicit user action,
+// unlike the old /plan-only path which this test's siblings still cover.
+func TestTabEntersAndLeavesPlanViaRing(t *testing.T) {
+	if got := nextPermissionMode(agent.PermissionModeAsk); got != agent.PermissionModePlan {
+		t.Fatalf("nextPermissionMode(Ask) = %s, want Plan", got)
+	}
+	if got := nextPermissionMode(agent.PermissionModePlan); got != agent.PermissionModeAuto {
+		t.Fatalf("nextPermissionMode(Plan) = %s, want Auto", got)
 	}
 }
 

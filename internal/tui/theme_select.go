@@ -124,6 +124,7 @@ func (m model) handleThemeCommand(args string) (model, string) {
 	}
 	m.themeMode = resolveThemeMode(arg)
 	active := string(applyTheme(m.themeMode, m.hasDarkBg))
+	bumpCanvasGeneration()
 	lines := []string{
 		"Theme",
 		"active theme: " + active,

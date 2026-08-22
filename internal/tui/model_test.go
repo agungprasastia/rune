@@ -269,7 +269,9 @@ func TestInitialRenderShowsLimeChatSurface(t *testing.T) {
 
 	view := viewString(model.View())
 	assertContains(t, view, `/workspace/rune`)
-	assertContains(t, view, "openai/gpt-4.1")
+	// M3.3: provider/model moved from the title bar to the composer metadata line.
+	assertContains(t, view, "gpt-4.1")
+	assertContains(t, view, "openai")
 	assertContains(t, view, emptyStateTagline)
 	assertNotContains(t, view, "running rune against ")
 	assertNotContains(t, view, " 0 ")
@@ -304,9 +306,9 @@ func TestEmptyStateCollapsesAfterFirstPrompt(t *testing.T) {
 	if strings.Contains(view, emptyStateTagline) {
 		t.Fatalf("empty state should collapse after first prompt, got %q", view)
 	}
-	// Working view shows provider status and the composer divider model fallback.
+	// Working view shows the composer metadata line (mode only — no model set).
 	assertNotContains(t, view, "interactive")
-	assertContains(t, view, "no model")
+	assertContains(t, view, "Auto")
 }
 
 func TestEmptyStateStaysVisibleOnEmptySubmit(t *testing.T) {
@@ -1987,9 +1989,11 @@ func TestAgentEventRenderingMappingCoversRuntimeContract(t *testing.T) {
 		t.Fatalf("valid usage should update footer without transcript rows, got %#v", usageRows)
 	}
 	assertContains(t, m.usageStatusSegment(), "120 tok")
-	assertContains(t, m.composerDividerLine(96), "gpt-4.1")
-	// Permission mode moved from the composer rule to the status line.
-	assertContains(t, m.statusLine(96), "ask")
+	// M3.3: the divider rule is plain; the model label lives in the metadata line.
+	assertContains(t, m.composerMetadataLine(96), "gpt-4.1")
+	// M3.3: the permission mode lives in the composer metadata, not the status line.
+	assertContains(t, m.composerMetadataLine(96), "Ask")
+	assertNotContains(t, m.statusLine(96), "ask")
 }
 
 func TestToolResultRowDefaultsEmptyStatusToOK(t *testing.T) {
@@ -2012,11 +2016,12 @@ func TestShiftTabCyclesPermissionMode(t *testing.T) {
 	m := newModel(context.Background(), Options{PermissionMode: agent.PermissionModeAuto})
 	m.width = 96
 
-	// shift+tab toggles Auto<->Ask only; Unsafe is intentionally NOT reachable by
-	// a casual keypress (it disables permission prompts).
+	// shift+tab steps the ring BACKWARD: Auto → Plan → Ask. Unsafe is
+	// intentionally NOT reachable by a casual keypress (it disables permission
+	// prompts).
 	for _, want := range []agent.PermissionMode{
+		agent.PermissionModePlan,
 		agent.PermissionModeAsk,
-		agent.PermissionModeAuto,
 	} {
 		updated, cmd := m.Update(testKeyShift(tea.KeyTab))
 		m = updated.(model)
@@ -2033,7 +2038,7 @@ func TestShiftTabCyclesPermissionMode(t *testing.T) {
 
 	// The rendered status label tracks the cycled mode.
 	label, _ := m.modeLabel()
-	if label != "auto-approve" {
+	if label != "Ask" {
 		t.Fatalf("expected mode label to track cycled mode, got %q", label)
 	}
 }
@@ -2210,10 +2215,10 @@ func TestCtrlCClearsComposerBeforeExitConfirmation(t *testing.T) {
 		t.Fatal("Ctrl+C with a draft should not mark model exiting")
 	}
 	status := plainRender(t, next.statusLine(80))
-	// No exit confirmation armed, so the normal run-state chip shows (the status
-	// line carries the permission mode now, not the provider).
-	if strings.Contains(status, ctrlCExitConfirmText) || !strings.Contains(status, "auto-approve") {
-		t.Fatalf("status line = %q, want the run-state chip with no exit confirmation", status)
+	// No exit confirmation armed: the steady footer shows (mode lives in the
+	// composer metadata now), and no confirm text.
+	if strings.Contains(status, ctrlCExitConfirmText) || !strings.Contains(status, "/ commands") {
+		t.Fatalf("status line = %q, want the steady footer with no exit confirmation", status)
 	}
 
 	updated, cmd = next.Update(testKeyCtrl('c'))
@@ -2245,10 +2250,9 @@ func TestCtrlCExitConfirmationExpires(t *testing.T) {
 		t.Fatal("matching expiry should clear exit confirmation")
 	}
 	status := plainRender(t, next.statusLine(80))
-	// After expiry the warning clears and the normal run-state chip is restored
-	// (the status line now shows the permission mode, not the provider).
-	if strings.Contains(status, ctrlCExitConfirmText) || !strings.Contains(status, "auto-approve") {
-		t.Fatalf("status line after expiry = %q, want the run-state chip restored", status)
+	// After expiry the warning clears and the steady footer is restored.
+	if strings.Contains(status, ctrlCExitConfirmText) || !strings.Contains(status, "/ commands") {
+		t.Fatalf("status line after expiry = %q, want the steady footer restored", status)
 	}
 }
 
@@ -2817,17 +2821,27 @@ func testSessionStore(t *testing.T) *sessions.Store {
 	})
 }
 
-func TestNextPermissionModeFoldsUnsafeToAsk(t *testing.T) {
+func TestNextPermissionModeCyclesRing(t *testing.T) {
+	// Tab walks the primary ring forward: Ask → Plan → Auto → Ask.
+	if got := nextPermissionMode(agent.PermissionModeAsk); got != agent.PermissionModePlan {
+		t.Fatalf("Ask -> %s, want Plan", got)
+	}
+	if got := nextPermissionMode(agent.PermissionModePlan); got != agent.PermissionModeAuto {
+		t.Fatalf("Plan -> %s, want Auto", got)
+	}
 	if got := nextPermissionMode(agent.PermissionModeAuto); got != agent.PermissionModeAsk {
 		t.Fatalf("Auto -> %s, want Ask", got)
 	}
-	if got := nextPermissionMode(agent.PermissionModeAsk); got != agent.PermissionModeAuto {
-		t.Fatalf("Ask -> %s, want Auto", got)
+	if got := cyclePermissionMode(agent.PermissionModeAuto, -1); got != agent.PermissionModePlan {
+		t.Fatalf("Auto backward -> %s, want Plan", got)
 	}
-	// Unsafe must fold to the STRICTER Ask, never Auto (toggling an Unsafe session
-	// must not make it less strict).
-	if got := nextPermissionMode(agent.PermissionModeUnsafe); got != agent.PermissionModeAsk {
+	// Unsafe must fold to the STRICTER Ask from either direction (toggling an
+	// Unsafe session must not make it less strict).
+	if got := cyclePermissionMode(agent.PermissionModeUnsafe, 1); got != agent.PermissionModeAsk {
 		t.Fatalf("Unsafe -> %s, want Ask", got)
+	}
+	if got := cyclePermissionMode(agent.PermissionModeUnsafe, -1); got != agent.PermissionModeAsk {
+		t.Fatalf("Unsafe backward -> %s, want Ask", got)
 	}
 }
 

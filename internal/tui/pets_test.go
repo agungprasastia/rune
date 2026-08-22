@@ -573,13 +573,19 @@ func TestAmbientPetRetainsSingleColumnComposerDock(t *testing.T) {
 	composerWidth := 0
 	for _, line := range strings.Split(plain, "\n") {
 		if strings.Contains(line, "╭") && strings.Contains(line, "─") {
-			composerWidth = len([]rune(strings.TrimRight(line, " ")))
+			// M3.3: a sidebar may share the row — measure only the main column.
+			cells := []rune(strings.TrimRight(line, " "))
+			if len(cells) >= m.chatColumnWidth()+1 {
+				cells = cells[:m.chatColumnWidth()]
+			}
+			composerWidth = len([]rune(strings.TrimRight(string(cells), " ")))
 		}
 	}
-	if composerWidth != m.width-petReservedColumns {
-		t.Fatalf("visible composer width = %d, want dock to start at %d", composerWidth, m.width-petReservedColumns)
+	if composerWidth != m.chatColumnWidth()-petReservedColumns {
+		t.Fatalf("visible composer width = %d, want dock to start at %d", composerWidth, m.chatColumnWidth()-petReservedColumns)
 	}
-	dockEdge := m.width - petReservedColumns - 1
+	// M3.3: the sidebar may share the row; the dock edge tracks the main column.
+	dockEdge := m.chatColumnWidth() - petReservedColumns - 1
 	foundTop, foundInput := false, false
 	for _, line := range strings.Split(plain, "\n") {
 		runes := []rune(line)
@@ -603,7 +609,7 @@ func TestAmbientPetRetainsSingleColumnComposerDock(t *testing.T) {
 		t.Fatalf("composer rows missing: top=%v input=%v", foundTop, foundInput)
 	}
 	expectedY := len(viewLines(view.Content)) - petImageRows - 1
-	expectedX := m.width - petImageColumns - 2
+	expectedX := m.chatColumnWidth() - petImageColumns - 2
 	var output bytes.Buffer
 	if err := m.petRenderer.Render(&output); err != nil {
 		t.Fatal(err)

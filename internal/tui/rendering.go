@@ -410,7 +410,7 @@ func sayMeasure(width int) int {
 // terminals — long measures hurt readability past the ~90-100 col sweet spot.
 // Looser than sayMeasure's 74 (this is the main answer); tables and code blocks
 // still use the full chat width (the separate tableMeasure arg).
-const assistantMeasureCap = 116
+const assistantMeasureCap = 104
 
 // assistantMeasure is the main answer prose wrap width: the chat width, capped at
 // assistantMeasureCap, with a 16-col floor. Left-aligned (the cap just shortens
@@ -1665,7 +1665,7 @@ func collapsedToolFooter(detail string) string {
 	if n <= cardBodyMaxLines {
 		return ""
 	}
-	return fmt.Sprintf("▸ %d lines — click to expand", n)
+	return fmt.Sprintf("▸ %d lines — Enter · click to expand", n)
 }
 
 func toolRowName(row transcriptRow) string {
@@ -2015,9 +2015,6 @@ func toolCard(head string, glyph string, body []string, footer string, _ lipglos
 		fittedFooter := fitStyledLine(footer, width)
 		pad := strings.Repeat(" ", maxInt(0, width-lipgloss.Width(fittedFooter)))
 		lines = append(lines, runeTheme.panel.Render(fittedFooter+pad))
-	}
-	for index := range lines {
-		lines[index] = runeTheme.panel.Render(lines[index])
 	}
 	return strings.Join(lines, "\n")
 }

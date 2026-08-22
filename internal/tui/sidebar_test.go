@@ -267,11 +267,8 @@ func TestRenderContextSidebarDimensions(t *testing.T) {
 	}
 	// Populated section headers and token floor should be present.
 	plain := stripSidebar(lines)
-	if !strings.Contains(plain, "PLAN") {
-		t.Fatalf("sidebar missing PLAN header:\n%s", plain)
-	}
-	if !strings.Contains(plain, "tokens") {
-		t.Fatalf("sidebar missing token floor:\n%s", plain)
+	if !strings.Contains(plain, "Plan") {
+		t.Fatalf("sidebar missing Plan header:\n%s", plain)
 	}
 }
 
@@ -324,8 +321,8 @@ func TestSidebarShowsSpawnedAgents(t *testing.T) {
 	}
 	// Header shows the total agent count.
 	hdr := stripSidebar([]string{m.sidebarAgentHeader(width)})
-	if !strings.Contains(hdr, "AGENTS") || !strings.Contains(hdr, "2") {
-		t.Fatalf("agent header should show AGENTS 2, got: %s", hdr)
+	if !strings.Contains(hdr, "Agents") || !strings.Contains(hdr, "2") {
+		t.Fatalf("agent header should show Agents 2, got: %s", hdr)
 	}
 }
 
@@ -360,8 +357,8 @@ func TestSidebarShowsSwarmSpawnedAgents(t *testing.T) {
 		t.Fatalf("swarm member short task names missing from sidebar:\n%s", plain)
 	}
 	hdr := stripSidebar([]string{m.sidebarAgentHeader(width)})
-	if !strings.Contains(hdr, "AGENTS") || !strings.Contains(hdr, "2") {
-		t.Fatalf("header should show AGENTS 2, got: %s", hdr)
+	if !strings.Contains(hdr, "Agents") || !strings.Contains(hdr, "2") {
+		t.Fatalf("header should show Agents 2, got: %s", hdr)
 	}
 }
 
@@ -562,8 +559,8 @@ func TestSidebarPlanReflectsState(t *testing.T) {
 		{content: "run tests", status: "pending"},
 	}
 	header := plainRender(t, m.sidebarPlanHeader(40))
-	if !strings.Contains(header, "PLAN") || !strings.Contains(header, "1/3") {
-		t.Fatalf("plan header = %q, want PLAN with 1/3 count", header)
+	if !strings.Contains(header, "Plan") || !strings.Contains(header, "1/3") {
+		t.Fatalf("plan header = %q, want Plan with 1/3 count", header)
 	}
 	lines := m.sidebarPlanLines(40)
 	if len(lines) != 3 {
